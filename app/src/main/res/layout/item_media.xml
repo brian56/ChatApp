@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#00ffffff">
+
+    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
+        android:id="@+id/loader_image"
+        android:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:tashieloader_animDelay="50"
+        app:tashieloader_animDur="1000"
+        app:tashieloader_dotsColor="@color/default_text_color"
+        app:tashieloader_dotsDist="4dp"
+        app:tashieloader_dotsRadius="4dp"
+        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
+        app:tashieloader_noOfDots="3" />
+    <ImageView
+        android:id="@+id/iv_media"
+        android:layout_margin="8dp"
+        android:layout_centerInParent="true"
+        android:scaleType="center"
+        android:layout_width="64dp"
+        android:layout_height="64dp" />
+</RelativeLayout>

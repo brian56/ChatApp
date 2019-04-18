@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Whatsapp</string>
+    <string name="title_activity_home">HomeActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,139 @@
+{
+	"user": {
+		"userID1": {
+			"name": "name",
+			"phoneNumber": "+84522222",
+			"email": "adadad",
+			"password": "addadsada",
+			"notificationKey": "asdadsa",
+			"lastOnline": 1241343431,
+			"createDate": 1341414244,
+			"avatar": "https://adadasd.com/asdjsdadjad",
+			"status": 1,
+			"chat": {
+				"chatID1":true,
+				"chatID2":true,
+				"chatID3":true
+			},
+			"friendList": {
+				"friendListID1": true,
+				"friendListID2": true
+			}
+		},
+		"userID2": {
+			"name": "name",
+			"phoneNumber": "+84522222",
+			"email": "adadad",
+			"password": "addadsada",
+			"notificationKey": "asdadsa",
+			"lastOnline": 1241343431,
+			"createDate": 1341414244,
+			"avatar": "https://adadasd.com/asdjsdadjad",
+			"status": 1,
+			"chat": {
+				"chatID1":true,
+				"chatID2":true,
+				"chatID3":true
+			},
+			"friendList": {
+				"friendListID1": true,
+				"friendListID2": true
+			}
+		}
+	},
+	
+	"chat": {
+		"chatID1": {
+			"group": true,
+			"name": "adsdasdsa",
+			"createDate": 1231242414,
+			"status": 0,
+			"lastMessage": "Adadadasasd",
+			"lastMessageDate": 1234142421,
+			"userIds": {
+				"id1": userID1,
+				"id2": userID2,
+				"id3": userID3
+			},
+			"notificationUserIds": {
+				"userID1": true,
+				"userID2": true,
+				"userID3": true
+			}
+		},
+		"chatID2": {
+			"group": false,
+			"name": "adsdasdsa",
+			"createDate": 1231242414,
+			"status": 0,
+			"lastMessage": "Adadadasasd",
+			"lastMessageDate": 1234142421,
+			"singleChatId": "asdsdasddas_asfsasfafasf",
+			"userIds": {
+				"id1": userID1,
+				"id2": userID2
+			},
+			"notificationUserIds": {
+				"id1": userID1,
+				"id1": userID2
+			}
+		}
+	},
+	
+	"message": {
+		"chatID1": {
+			"messageID1": {
+				"creator": "userID1",
+				"text": "asdasdasdadsas",
+				"status": 0,
+				"createDate": 1423132144,
+				"seenUsers": {
+					"userID1": true,
+					"userID2": true
+				},
+				"media": {
+					"mediaId1": "https://adsdsdsad.com/sdadad",
+					"mediaId2": "https://adsdsdsad.com/sdadad"
+				}
+			},
+			"messageID2": {
+				"creator": "userID2",
+				"text": "asdasdasdadsas",
+				"status": 0,
+				"createDate": 1423132144,
+				"seenUsers": {
+					"userID1": true,
+					"userID2": true
+				}
+			}
+		}
+	},
+	
+	"friendList": {
+		"userID1": {
+			"friendListID1": {
+				"name": "asdasdsad",
+				"member": {
+					"userID2":true,
+					"userID3":true
+				}
+			},
+			"friendListID2": {
+				"name": "Adsasd",
+				"member": {
+					"userID4":true,
+					"userID5":true
+				}
+			}
+		},
+		"userID2": {
+			"friendListID1": {
+				"name": "asdsadasddddd",
+				"member": {
+					"userID2":true,
+					"userID3":true
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+
+    <color name="bgBottomNavigation">#fe485a</color>
+
+    <color name="contact_name">#333333</color>
+    <color name="contact_number">#8c8c8c</color>
+
+    <color name="white">#fff</color>
+
+    <color name="activity_bg_color">#fff</color>
+    <color name="default_text_color">#7e7e7e</color>
+    <color name="divider_color">#e1e1e1</color>
+</resources>

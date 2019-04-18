@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_chat"
+        android:icon="@drawable/ic_chat"
+        android:title="Chat" />
+
+    <item
+        android:id="@+id/navigation_contact"
+        android:icon="@drawable/ic_contact"
+        android:title="Contact" />
+
+    <item
+        android:id="@+id/navigation_group"
+        android:icon="@drawable/ic_group"
+        android:title="Group" />
+
+    <item
+        android:id="@+id/navigation_setting"
+        android:icon="@drawable/ic_setting"
+        android:title="Setting" />
+
+</menu>
