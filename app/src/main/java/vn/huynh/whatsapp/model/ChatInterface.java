@@ -13,7 +13,7 @@ public interface ChatInterface extends BaseModelInterface {
 
     void getChatDetail(String chatId, ChatInterface.ChatDetailCallBack callBack);
 
-    void getChatDetail(boolean onlyGroup, String chatId, ChatInterface.ChatListCallBack callBack);
+    void getChatDetail(boolean onlyGroup, Chat chat, ChatInterface.ChatListCallBack callBack);
 
     void createChat(boolean isGroup, String name, List<User> users, CreateChatCallBack callBack);
 
@@ -21,6 +21,8 @@ public interface ChatInterface extends BaseModelInterface {
 
     interface ChatListCallBack {
         void loadSuccess(Chat chat);
+
+        void updateChatStatus(Chat chat);
 
         void loadSuccessEmptyData();
 

@@ -12,7 +12,9 @@ import vn.huynh.whatsapp.model.Chat;
 
 public interface ChatListContract {
     interface View extends BaseView {
-        void showChatList(List<Chat> list);
+        void showChatList(Chat chat, int position);
+
+        void updateChatListStatus(Chat chatObject);
 
         void showChatListEmpty();
 

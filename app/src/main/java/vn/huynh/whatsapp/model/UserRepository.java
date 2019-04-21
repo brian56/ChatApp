@@ -3,8 +3,10 @@ package vn.huynh.whatsapp.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
+import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -24,11 +26,14 @@ import java.util.Map;
  */
 
 public class UserRepository implements UserInterface {
-    DatabaseReference userDb;
-    ValueEventListener userValueEventListener;
-    Query query;
+    private static final String TAG = UserRepository.class.getSimpleName();
+    private DatabaseReference dbRef;
+    private DatabaseReference userDb;
+    private ValueEventListener userValueEventListener;
+    private Query query;
 
     public UserRepository() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
     }
 
     @Override
@@ -40,11 +45,19 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
+    public void addListener() {
+        if (userDb != null && userValueEventListener != null)
+            userDb.addValueEventListener(userValueEventListener);
+        if (query != null && userValueEventListener != null)
+            query.addValueEventListener(userValueEventListener);
+    }
+
+    @Override
     public void isLoggedIn(final CheckLoginCallBack callBack) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            userDb = FirebaseDatabase.getInstance().getReference().child("user").child(FirebaseAuth.getInstance().getUid());
-            userDb.addValueEventListener(new ValueEventListener() {
+            userDb = dbRef.child("user").child(FirebaseAuth.getInstance().getUid());
+            userDb.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()) {
@@ -72,14 +85,42 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void getUserData(String userId, final Chat chat, final ChatInterface.ChatListCallBack callBack) {
-        userDb = FirebaseDatabase.getInstance().getReference().child("user").child(userId);
-        userValueEventListener = new ValueEventListener() {
+    public Task getUserData(final String userId) {
+        final TaskCompletionSource<DataSnapshot> dbSource = new TaskCompletionSource<>();
+        final Task dbTask = dbSource.getTask();
+        final DatabaseReference userDb = dbRef.child("user").child(userId);
+        final ValueEventListener userValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                User user = dataSnapshot.getValue(User.class);
+//                user.setId(dataSnapshot.getKey());
+//                chat.addUser(user);
+//                Log.d(TAG, user.getName());
+//                if (callBack != null) {
+//                    callBack.loadSuccess(chat);
+//                }
+                dbSource.setResult(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                dbSource.setException(databaseError.toException());
+            }
+        };
+        userDb.addListenerForSingleValueEvent(userValueEventListener);
+        return dbTask;
+    }
+
+    /*@Override
+    public void getUserData(final String userId, final Chat chat, final ChatInterface.ChatListCallBack callBack) {
+        final DatabaseReference userDb = dbRef.child("user").child(userId);
+        ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 user.setId(dataSnapshot.getKey());
                 chat.addUser(user);
+                Log.d(TAG, user.getName());
                 if (callBack != null) {
                     callBack.loadSuccess(chat);
                 }
@@ -90,18 +131,19 @@ public class UserRepository implements UserInterface {
 
             }
         };
-        userDb.addValueEventListener(userValueEventListener);
-    }
+        userDb.addListenerForSingleValueEvent(userValueEventListener);
+    }*/
 
     @Override
     public void getUserData(String userId, final Chat chat, final ChatInterface.ChatDetailCallBack callBack) {
-        userDb = FirebaseDatabase.getInstance().getReference().child("user").child(userId);
-        userValueEventListener = new ValueEventListener() {
+        final DatabaseReference userDb = dbRef.child("user").child(userId);
+        ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 user.setId(dataSnapshot.getKey());
                 chat.addUser(user);
+                Log.d(TAG, user.getName());
                 if (callBack != null) {
                     callBack.loadSuccess(chat);
                 }
@@ -112,14 +154,14 @@ public class UserRepository implements UserInterface {
 
             }
         };
-        userDb.addValueEventListener(userValueEventListener);
+        userDb.addListenerForSingleValueEvent(userValueEventListener);
     }
 
     @Override
     public void getUserData(final User contact, final LoadContactCallBack callBack) {
-        userDb = FirebaseDatabase.getInstance().getReference().child("user");
-        query = userDb.orderByChild("phoneNumber").equalTo(contact.getPhoneNumber());
-        userValueEventListener = new ValueEventListener() {
+        final DatabaseReference userDb = dbRef.child("user");
+        Query query = userDb.orderByChild("phoneNumber").equalTo(contact.getPhoneNumber());
+        ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -142,20 +184,20 @@ public class UserRepository implements UserInterface {
 
             }
         };
-        query.addValueEventListener(userValueEventListener);
+        query.addListenerForSingleValueEvent(userValueEventListener);
     }
 
     @Override
     public void createUser(String userId, final String phoneNumber, final String name, final CreateUserCallBack callBack) {
-        final DatabaseReference userDB = FirebaseDatabase.getInstance().getReference().child("user").child(userId);
-        userDB.addListenerForSingleValueEvent(new ValueEventListener() {
+        final DatabaseReference userDb = dbRef.child("user").child(userId);
+        userDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("phoneNumber", phoneNumber);
                 userMap.put("name", name);
                 userMap.put("createDate", ServerValue.TIMESTAMP);
-                userDB.updateChildren(userMap, new DatabaseReference.CompletionListener() {
+                userDb.updateChildren(userMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if(databaseError == null) {

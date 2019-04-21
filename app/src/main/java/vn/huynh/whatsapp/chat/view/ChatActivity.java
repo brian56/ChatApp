@@ -13,7 +13,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -89,7 +88,11 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     @Override
     protected void onStop() {
         super.onStop();
-        chatPresenter.removeListener();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -129,7 +132,7 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.setAction(intent.ACTION_GET_CONTENT);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select picture(s)"), PICK_IMAGE_INTENT);
     }
 
@@ -155,17 +158,17 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         rvChat.setHasFixedSize(false);
         chatLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
         chatLayoutManager.setStackFromEnd(true);
+        chatLayoutManager.setSmoothScrollbarEnabled(true);
         rvChat.setLayoutManager(chatLayoutManager);
-        chatLayoutManager.scrollToPosition(messageList.size());
         messageAdapter = new MessageAdapter(messageList, chatObject, ChatActivity.this);
         rvChat.setAdapter(messageAdapter);
-        rvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (messageAdapter.getItemCount() > 0 && bottom < oldBottom)
-                    chatLayoutManager.smoothScrollToPosition(rvChat, null, messageAdapter.getItemCount() - 1);
-            }
-        });
+//        rvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//            @Override
+//            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                if (messageAdapter.getItemCount() > 0 && bottom < oldBottom)
+//                    chatLayoutManager.smoothScrollToPosition(rvChat, null, messageAdapter.getItemCount() - 1);
+//            }
+//        });
     }
 
     private void initializeMediaList() {
@@ -180,7 +183,8 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("message", edtMessage.getText().toString().trim());
-        outState.putStringArrayList("mediaList", mediaUriList);
+        if (mediaUriList != null && mediaUriList.size() > 0)
+            outState.putStringArrayList("mediaList", mediaUriList);
         super.onSaveInstanceState(outState);
     }
 
@@ -217,7 +221,11 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     public void addSendingMessageToList(Message messageObject) {
         if (messageObject != null) {
             messageList.add(messageObject);
-            messageAdapter.notifyItemInserted(messageList.size() - 1);
+            if (messageList.size() == 0)
+                messageAdapter.notifyItemInserted(0);
+            else {
+                messageAdapter.notifyItemInserted(messageList.size() - 1);
+            }
             if(messageList.size() > 1)
                 mediaAdapter.notifyItemChanged(messageList.size() -2);
             chatLayoutManager.scrollToPosition(messageList.size() - 1);
@@ -238,7 +246,11 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
                     }
                 }
                 messageList.add(messageObject);
-                messageAdapter.notifyItemInserted(messageList.size() - 1);
+                if (messageList.size() == 0)
+                    messageAdapter.notifyItemInserted(0);
+                else {
+                    messageAdapter.notifyItemInserted(messageList.size() - 1);
+                }
                 if(messageList.size() > 1)
                     mediaAdapter.notifyItemChanged(messageList.size() -2);
                 chatLayoutManager.scrollToPosition(messageList.size() - 1);

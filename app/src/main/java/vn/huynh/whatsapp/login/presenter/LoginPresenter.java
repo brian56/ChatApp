@@ -12,16 +12,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.ValueEventListener;
 import com.onesignal.OneSignal;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import vn.huynh.whatsapp.base.BaseView;
@@ -57,6 +49,11 @@ public class LoginPresenter implements LoginContract.Presenter {
     @Override
     public void removeListener() {
         this.userInterface.removeListener();
+    }
+
+    @Override
+    public void addListener() {
+        this.userInterface.addListener();
     }
 
     @Override

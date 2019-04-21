@@ -2,6 +2,8 @@ package vn.huynh.whatsapp.model;
 
 import android.content.Context;
 
+import com.google.android.gms.tasks.Task;
+
 import java.util.List;
 
 import vn.huynh.whatsapp.base.BaseModelInterface;
@@ -16,7 +18,9 @@ public interface UserInterface extends BaseModelInterface {
 
     void loadContact(Context context, List<User> contacts, LoadContactCallBack callBack);
 
-    void getUserData(String userId, Chat chat, ChatInterface.ChatListCallBack callBack);
+    Task getUserData(String userId);
+
+//    void getUserData(String userId, Chat chat, ChatInterface.ChatListCallBack callBack);
 
     void getUserData(String userId, Chat chat, ChatInterface.ChatDetailCallBack callBack);
 

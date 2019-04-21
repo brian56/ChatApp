@@ -2,15 +2,15 @@ package vn.huynh.whatsapp.chat_list.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
@@ -21,7 +21,6 @@ import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.model.Chat;
-import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.GlideLoader;
 
 /**
@@ -38,16 +37,16 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     }
 
     @Override
-    public ChatListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ChatListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat, null, false);
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutView.setLayoutParams(lp);
-        ChatListViewHolder rcv = new ChatListViewHolder(layoutView);
-        return rcv;
+        return new ChatListViewHolder(layoutView);
     }
 
     @Override
-    public void onBindViewHolder(final ChatListViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final ChatListViewHolder holder, final int position) {
+        Log.d("Chat group", chatList.get(holder.getAdapterPosition()).getChatName());
         holder.tvTitle.setText(chatList.get(holder.getAdapterPosition()).getChatName());
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override

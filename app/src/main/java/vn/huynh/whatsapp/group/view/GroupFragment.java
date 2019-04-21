@@ -1,5 +1,6 @@
 package vn.huynh.whatsapp.group.view;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,8 +47,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     }
 
     public static GroupFragment newInstance() {
-        GroupFragment groupFragment = new GroupFragment();
-        return groupFragment;
+        return new GroupFragment();
     }
 
     @Nullable
@@ -93,6 +92,8 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                groupList.clear();
+                groupListAdapter.notifyDataSetChanged();
                 groupPresenter.loadListGroup(groupList);
             }
         });
@@ -101,7 +102,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == getActivity().RESULT_OK) {
+        if (resultCode == Activity.RESULT_OK) {
             if (requestCode == CREATE_GROUP_INTENT) {
                 if(data.getStringExtra("chatId") != null) {
                     String chatGroupId = data.getStringExtra("chatId");
@@ -127,8 +128,24 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     }
 
     @Override
-    public void showListGroup(List<Chat> list) {
-        groupListAdapter.notifyDataSetChanged();
+    public void showListGroup(int position) {
+        groupListAdapter.notifyItemInserted(position);
+//        groupListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void updateListGroupStatus(Chat chatObject) {
+        if (groupList.size() > 0) {
+            int i = groupList.indexOf(chatObject);
+            if (i > 0) {
+                groupList.remove(chatObject);
+                groupListAdapter.notifyItemRemoved(i);
+                groupList.add(0, chatObject);
+                groupListAdapter.notifyItemInserted(0);
+            } else if (i == 0) {
+                groupListAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     @Override
@@ -151,15 +168,14 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void onStart() {
         super.onStart();
+        groupList.clear();
+        groupListAdapter.notifyDataSetChanged();
         groupPresenter.loadListGroup(groupList);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (refreshData) {
-            groupPresenter.loadListGroup(groupList);
-        }
     }
 
     @Override
@@ -171,7 +187,6 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     public void onStop() {
         super.onStop();
         refreshData = true;
-        groupPresenter.removeListener();
     }
 
     @Override

@@ -6,7 +6,6 @@ import android.telephony.TelephonyManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import vn.huynh.whatsapp.model.User;
@@ -20,13 +19,17 @@ public class Utils {
         return FirebaseAuth.getInstance().getUid();
     }
 
-    public static String getPhoneFromCountryISO(Context context) {
+    private static String getPhoneFromCountryISO(Context context) {
         String iso = null;
-        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
-        if (telephonyManager.getNetworkCountryIso() != null) {
-            if (!telephonyManager.getNetworkCountryIso().toString().equalsIgnoreCase("")) {
-                iso = telephonyManager.getNetworkCountryIso().toString();
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        try {
+            if (telephonyManager.getNetworkCountryIso() != null) {
+                if (!telephonyManager.getNetworkCountryIso().equalsIgnoreCase("")) {
+                    iso = telephonyManager.getNetworkCountryIso();
+                }
             }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
         return IsoToPhone.getPhone(iso);
     }
@@ -45,7 +48,6 @@ public class Utils {
     }
 
     public static String getSingleChatId(List<String> list) {
-        Collections.sort(list);
         String singleChatId = "";
         for (int i = 0; i < list.size(); i++) {
             if(i == list.size() -1)
@@ -61,7 +63,6 @@ public class Utils {
         for (User user : userList) {
             listId.add(user.getId());
         }
-        Collections.sort(listId);
         String singleChatId = "";
         for (int i = 0; i < listId.size(); i++) {
             if(i == listId.size() -1)

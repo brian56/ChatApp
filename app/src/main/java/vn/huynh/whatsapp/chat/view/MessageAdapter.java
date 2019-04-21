@@ -1,8 +1,8 @@
 package vn.huynh.whatsapp.chat.view;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -51,20 +51,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @NonNull
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case THEIR_MESSAGE:
                 View layoutView2 = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_their_message, null, false);
                 RecyclerView.LayoutParams lp2 = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layoutView2.setLayoutParams(lp2);
-                TheirMessageViewHolder rcv2 = new TheirMessageViewHolder(layoutView2);
-                return rcv2;
+                return new TheirMessageViewHolder(layoutView2);
             default:
                 View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_my_message, null, false);
                 RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layoutView.setLayoutParams(lp);
-                MyMessageViewHolder rcv = new MyMessageViewHolder(layoutView);
-                return rcv;
+                return new MyMessageViewHolder(layoutView);
         }
     }
 
@@ -77,7 +76,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         switch (holder.getItemViewType()) {
             case MY_MESSAGE:
                 if (messageList.get(holder.getAdapterPosition()).getStatus() == Message.STATUS_SENDING) {
@@ -108,7 +107,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                     MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl);
                     ((MyMessageViewHolder) holder).rvMedia.setHasFixedSize(true);
-                    ((MyMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumn(mediaAdapter.getItemCount())));
+                    ((MyMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumnMediaList(mediaAdapter.getItemCount())));
                     ((MyMessageViewHolder) holder).rvMedia.setAdapter(mediaAdapter);
                 }
                 break;
@@ -135,7 +134,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                     MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl);
                     ((TheirMessageViewHolder) holder).rvMedia.setHasFixedSize(true);
-                    ((TheirMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumn(mediaAdapter.getItemCount())));
+                    ((TheirMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumnMediaList(mediaAdapter.getItemCount())));
                     ((TheirMessageViewHolder) holder).rvMedia.setAdapter(mediaAdapter);
 //                    ((TheirMessageViewHolder)holder).btnViewMedia.setOnClickListener(new View.OnClickListener() {
 //                        @Override
@@ -172,7 +171,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return 0;
     }
 
-    private int numberColumn(int itemCount) {
+    private int numberColumnMediaList(int itemCount) {
         if(itemCount <= maxColumn)
             return itemCount;
         else

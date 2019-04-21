@@ -1,14 +1,15 @@
 package vn.huynh.whatsapp.model;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import vn.huynh.whatsapp.utils.Utils;
 
@@ -20,6 +21,7 @@ public class Chat implements Serializable {
     private String id;
     private boolean group;
     private String name;
+    private String creatorId;
     private Object createDate;
     private Object lastMessageDate;
     private int status = STATUS_ENABLE;
@@ -29,7 +31,7 @@ public class Chat implements Serializable {
 
     private String singleChatId;
 
-    private List<User> users = new ArrayList<>();
+    private List<User> users;
 
     public static final int STATUS_ENABLE = 1;
     public static final int STATUS_DELETED = -1;
@@ -112,7 +114,8 @@ public class Chat implements Serializable {
     }
 
     public Map<String, String> getUserIds() {
-        return userIds;
+        //sort map by key
+        return new TreeMap<>(userIds);
     }
 
     public void setUserIds(Map<String, String> userIds) {
@@ -135,6 +138,14 @@ public class Chat implements Serializable {
         this.singleChatId = singleChatId;
     }
 
+    public String getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
+    }
+
     @Exclude
     public List<User> getUsers() {
         return users;
@@ -147,10 +158,12 @@ public class Chat implements Serializable {
 
     @Exclude
     public void addUser(User user) {
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getId().equals(user.getId())) {
-                users.remove(i);
-                users.add(i, user);
+        if (this.users == null)
+            this.users = new ArrayList<>();
+        for (int i = 0; i < this.users.size(); i++) {
+            if (this.users.get(i).getId().equals(user.getId())) {
+                this.users.remove(i);
+                this.users.add(i, user);
                 return;
             }
         }
@@ -159,39 +172,64 @@ public class Chat implements Serializable {
 
     @Exclude
     public String getChatName() {
-        if(!TextUtils.isEmpty(name)) {
-            return name;
+        if (!TextUtils.isEmpty(this.name)) {
+            return this.name;
         }
         String groupName = "";
-        if(group) {
-            if(users != null) {
-                for (int i = 0; i < users.size(); i++) {
-                    if (i < users.size() -1)
-                        groupName = groupName + users.get(i).getName() + ", ";
-                    else
-                        groupName += users.get(i).getName();
+        try {
+            if (group) {
+                if (this.users != null) {
+                    for (int i = 0; i < this.users.size(); i++) {
+                        Log.d("User group", this.users.get(i).getName());
+                        if (i < this.users.size() - 1)
+                            groupName = groupName + this.users.get(i).getName() + ", ";
+                        else
+                            groupName += this.users.get(i).getName();
+                    }
+                }
+            } else {
+                if (this.users != null) {
+                    for (int i = 0; i < this.users.size(); i++) {
+                        if (!this.users.get(i).getId().equals(Utils.currentUserId())) {
+                            return this.users.get(i).getName();
+                        }
+                    }
                 }
             }
-        } else {
-            if(users != null) {
-                for (int i = 0; i < users.size(); i++) {
-                    if (!users.get(i).getId().equals(Utils.currentUserId()))
-                        return users.get(i).getName();
-                }
-            }
+        } catch (Exception e) {
+            return groupName;
         }
+//        Log.d("Chat group name", groupName);
         return groupName;
     }
 
     @Exclude
     public String getChatAvatar() {
-        if(users != null && users.size() > 0) {
-            for (int i = 0; i < users.size(); i++) {
-                if(!users.get(i).getId().equals(Utils.currentUserId())) {
-                    return users.get(i).getAvatar();
+        if (this.users != null && this.users.size() > 0) {
+            for (int i = 0; i < this.users.size(); i++) {
+                if (!this.users.get(i).getId().equals(Utils.currentUserId())) {
+                    return this.users.get(i).getAvatar();
                 }
             }
         }
         return "";
     }
+
+    @Exclude
+    public void cloneChat(Chat c2) {
+        if (this.id == null)
+            this.setId(c2.getId());
+        if (this.users == null)
+            this.setUsers(c2.getUsers());
+        this.setUserIds(c2.getUserIds());
+        this.setStatus(c2.getStatus());
+        this.setNotificationUserIds(c2.getNotificationUserIds());
+        this.setName(c2.getName());
+        this.setCreateDate(c2.getCreateDate());
+        this.setGroup(c2.isGroup());
+        this.setLastMessage(c2.getLastMessage());
+        this.setLastMessageDate(c2.getLastMessageDate());
+        this.setSingleChatId(c2.getSingleChatId());
+    }
+
 }

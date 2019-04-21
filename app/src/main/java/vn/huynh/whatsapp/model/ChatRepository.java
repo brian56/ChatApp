@@ -3,6 +3,9 @@ package vn.huynh.whatsapp.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,6 +34,8 @@ public class ChatRepository implements ChatInterface {
     private ValueEventListener valueEventListener;
     private UserRepository userRepository;
     private Query query;
+    private HashMap<DatabaseReference, ValueEventListener> mValueListenerMap = new HashMap<>();
+    private HashMap<DatabaseReference, ChildEventListener> mChildEventListenerMap = new HashMap<>();
 
     public ChatRepository() {
         userRepository = new UserRepository();
@@ -41,20 +46,48 @@ public class ChatRepository implements ChatInterface {
         if (chatDb != null && childEventListener != null) {
             chatDb.removeEventListener(childEventListener);
         }
+        if (chatDetailDb != null && valueEventListener != null) {
+            chatDetailDb.removeEventListener(valueEventListener);
+        }
+        if (query != null && valueEventListener != null) {
+            query.removeEventListener(valueEventListener);
+        }
         if (userRepository != null) {
             userRepository.removeListener();
+        }
+
+        for (Map.Entry<DatabaseReference, ValueEventListener> entry : mValueListenerMap.entrySet()) {
+            DatabaseReference ref = entry.getKey();
+            ValueEventListener listener = entry.getValue();
+            ref.removeEventListener(listener);
+        }
+    }
+
+    @Override
+    public void addListener() {
+        if (chatDb != null && childEventListener != null) {
+            chatDb.addChildEventListener(childEventListener);
+        }
+        if (chatDetailDb != null && valueEventListener != null) {
+            chatDetailDb.addValueEventListener(valueEventListener);
+        }
+        if (userRepository != null) {
+            userRepository.addListener();
         }
     }
 
     @Override
     public void getChatList(final boolean onlyGroup, final ChatListCallBack callBack) {
+        removeListener();
+        mValueListenerMap.clear();
         chatDb = FirebaseDatabase.getInstance().getReference().child("user").child(Utils.currentUserId()).child("chat");
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     String chatId = dataSnapshot.getKey();
-                    getChatDetail(onlyGroup, chatId, callBack);
+                    Chat chat = new Chat(chatId);
+                    getChatDetail(onlyGroup, chat, callBack);
                 }
             }
 
@@ -97,27 +130,45 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void getChatDetail(final boolean onlyGroup, final String chatId, final ChatInterface.ChatListCallBack callBack) {
+    public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatInterface.ChatListCallBack callBack) {
         //get chat detail for chat list
-        chatDetailDb = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId);
-        valueEventListener = new ValueEventListener() {
+        DatabaseReference chatDetailRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chat.getId());
+        ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    if (onlyGroup == true && (boolean) dataSnapshot.child("group").getValue() != onlyGroup) {
+                    if (onlyGroup && !(boolean) dataSnapshot.child("group").getValue()) {
                         callBack.loadSuccess(null);
                     } else {
-                        Chat chat = dataSnapshot.getValue(Chat.class);
-                        chat.setId(chatId);
-                        List<String> userList = new ArrayList<>(chat.getUserIds().values());
-                        long pos = 0;
-                        for (String userId : userList) {
-                            pos++;
-                            if (pos == chat.getUserIds().size()) {
-                                userRepository.getUserData(userId, chat, callBack);
-                            } else {
-                                userRepository.getUserData(userId, chat, (ChatListCallBack) null);
+                        Chat temp = dataSnapshot.getValue(Chat.class);
+                        temp.setId(dataSnapshot.getKey());
+                        chat.cloneChat(temp);
+                        if (chat.getUsers() != null) {
+                            callBack.updateChatStatus(chat);
+                        } else {
+                            List<String> userList = new ArrayList<>(chat.getUserIds().values());
+                            List<Task<DataSnapshot>> taskList = new ArrayList<>();
+                            for (String userId : userList) {
+                                chat.addUser(new User(userId));
+                                taskList.add(userRepository.getUserData(userId));
                             }
+                            Tasks.whenAllSuccess(taskList).addOnCompleteListener(new OnCompleteListener<List<Object>>() {
+                                @Override
+                                public void onComplete(@NonNull Task<List<Object>> task) {
+                                    try {
+                                        for (Object dataSnapshot : task.getResult()) {
+                                            if (dataSnapshot instanceof DataSnapshot) {
+                                                User user = ((DataSnapshot) dataSnapshot).getValue(User.class);
+                                                user.setId(((DataSnapshot) dataSnapshot).getKey());
+                                                chat.addUser(user);
+                                            }
+                                        }
+                                        callBack.loadSuccess(chat);
+                                    } catch (NullPointerException e) {
+                                        callBack.loadFail(e.getMessage());
+                                    }
+                                }
+                            });
                         }
                     }
                 } else {
@@ -130,18 +181,20 @@ public class ChatRepository implements ChatInterface {
 
             }
         };
-        chatDetailDb.addValueEventListener(valueEventListener);
+        mValueListenerMap.put(chatDetailRef, valueEventListener);
+        chatDetailRef.addValueEventListener(valueEventListener);
 
     }
 
     @Override
     public void getChatDetail(final String chatId, final ChatDetailCallBack callBack) {
+        removeListener();
         //get chat detail
         chatDetailDb = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId);
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     Chat chat = dataSnapshot.getValue(Chat.class);
                     chat.setId(chatId);
                     List<String> userList = new ArrayList<>(chat.getUserIds().values());
@@ -149,9 +202,9 @@ public class ChatRepository implements ChatInterface {
                     for (String userId : userList) {
                         pos++;
                         if (pos == chat.getUserIds().size()) {
-                            userRepository.getUserData(userId, chat, (ChatDetailCallBack) callBack);
+                            userRepository.getUserData(userId, chat, callBack);
                         } else {
-                            userRepository.getUserData(userId, chat, (ChatDetailCallBack) null);
+                            userRepository.getUserData(userId, chat, null);
                         }
                     }
                 } else {
@@ -170,10 +223,15 @@ public class ChatRepository implements ChatInterface {
 
     @Override
     public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallBack callBack) {
+        removeListener();
         userDb = FirebaseDatabase.getInstance().getReference().child("user");
         chatDb = FirebaseDatabase.getInstance().getReference().child("chat").push();
         final String chatId = chatDb.getKey();
 
+        if (chatId == null) {
+            callBack.createFail("Cannot get chat Id");
+            return;
+        }
         DatabaseReference userIdRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId).child("userIds");
         DatabaseReference notificationIdRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId).child("notificationUserIds");
 
@@ -185,6 +243,7 @@ public class ChatRepository implements ChatInterface {
         chat.setId(chatId);
         chat.setName(name);
         chat.setGroup(isGroup);
+        chat.setCreatorId(Utils.currentUserId());
         chat.setLastMessage("");
         chat.setStatus(Chat.STATUS_ENABLE);
         chat.setCreateDate(ServerValue.TIMESTAMP);
@@ -212,7 +271,7 @@ public class ChatRepository implements ChatInterface {
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot != null) {
+                            if (dataSnapshot.exists()) {
                                 long lastMessageDate = (long) dataSnapshot.child("lastMessageDate").getValue();
                                 for (String userId : userIds) {
                                     userDb.child(userId).child("chat").child(chatId).setValue(lastMessageDate);

@@ -11,7 +11,6 @@ import java.util.List;
 import vn.huynh.whatsapp.base.BaseView;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.group.GroupContract;
-import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.ChatInterface;
 import vn.huynh.whatsapp.model.ChatRepository;
 import vn.huynh.whatsapp.model.User;
@@ -54,6 +53,12 @@ public class ContactPresenter implements ContactContract.Presenter {
     public void removeListener() {
         this.chatModelInterface.removeListener();
         this.userModelInterface.removeListener();
+    }
+
+    @Override
+    public void addListener() {
+        this.chatModelInterface.addListener();
+        this.userModelInterface.addListener();
     }
 
     @Override
@@ -125,13 +130,18 @@ public class ContactPresenter implements ContactContract.Presenter {
         protected List<User> doInBackground(Void... voids) {
             List<User> contacts = new ArrayList<>();
             Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-            while (phones.moveToNext()) {
-                String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-                String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                phone = Utils.formatPhone(phone, context);
-                User contact = new User("", name, phone);
-                contacts.add(contact);
+            try {
+                while (phones.moveToNext()) {
+                    String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
+                    String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
+                    phone = Utils.formatPhone(phone, context);
+                    User contact = new User("", name, phone);
+                    contacts.add(contact);
+                }
+            } catch (NullPointerException e) {
+                return contacts;
             }
+            phones.close();
             return contacts;
         }
 

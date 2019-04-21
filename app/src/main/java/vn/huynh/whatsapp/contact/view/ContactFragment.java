@@ -21,7 +21,6 @@ import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.contact.presenter.ContactPresenter;
-import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
 
 /**
@@ -39,14 +38,14 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     private RecyclerView.LayoutManager userListLayoutManager;
     private ArrayList<User> userList;
 
+    private boolean refreshData = false;
     private ContactContract.Presenter presenter;
 
     public ContactFragment() {
     }
 
     public static ContactFragment newInstance() {
-        ContactFragment contactFragment = new ContactFragment();
-        return contactFragment;
+        return new ContactFragment();
     }
 
     @Nullable
@@ -59,13 +58,12 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupPresenter();
         setEvents();
         initializeRecyclerView();
-        userList.clear();
-        presenter.loadListContact(getActivity());
+        refreshData = false;
     }
 
     private void setupPresenter() {
@@ -78,6 +76,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
             @Override
             public void onRefresh() {
                 userList.clear();
+                userListAdapter.notifyDataSetChanged();
                 presenter.loadListContact(getActivity());
             }
         });
@@ -87,7 +86,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
         userList = new ArrayList<>();
         rvUserList.setNestedScrollingEnabled(false);
         rvUserList.setHasFixedSize(false);
-        userListLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext(), LinearLayout.VERTICAL, false);
+        userListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
         rvUserList.setLayoutManager(userListLayoutManager);
         userListAdapter = new ContactListAdapter(userList, true, presenter);
         rvUserList.setAdapter(userListAdapter);
@@ -98,7 +97,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     public void showListContact(User userObject) {
         if(userObject != null) {
             userList.add(userObject);
-            userListAdapter.notifyItemInserted(userList.size() - 1);
+            userListAdapter.notifyDataSetChanged();
         }
     }
 
@@ -125,15 +124,33 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        userList.clear();
+        userListAdapter.notifyDataSetChanged();
+        presenter.loadListContact(getContext());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (refreshData) {
+            userList.clear();
+            presenter.loadListContact(getContext());
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
+        refreshData = false;
         presenter.detachView();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        presenter.removeListener();
+        refreshData = true;
     }
 
     /* private void getContactList() {

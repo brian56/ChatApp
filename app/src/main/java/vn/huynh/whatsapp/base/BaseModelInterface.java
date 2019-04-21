@@ -6,4 +6,6 @@ package vn.huynh.whatsapp.base;
 
 public interface BaseModelInterface {
     void removeListener();
+
+    void addListener();
 }

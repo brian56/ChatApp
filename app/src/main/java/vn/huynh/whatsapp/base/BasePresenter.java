@@ -10,4 +10,6 @@ public interface BasePresenter {
     void detachView();
 
     void removeListener();
+
+    void addListener();
 }

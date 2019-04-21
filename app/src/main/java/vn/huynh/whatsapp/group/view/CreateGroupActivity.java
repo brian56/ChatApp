@@ -16,12 +16,10 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
-import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.contact.presenter.ContactPresenter;
 import vn.huynh.whatsapp.contact.view.ContactListAdapter;
@@ -138,7 +136,12 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
     }
 
     @Override
-    public void showListGroup(List<Chat> list) {
+    public void showListGroup(int position) {
+
+    }
+
+    @Override
+    public void updateListGroupStatus(Chat chat) {
 
     }
 
@@ -160,7 +163,7 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
     public void showListContact(User userObject) {
         if(userObject != null) {
             userList.add(userObject);
-            userListAdapter.notifyItemInserted(userList.size() - 1);
+            userListAdapter.notifyDataSetChanged();
         }
     }
 
@@ -179,8 +182,6 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
     @Override
     protected void onStop() {
         super.onStop();
-        contactPresenter.removeListener();
-        groupPresenter.removeListener();
     }
 
     /* private void createChat() {

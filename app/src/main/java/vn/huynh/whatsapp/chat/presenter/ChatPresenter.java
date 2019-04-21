@@ -47,6 +47,12 @@ public class ChatPresenter implements ChatContract.Presenter {
     }
 
     @Override
+    public void addListener() {
+        this.chatInterface.addListener();
+        this.messageInterface.addListener();
+    }
+
+    @Override
     public void loadChatDetail(String chatId) {
         view.showLoadingIndicator();
         chatInterface.getChatDetail(chatId, new ChatInterface.ChatDetailCallBack() {

@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
@@ -61,7 +60,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void loggedInMoveToHome() {
         startActivity(new Intent(getApplicationContext(), HomeActivity.class));
         finish();
-        return;
     }
 
     @Override
@@ -139,6 +137,5 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onStop() {
         super.onStop();
-        presenter.removeListener();
     }
 }

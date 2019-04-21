@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,8 +42,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     }
 
     public static ChatListFragment newInstance() {
-        ChatListFragment chatFragment = new ChatListFragment();
-        return chatFragment;
+        return new ChatListFragment();
     }
 
     @Nullable
@@ -56,7 +54,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initializeRecyclerView();
         setupPresenter();
@@ -67,15 +65,15 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onStart() {
         super.onStart();
+        refreshData = false;
+        chatList.clear();
+        chatListAdapter.notifyDataSetChanged();
         presenter.loadChatList(chatList);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (refreshData) {
-            presenter.loadChatList(chatList);
-        }
     }
 
     @Override
@@ -87,7 +85,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public void onStop() {
         super.onStop();
         refreshData = true;
-        presenter.removeListener();
     }
 
     @Override
@@ -111,6 +108,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                chatList.clear();
+                chatListAdapter.notifyDataSetChanged();
                 presenter.loadChatList(chatList);
             }
         });
@@ -119,7 +118,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     private void initializeRecyclerView() {
         chatList = new ArrayList<>();
         rvChatList.setNestedScrollingEnabled(false);
-        rvChatList.setHasFixedSize(false);
         chatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
         rvChatList.setLayoutManager(chatListLayoutManager);
         chatListAdapter = new ChatListAdapter(chatList, getActivity());
@@ -133,8 +131,35 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     }
 
     @Override
-    public void showChatList(List<Chat> chatObjects) {
-        chatListAdapter.notifyDataSetChanged();
+    public void showChatList(Chat chat, int position) {
+//        if (chatList.size() == 2) {
+//            chatListAdapter.notifyDataSetChanged();
+//        } else
+        chatList.add(position, chat);
+        try {
+            chatListAdapter.notifyItemInserted(position);
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void updateChatListStatus(Chat chatObject) {
+        try {
+            if (chatList.size() > 0) {
+                int i = chatList.indexOf(chatObject);
+                if (i > 0) {
+                    chatList.remove(chatObject);
+                    chatListAdapter.notifyItemRemoved(i);
+                    chatList.add(0, chatObject);
+                    chatListAdapter.notifyItemInserted(0);
+                } else if (i == 0) {
+                    chatListAdapter.notifyDataSetChanged();
+                }
+            }
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

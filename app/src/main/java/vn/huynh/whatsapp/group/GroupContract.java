@@ -13,7 +13,9 @@ import vn.huynh.whatsapp.model.User;
 
 public interface GroupContract {
     interface View extends BaseView {
-        void showListGroup(List<Chat> list);
+        void showListGroup(int position);
+
+        void updateListGroupStatus(Chat chatObject);
 
         void showListGroupEmpty();
 

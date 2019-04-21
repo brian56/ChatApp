@@ -3,13 +3,14 @@ package vn.huynh.whatsapp.chat.view;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
 import com.bumptech.glide.Glide;
@@ -19,7 +20,6 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.stfalcon.frescoimageviewer.ImageViewer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,36 +40,41 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     }
 
     @Override
-    public MediaViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @NonNull
+    public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_media, null, false);
-        MediaViewHolder viewHolder = new MediaViewHolder(layoutView);
-        return viewHolder;
+        return new MediaViewHolder(layoutView);
     }
 
     @Override
-    public void onBindViewHolder(final MediaViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final MediaViewHolder holder, int position) {
         holder.loader.setVisibility(View.VISIBLE);
-        Glide.with(context)
-                .load(Uri.parse(mediaList.get(position)))
-                .listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        holder.loader.setVisibility(View.GONE);
-                        return false;
-                    }
+        try {
+            Glide.with(context)
+                    .load(Uri.parse(mediaList.get(holder.getAdapterPosition())))
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            if (!TextUtils.isEmpty(mediaList.get(holder.getAdapterPosition())))
+                                holder.loader.setVisibility(View.GONE);
+                            return false;
+                        }
 
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        holder.loader.setVisibility(View.GONE);
-                        return false;
-                    }
-                })
-                .into(holder.ivMedia);
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            holder.loader.setVisibility(View.GONE);
+                            return false;
+                        }
+                    })
+                    .into(holder.ivMedia);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
         holder.ivMedia.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new ImageViewer.Builder(v.getContext(), mediaList)
-                        .setStartPosition(position)
+                        .setStartPosition(holder.getAdapterPosition())
                         .show();
             }
         });

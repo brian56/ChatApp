@@ -39,8 +39,12 @@ public class GroupPresenter implements GroupContract.Presenter {
     }
 
     @Override
+    public void addListener() {
+        this.chatModelInterface.addListener();
+    }
+
+    @Override
     public void loadListGroup(final List<Chat> list) {
-        list.clear();
         if(view != null)
             view.showLoadingIndicator();
         chatModelInterface.getChatList(true, new ChatInterface.ChatListCallBack() {
@@ -48,29 +52,50 @@ public class GroupPresenter implements GroupContract.Presenter {
             public void loadSuccess(Chat chatObject) {
                 if (view != null) {
                     if (chatObject != null) {
-                        removeExistChat(list, chatObject);
+                        int addPosition = 0;
                         if (list.size() > 0) {
                             if (list.size() == 1) {
                                 if (list.get(0).getLastMessageDateInLong() < chatObject.getLastMessageDateInLong()) {
                                     list.add(0, chatObject);
+                                    addPosition = 0;
                                 } else {
                                     list.add(chatObject);
+                                    addPosition = list.size() - 1;
                                 }
                             } else {
                                 for (int i = 0; i < list.size(); i++) {
                                     if (list.get(i).getLastMessageDateInLong() < chatObject.getLastMessageDateInLong()) {
                                         list.add(i, chatObject);
+                                        addPosition = i;
                                         break;
                                     } else if (i == (list.size() - 1)) {
                                         list.add(chatObject);
+                                        addPosition = list.size() - 1;
                                         break;
                                     }
                                 }
                             }
                         } else {
                             list.add(chatObject);
+                            addPosition = list.size() - 1;
                         }
-                        view.showListGroup(list);
+                        view.showListGroup(addPosition);
+                    }
+                    view.hideLoadingIndicator();
+                }
+            }
+
+            @Override
+            public void updateChatStatus(Chat chatObject) {
+                if (view != null) {
+                    if (chatObject != null) {
+//                        if(list.size() > 0) {
+//                            int i = list.indexOf(chatObject);
+//                            if(i > 0) {
+//                                Collections.swap(list, i, 0);
+//                            }
+//                        }
+                        view.updateListGroupStatus(chatObject);
                     }
                     view.hideLoadingIndicator();
                 }
@@ -124,17 +149,5 @@ public class GroupPresenter implements GroupContract.Presenter {
                 }
             }
         });
-    }
-
-    private void removeExistChat(List<Chat> list, Chat chatObject) {
-        if (chatObject == null || list == null || list.size() == 0) {
-            return;
-        }
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getId().equals(chatObject.getId())) {
-                list.remove(i);
-                break;
-            }
-        }
     }
 }
