@@ -22,7 +22,7 @@ public interface UserInterface extends BaseModelInterface {
 
 //    void getUserData(String userId, Chat chat, ChatInterface.ChatListCallBack callBack);
 
-    void getUserData(String userId, Chat chat, ChatInterface.ChatDetailCallBack callBack);
+//    void getUserData(String userId, Chat chat, ChatInterface.ChatDetailCallBack callBack);
 
     void getUserData(User user, LoadContactCallBack callBack);
 

@@ -16,14 +16,14 @@ public interface ChatListContract {
 
         void updateChatListStatus(Chat chatObject);
 
-        void showChatListEmpty();
-
-        void showErrorMessage(String message);
-
     }
 
     interface Presenter extends BasePresenter {
 
-        void loadChatList(List<Chat> chatObjects);
+        void loadChatList(boolean onlyGroup, List<Chat> chatObjects);
+
+        void removeChatListListener();
+
+        void addChatListListener();
     }
 }

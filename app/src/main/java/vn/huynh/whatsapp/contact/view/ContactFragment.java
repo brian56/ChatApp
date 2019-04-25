@@ -1,5 +1,6 @@
 package vn.huynh.whatsapp.contact.view;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+
+import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
 
 import java.util.ArrayList;
 
@@ -33,12 +36,21 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     RecyclerView rvUserList;
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.ll_indicator)
+    LinearLayout llIndicator;
+    @BindView(R.id.loader)
+    TashieLoader loader;
+    @BindView(R.id.ll_empty_data)
+    LinearLayout llEmptyData;
+    @BindView(R.id.ll_error)
+    LinearLayout llError;
 
     private RecyclerView.Adapter userListAdapter;
     private RecyclerView.LayoutManager userListLayoutManager;
     private ArrayList<User> userList;
+    public static final String TAG = "ContactFragment";
 
-    private boolean refreshData = false;
+    private boolean firstStart = true;
     private ContactContract.Presenter presenter;
 
     public ContactFragment() {
@@ -63,7 +75,17 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
         setupPresenter();
         setEvents();
         initializeRecyclerView();
-        refreshData = false;
+        presenter.loadListContact(getContext());
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (parentActivityListener == null) {
+            if (context instanceof ParentActivityListener) {
+                parentActivityListener = (ParentActivityListener) context;
+            }
+        }
     }
 
     private void setupPresenter() {
@@ -77,7 +99,15 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
             public void onRefresh() {
                 userList.clear();
                 userListAdapter.notifyDataSetChanged();
-                presenter.loadListContact(getActivity());
+                presenter.loadListContact(getContext());
+            }
+        });
+        llIndicator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userList.clear();
+                userListAdapter.notifyDataSetChanged();
+                presenter.loadListContact(getContext());
             }
         });
     }
@@ -96,6 +126,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @Override
     public void showListContact(User userObject) {
         if(userObject != null) {
+            showHideListIndicator(llIndicator, false);
             userList.add(userObject);
             userListAdapter.notifyDataSetChanged();
         }
@@ -103,12 +134,27 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     @Override
     public void showLoadingIndicator() {
-        showLoadingIndicator(swipeRefreshLayout);
+        showHideListEmptyIndicator(llIndicator, llEmptyData, false);
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListErrorIndicator(llIndicator, llError, false);
+        showLoadingSwipeLayout(swipeRefreshLayout);
     }
 
     @Override
     public void hideLoadingIndicator() {
-        hideLoadingIndicator(swipeRefreshLayout);
+        hideLoadingSwipeLayout(swipeRefreshLayout);
+    }
+
+    @Override
+    public void showEmptyDataIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListEmptyIndicator(llIndicator, llEmptyData, true);
+    }
+
+    @Override
+    public void showErrorIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListErrorIndicator(llIndicator, llError, true);
     }
 
     @Override
@@ -118,6 +164,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     @Override
     public void openChat(String key) {
+        parentActivityListener.setReturnFromChildActivity(true);
         Intent intent = new Intent(getContext(), ChatActivity.class);
         intent.putExtra("chatId", key);
         startActivity(intent);
@@ -126,81 +173,27 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @Override
     public void onStart() {
         super.onStart();
-        userList.clear();
-        userListAdapter.notifyDataSetChanged();
-        presenter.loadListContact(getContext());
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (refreshData) {
+        if (!firstStart && !parentActivityListener.returnFromChildActivity()) {
             userList.clear();
+            userListAdapter.notifyDataSetChanged();
             presenter.loadListContact(getContext());
         }
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        refreshData = false;
-        presenter.detachView();
+    public void onStop() {
+        super.onStop();
+        firstStart = false;
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        refreshData = true;
+    public void onResume() {
+        super.onResume();
     }
 
-    /* private void getContactList() {
-        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-        while (phones.moveToNext()) {
-            String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-            String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
-            phone = Utils.formatPhone(phone, getActivity().getApplicationContext());
-            UserObject contact = new UserObject("", name, phone);
-            contactList.add(contact);
-            getUserDetail(contact);
-        }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        presenter.detachView();
     }
-
-    private void getUserDetail(UserObject contact) {
-        DatabaseReference userDB = FirebaseDatabase.getInstance().getReference().child("user");
-        Query query = userDB.orderByChild("phone").equalTo(contact.getPhone());
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    String phone = "";
-                    String name = "";
-                    for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                        if (childSnapshot.child("phone").getValue() != null) {
-                            phone = childSnapshot.child("phone").getValue().toString();
-                        }
-                        if (childSnapshot.child("name").getValue() != null) {
-                            name = childSnapshot.child("name").getValue().toString();
-                        }
-
-                        UserObject user = new UserObject(childSnapshot.getKey(), name, phone);
-                        if (name.equalsIgnoreCase(phone)) {
-                            for (UserObject contact : contactList) {
-                                if (Utils.formatPhone(contact.getPhone(), getActivity().getApplicationContext()).equalsIgnoreCase(user.getPhone())) {
-                                    user.setName(contact.getName());
-                                }
-                            }
-                        }
-                        userList.add(user);
-                        userListAdapter.notifyDataSetChanged();
-                    }
-                }
-                swipeRefreshLayout.setRefreshing(false);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }*/
 }

@@ -1,7 +1,6 @@
 package vn.huynh.whatsapp.chat.view;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -51,8 +50,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     @Override
-    @NonNull
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
             case THEIR_MESSAGE:
                 View layoutView2 = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_their_message, null, false);
@@ -76,9 +74,17 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         switch (holder.getItemViewType()) {
             case MY_MESSAGE:
+                if (holder.getAdapterPosition() > 0) {
+                    if (messageList.get(holder.getAdapterPosition()).getCreator().
+                            equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
+                        ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
+                    } else {
+                        ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                    }
+                }
                 if (messageList.get(holder.getAdapterPosition()).getStatus() == Message.STATUS_SENDING) {
                     ((MyMessageViewHolder) holder).loaderSending.setVisibility(View.VISIBLE);
                     ((MyMessageViewHolder) holder).ivStatus.setVisibility(View.GONE);
@@ -112,6 +118,24 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
                 break;
             case THEIR_MESSAGE:
+                ((TheirMessageViewHolder) holder).setiImageLoader(new GlideLoader());
+                ((TheirMessageViewHolder) holder).setUser(getUserObject(chatObject, messageList.get(holder.getAdapterPosition()).getCreator()));
+                ((TheirMessageViewHolder) holder).getiImageLoader().loadImage(((TheirMessageViewHolder) holder).avatarView,
+                        ((TheirMessageViewHolder) holder).getUser().getAvatar(),
+                        ((TheirMessageViewHolder) holder).getUser().getName());
+
+                if (holder.getAdapterPosition() > 0) {
+                    if (messageList.get(holder.getAdapterPosition()).getCreator().
+                            equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
+                        ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.GONE);
+                        ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
+                        ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.INVISIBLE);
+                    } else {
+                        ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+                        ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                        ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
+                    }
+                }
                 if (TextUtils.isEmpty(messageList.get(holder.getAdapterPosition()).getText())) {
                     ((TheirMessageViewHolder) holder).tvMessage.setVisibility(View.GONE);
                 } else {
@@ -145,11 +169,6 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 //                        }
 //                    });
                 }
-                ((TheirMessageViewHolder) holder).setiImageLoader(new GlideLoader());
-                ((TheirMessageViewHolder) holder).setUser(getUserObject(chatObject, messageList.get(holder.getAdapterPosition()).getCreator()));
-                ((TheirMessageViewHolder) holder).getiImageLoader().loadImage(((TheirMessageViewHolder) holder).avatarView,
-                        ((TheirMessageViewHolder) holder).getUser().getAvatar(),
-                        ((TheirMessageViewHolder) holder).getUser().getName());
                 break;
         }
     }
@@ -188,6 +207,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         RecyclerView rvMedia;
         @BindView(R.id.iv_delivered)
         ImageView ivStatus;
+        @BindView(R.id.view_padding_top)
+        View viewPaddingTop;
         @BindView(R.id.loader_sending)
         TashieLoader loaderSending;
 
@@ -209,6 +230,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         RecyclerView rvMedia;
         @BindView(R.id.avatar)
         AvatarView avatarView;
+        @BindView(R.id.view_padding_top)
+        View viewPaddingTop;
         private IImageLoader iImageLoader;
         private User user;
 

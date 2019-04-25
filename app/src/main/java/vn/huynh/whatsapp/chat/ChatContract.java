@@ -20,8 +20,6 @@ public interface ChatContract {
 
         void addSendingMessageToList(Message messageObject);
 
-        void showError(String message);
-
         void newMessage();
 
 //        void updateMessageStatus(Message message);
@@ -38,6 +36,14 @@ public interface ChatContract {
         void loadChatMessage(String chatId);
 
         void sendMessage(Chat chat, String message, ArrayList<String> mediaUri);
+
+        void removeChatDetailListener();
+
+        void addChatDetailListener();
+
+        void addMessageListener();
+
+        void removeMessageListener();
 
     }
 }

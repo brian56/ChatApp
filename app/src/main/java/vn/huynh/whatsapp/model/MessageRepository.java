@@ -26,20 +26,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.SendNotification;
-import vn.huynh.whatsapp.utils.Utils;
 
 /**
  * Created by duong on 4/16/2019.
  */
 
 public class MessageRepository implements MessageInterface {
+    private DatabaseReference dbRef;
     private DatabaseReference messageDb;
     private ChildEventListener childEventListener;
-    private int totalUploadedMedia;
     private List<String> mediaIdList;
 
     public MessageRepository() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
         this.mediaIdList = new ArrayList<>();
     }
 
@@ -51,7 +52,14 @@ public class MessageRepository implements MessageInterface {
     }
 
     @Override
-    public void addListener() {
+    public void removeMessageListener() {
+        if (messageDb != null && childEventListener != null) {
+            messageDb.removeEventListener(childEventListener);
+        }
+    }
+
+    @Override
+    public void addMessageListener() {
         if (messageDb != null && childEventListener != null) {
             messageDb.addChildEventListener(childEventListener);
         }
@@ -59,7 +67,8 @@ public class MessageRepository implements MessageInterface {
 
     @Override
     public void getChatMessageData(String chatId, final GetChatMessageCallBack callBack) {
-        messageDb = FirebaseDatabase.getInstance().getReference().child("message").child(chatId);
+        removeListener();
+        messageDb = dbRef.child("message").child(chatId);
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -94,29 +103,42 @@ public class MessageRepository implements MessageInterface {
 
             }
         };
-        messageDb.addChildEventListener(childEventListener);
+
+        messageDb.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                messageDb.addChildEventListener(childEventListener);
+                if (!dataSnapshot.exists()) {
+                    callBack.loadSuccessEmptyData();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
     public void getNewMessageId(String chatId, SendMessageCallBack callBack) {
-        messageDb = FirebaseDatabase.getInstance().getReference().child("message").child(chatId).push();
+        messageDb = dbRef.child("message").child(chatId).push();
         callBack.getNewMessageIdSuccess(messageDb.getKey());
     }
 
     @Override
     public void sendMessage(final Chat chat, final String messageId, String text,
                             final List<String> uriList, final SendMessageCallBack callBack) {
-        totalUploadedMedia = 0;
-        messageDb = FirebaseDatabase.getInstance().getReference().child("message").child(chat.getId()).child(messageId);
+        messageDb = dbRef.child("message").child(chat.getId()).child(messageId);
 
         final Message message = new Message();
         message.setId(messageId);
         message.setText(text);
-        message.setCreator(Utils.currentUserId());
+        message.setCreator(ChatUtils.currentUserId());
         message.setStatus(Message.STATUS_DELIVERED);
         message.setCreateDate(ServerValue.TIMESTAMP);
-        Map<String, Object> seenUsersMap = new HashMap<>();
-        seenUsersMap.put(Utils.currentUserId(), true);
+        Map<String, Long> seenUsersMap = new HashMap<>();
+        seenUsersMap.put(ChatUtils.currentUserId(), (long) 1);
         message.setSeenUsers(seenUsersMap);
 
         final Map<String, String> mediaMap = new HashMap<>();
@@ -172,7 +194,6 @@ public class MessageRepository implements MessageInterface {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
-                    totalUploadedMedia = 0;
                     mediaIdList.clear();
 
                     String text;
@@ -182,7 +203,7 @@ public class MessageRepository implements MessageInterface {
                         text = "Sent media";
                     }
                     for (User userObject : chat.getUsers()) {
-                        if (!userObject.getId().equals(Utils.currentUserId())) {
+                        if (!userObject.getId().equals(ChatUtils.currentUserId())) {
                             new SendNotification(text, "New message", userObject.getNotificationKey());
                         }
                     }
@@ -191,7 +212,7 @@ public class MessageRepository implements MessageInterface {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 long timeStamp = Long.parseLong(dataSnapshot.child("createDate").getValue().toString());
-                                updateLastMessageTime(chat, timeStamp, message.getText(), callBack);
+                                updateLastMessageToChat(message.getId(), chat, timeStamp, message.getText(), callBack);
                             }
                         }
 
@@ -209,12 +230,13 @@ public class MessageRepository implements MessageInterface {
 
     }
 
-    private void updateLastMessageTime(Chat chat, long lastMessageTime, String lastMessageText,
-                                       final SendMessageCallBack callBack) {
-        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chat.getId());
+    private void updateLastMessageToChat(String messageId, Chat chat, long lastMessageTime, String lastMessageText,
+                                         final SendMessageCallBack callBack) {
+        DatabaseReference chatRef = dbRef.child("chat").child(chat.getId());
 
         HashMap<String, Object> newChatMap = new HashMap<>();
         newChatMap.put("lastMessageDate", lastMessageTime);
+        newChatMap.put("lastMessageId", messageId);
         newChatMap.put("lastMessage", lastMessageText.isEmpty() ? "Sent photo" : lastMessageText);
         chatRef.updateChildren(newChatMap, new DatabaseReference.CompletionListener() {
             @Override
@@ -228,7 +250,7 @@ public class MessageRepository implements MessageInterface {
 
         });
         for (String userId : chat.getUserIds().values()) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("user")
+            DatabaseReference userRef = dbRef.child("user")
                     .child(userId).child("chat").child(chat.getId());
             userRef.setValue(lastMessageTime);
         }
@@ -279,23 +301,10 @@ public class MessageRepository implements MessageInterface {
                     });
                     tasks.add(uploadTask);
                 }
-//                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                    @Override
-//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        filePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                            @Override
-//                            public void onSuccess(Uri uri) {
-//                                mediaMap.put(mediaId, uri.toString());
-//                            }
-//                        });
-//                    }
-//
-//                });
             }
 
             try {
                 Log.d(TAG, "Waiting...");
-//                Tasks.whenAllComplete(tasks);
                 Tasks.whenAllSuccess(tasks).addOnCompleteListener(new OnCompleteListener<List<Object>>() {
                     @Override
                     public void onComplete(@NonNull Task<List<Object>> task) {
@@ -313,7 +322,6 @@ public class MessageRepository implements MessageInterface {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-//            Log.d(TAG, "Post-Execute: Size=" + map.size());
         }
     }
 

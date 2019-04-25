@@ -1,17 +1,18 @@
 package vn.huynh.whatsapp.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.database.Exclude;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by duong on 4/15/2019.
  */
 
-public class User implements Serializable {
+public class User implements Parcelable {
     private String id;
     private String name;
     private String phoneNumber;
@@ -22,8 +23,9 @@ public class User implements Serializable {
     private Object createDate;
     private String avatar;
     private int status = STATUS_OFFLINE;
-    private Map<String, Object> chat;
-    private Map<String, Object> friendList;
+    private Map<String, Long> chat;
+    private Map<String, Long> friendList;
+    private Boolean selected = false;
 
     private static final int STATUS_ONLINE = 1;
     private static final int STATUS_OFFLINE = 0;
@@ -31,7 +33,105 @@ public class User implements Serializable {
     private static final int STATUS_BANNED = -2;
     private static final int STATUS_DELETED = -3;
 
-    private Boolean selected = false;
+    protected User(Parcel in) {
+        id = in.readString();
+        name = in.readString();
+        phoneNumber = in.readString();
+        email = in.readString();
+        password = in.readString();
+        avatar = in.readString();
+        notificationKey = in.readString();
+        lastOnline = in.readLong();
+        status = in.readInt();
+        createDate = in.readLong();
+
+        byte tmpSelected = in.readByte();
+        selected = tmpSelected == 0 ? null : tmpSelected == 1;
+
+        chat = new HashMap<String, Long>();
+        in.readMap(chat, Long.class.getClassLoader());
+
+        friendList = new HashMap<String, Long>();
+        in.readMap(friendList, Long.class.getClassLoader());
+
+        /*int chatSize = in.readInt();
+        this.chat = new HashMap<>(chatSize);
+        for (int i = 0; i < chatSize; i++) {
+            String key = in.readString();
+            Long value = in.readLong();
+            this.chat.put(key, value);
+        }
+
+        int friendListSize = in.readInt();
+        this.friendList = new HashMap<>(friendListSize);
+        for (int i = 0; i < friendListSize; i++) {
+            String key = in.readString();
+            Long value = in.readLong();
+            this.friendList.put(key, value);
+        }*/
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeString(phoneNumber);
+        dest.writeString(email);
+        dest.writeString(password);
+        dest.writeString(avatar);
+        dest.writeString(notificationKey);
+        dest.writeLong(lastOnline);
+        dest.writeInt(status);
+        dest.writeLong((long) createDate);
+        dest.writeByte((byte) (selected ? 1 : 0));
+
+        if (chat != null) {
+            dest.writeMap(chat);
+        } else {
+            chat = new HashMap<>();
+            dest.writeMap(chat);
+        }
+        if (friendList != null) {
+            dest.writeMap(friendList);
+        } else {
+            friendList = new HashMap<>();
+            dest.writeMap(friendList);
+        }
+        /*if(this.friendList != null) {
+            dest.writeInt(this.chat.size());
+            for (Map.Entry<String, Long> entry : this.chat.entrySet()) {
+                dest.writeString(entry.getKey());
+                dest.writeLong(entry.getValue());
+            }
+        }
+
+        if(this.friendList != null) {
+            dest.writeInt(this.friendList.size());
+            for (Map.Entry<String, Long> entry : this.friendList.entrySet()) {
+                dest.writeString(entry.getKey());
+                dest.writeLong(entry.getValue());
+            }
+        }*/
+
+    }
 
     public User() {
 
@@ -134,19 +234,19 @@ public class User implements Serializable {
         this.status = status;
     }
 
-    public Map<String, Object> getChat() {
+    public Map<String, Long> getChat() {
         return chat;
     }
 
-    public void setChat(Map<String, Object> chat) {
+    public void setChat(Map<String, Long> chat) {
         this.chat = chat;
     }
 
-    public Map<String, Object> getFriendList() {
+    public Map<String, Long> getFriendList() {
         return friendList;
     }
 
-    public void setFriendList(Map<String, Object> friendList) {
+    public void setFriendList(Map<String, Long> friendList) {
         this.friendList = friendList;
     }
 

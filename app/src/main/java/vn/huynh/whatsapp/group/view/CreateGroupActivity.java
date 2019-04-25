@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -15,11 +14,14 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
+
 import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
+import vn.huynh.whatsapp.base.BaseActivity;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.contact.presenter.ContactPresenter;
 import vn.huynh.whatsapp.contact.view.ContactListAdapter;
@@ -27,9 +29,9 @@ import vn.huynh.whatsapp.group.GroupContract;
 import vn.huynh.whatsapp.group.presenter.GroupPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
-import vn.huynh.whatsapp.utils.Utils;
+import vn.huynh.whatsapp.utils.ChatUtils;
 
-public class CreateGroupActivity extends AppCompatActivity implements GroupContract.View {
+public class CreateGroupActivity extends BaseActivity implements GroupContract.View {
 
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout;
@@ -41,6 +43,14 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
     Button btnCreateChatRoom;
     @BindView(R.id.edt_group_name)
     EditText edtGroupName;
+    @BindView(R.id.ll_indicator)
+    LinearLayout llIndicator;
+    @BindView(R.id.loader)
+    TashieLoader loader;
+    @BindView(R.id.ll_empty_data)
+    LinearLayout llEmptyData;
+    @BindView(R.id.ll_error)
+    LinearLayout llError;
 
     private RecyclerView.Adapter userListAdapter;
     private RecyclerView.LayoutManager userListLayoutManager;
@@ -95,7 +105,7 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
                     }
                 }
                 if (isSelected) {
-                    User currentUser = new User(Utils.currentUserId());
+                    User currentUser = new User(ChatUtils.currentUserId());
                     selectedUserList.add(0, currentUser);
                     groupPresenter.createGroupChat(edtGroupName.getText().toString().trim(), selectedUserList);
                 } else {
@@ -107,6 +117,15 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
             @Override
             public void onRefresh() {
                 userList.clear();
+                userListAdapter.notifyDataSetChanged();
+                contactPresenter.loadListContactForGroup(CreateGroupActivity.this);
+            }
+        });
+        llIndicator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userList.clear();
+                userListAdapter.notifyDataSetChanged();
                 contactPresenter.loadListContactForGroup(CreateGroupActivity.this);
             }
         });
@@ -127,6 +146,9 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
 
     @Override
     public void showLoadingIndicator() {
+        showHideListEmptyIndicator(llIndicator, llEmptyData, false);
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListErrorIndicator(llIndicator, llError, false);
         swipeRefreshLayout.setRefreshing(true);
     }
 
@@ -136,17 +158,29 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
     }
 
     @Override
-    public void showListGroup(int position) {
+    public void showEmptyDataIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListEmptyIndicator(llIndicator, llEmptyData, true);
+    }
+
+    @Override
+    public void showErrorIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListErrorIndicator(llIndicator, llError, true);
+    }
+
+    @Override
+    public void showChatList(Chat chat, int position) {
 
     }
 
     @Override
-    public void updateListGroupStatus(Chat chat) {
+    public void showErrorMessage(String message) {
 
     }
 
     @Override
-    public void showListGroupEmpty() {
+    public void updateChatListStatus(Chat chatObject) {
 
     }
 
@@ -161,15 +195,11 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
 
     @Override
     public void showListContact(User userObject) {
+        showHideListIndicator(llIndicator, false);
         if(userObject != null) {
             userList.add(userObject);
             userListAdapter.notifyDataSetChanged();
         }
-    }
-
-    @Override
-    public void showErrorMessage(String message) {
-
     }
 
     @Override
@@ -225,7 +255,7 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
         while (phones.moveToNext()) {
             String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
             String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
-            phone = Utils.formatPhone(phone, getApplicationContext());
+            phone = ChatUtils.formatPhone(phone, getApplicationContext());
             UserObject contact = new UserObject("", name, phone);
             contactList.add(contact);
             getUserDetail(contact);
@@ -252,7 +282,7 @@ public class CreateGroupActivity extends AppCompatActivity implements GroupContr
                         UserObject user = new UserObject(childSnapshot.getKey(), name, phone);
                         if (name.equalsIgnoreCase(phone)) {
                             for (UserObject contact : contactList) {
-                                if (Utils.formatPhone(contact.getPhone(), getApplicationContext()).equalsIgnoreCase(user.getPhone())) {
+                                if (ChatUtils.formatPhone(contact.getPhone(), getApplicationContext()).equalsIgnoreCase(user.getPhone())) {
                                     user.setName(contact.getName());
                                 }
                             }

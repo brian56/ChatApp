@@ -3,7 +3,6 @@ package vn.huynh.whatsapp.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
@@ -42,14 +41,6 @@ public class UserRepository implements UserInterface {
             userDb.removeEventListener(userValueEventListener);
         if(query != null && userValueEventListener != null)
             query.removeEventListener(userValueEventListener);
-    }
-
-    @Override
-    public void addListener() {
-        if (userDb != null && userValueEventListener != null)
-            userDb.addValueEventListener(userValueEventListener);
-        if (query != null && userValueEventListener != null)
-            query.addValueEventListener(userValueEventListener);
     }
 
     @Override
@@ -92,13 +83,6 @@ public class UserRepository implements UserInterface {
         final ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                User user = dataSnapshot.getValue(User.class);
-//                user.setId(dataSnapshot.getKey());
-//                chat.addUser(user);
-//                Log.d(TAG, user.getName());
-//                if (callBack != null) {
-//                    callBack.loadSuccess(chat);
-//                }
                 dbSource.setResult(dataSnapshot);
             }
 
@@ -134,7 +118,7 @@ public class UserRepository implements UserInterface {
         userDb.addListenerForSingleValueEvent(userValueEventListener);
     }*/
 
-    @Override
+    /*@Override
     public void getUserData(String userId, final Chat chat, final ChatInterface.ChatDetailCallBack callBack) {
         final DatabaseReference userDb = dbRef.child("user").child(userId);
         ValueEventListener userValueEventListener = new ValueEventListener() {
@@ -155,11 +139,11 @@ public class UserRepository implements UserInterface {
             }
         };
         userDb.addListenerForSingleValueEvent(userValueEventListener);
-    }
+    }*/
 
     @Override
     public void getUserData(final User contact, final LoadContactCallBack callBack) {
-        final DatabaseReference userDb = dbRef.child("user");
+        DatabaseReference userDb = dbRef.child("user");
         Query query = userDb.orderByChild("phoneNumber").equalTo(contact.getPhoneNumber());
         ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override

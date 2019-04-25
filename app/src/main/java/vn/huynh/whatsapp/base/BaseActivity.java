@@ -1,31 +1,13 @@
 package vn.huynh.whatsapp.base;
 
-import android.content.Context;
-import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Toast;
 
 /**
- * Created by duong on 7/4/2019
+ * Created by duong on 4/24/2019.
  */
 
-public class BaseFragment extends Fragment {
-    protected ParentActivityListener parentActivityListener;
-
-    protected void showLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
-        if(swipeRefreshLayout != null)
-            swipeRefreshLayout.setRefreshing(true);
-    }
-
-    protected void hideLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
-        if(swipeRefreshLayout != null)
-            swipeRefreshLayout.setRefreshing(false);
-    }
-
-    protected void showErrorMessage(String message, Context context) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-    }
+public class BaseActivity extends AppCompatActivity {
 
     protected void showHideListIndicator(View container, boolean show) {
         if (container != null) {
@@ -71,11 +53,5 @@ public class BaseFragment extends Fragment {
                 indicator.setVisibility(View.GONE);
             }
         }
-    }
-
-    public interface ParentActivityListener {
-        boolean returnFromChildActivity();
-
-        void setReturnFromChildActivity(boolean returnFromChildActivity);
     }
 }

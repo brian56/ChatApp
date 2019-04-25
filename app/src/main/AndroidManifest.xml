@@ -10,6 +10,7 @@
 
     <application
         android:allowBackup="true"
+        android:name=".utils.MyApp"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -26,7 +27,7 @@
         <activity android:name=".contact.FindUserActivity" />
         <activity
             android:name=".chat.view.ChatActivity"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="stateUnchanged|adjustResize" />
         <activity android:name=".group.view.CreateGroupActivity" />
 
         <service
@@ -44,7 +45,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".setting.WebViewActivity"></activity>
+        <activity android:name=".setting.WebViewActivity" />
     </application>
 
 </manifest>

@@ -16,8 +16,14 @@ public interface MessageInterface extends BaseModelInterface {
 
     void getNewMessageId(String chatId, SendMessageCallBack callBack);
 
+    void removeMessageListener();
+
+    void addMessageListener();
+
     interface GetChatMessageCallBack {
         void loadSuccess(Message message);
+
+        void loadSuccessEmptyData();
 
         void loadFail(String error);
 

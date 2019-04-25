@@ -47,16 +47,6 @@ public class LoginPresenter implements LoginContract.Presenter {
     }
 
     @Override
-    public void removeListener() {
-        this.userInterface.removeListener();
-    }
-
-    @Override
-    public void addListener() {
-        this.userInterface.addListener();
-    }
-
-    @Override
     public void checkLogin() {
         userInterface.isLoggedIn(new UserInterface.CheckLoginCallBack() {
             @Override
@@ -132,6 +122,9 @@ public class LoginPresenter implements LoginContract.Presenter {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
+                if (view != null) {
+                    view.hideLoadingIndicator();
+                }
                 if (task.isSuccessful()) {
                     final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     if (user != null) {
@@ -155,8 +148,10 @@ public class LoginPresenter implements LoginContract.Presenter {
             @Override
             public void onFailure(@NonNull Exception e) {
                 verificationId = null;
-                if(view != null)
+                if (view != null) {
+                    view.hideLoadingIndicator();
                     view.loginFail(e.getMessage());
+                }
             }
         });
     }

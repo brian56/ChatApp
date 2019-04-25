@@ -5,76 +5,109 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
     tools:context="vn.huynh.whatsapp.login.view.LoginActivity">
 
-    <EditText
-        android:id="@+id/edt_phone_number"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="phone number" />
+        android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/edt_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="name" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:orientation="vertical">
 
-
-    <!--<Button-->
-    <!--android:id="@+id/btn_verify"-->
-    <!--style="@style/button_normal"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="center"-->
-    <!--android:paddingHorizontal="16dp"-->
-    <!--android:text="Send verifycation code" />-->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
+            <EditText
+                android:id="@+id/edt_phone_number"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:hint="phone number" />
 
-                <Button
-                    android:id="@+id/btn_verify"
-                    style="@style/button_normal"
-                    android:layout_width="match_parent"
+            <EditText
+                android:id="@+id/edt_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="name" />
+
+
+            <!--<Button-->
+            <!--android:id="@+id/btn_verify"-->
+            <!--style="@style/button_normal"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:paddingHorizontal="16dp"-->
+            <!--android:text="Send verifycation code" />-->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Send code"
-                    android:visibility="visible" />
-            </FrameLayout>
-            <com.agrawalsuneet.dotsloader.loaders.TashieLoader
-                android:id="@+id/loader_sending_code"
-                android:visibility="gone"
+                    android:layout_weight="2">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <Button
+                            android:id="@+id/btn_verify"
+                            style="@style/button_normal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Send code"
+                            android:visibility="visible" />
+                    </FrameLayout>
+
+                    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
+                        android:id="@+id/loader_sending_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        app:tashieloader_animDelay="50"
+                        app:tashieloader_animDur="1000"
+                        app:tashieloader_dotsColor="@color/colorAccent"
+                        app:tashieloader_dotsDist="6dp"
+                        app:tashieloader_dotsRadius="4dp"
+                        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
+                        app:tashieloader_noOfDots="3" />
+
+                </FrameLayout>
+
+                <EditText
+                    android:id="@+id/edt_code"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:hint="code" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_loading"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:gravity="center">
+
+            <com.agrawalsuneet.dotsloader.loaders.AllianceLoader
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                app:tashieloader_animDelay="50"
-                app:tashieloader_animDur="1000"
-                app:tashieloader_dotsColor="@color/colorAccent"
-                app:tashieloader_dotsDist="6dp"
-                app:tashieloader_dotsRadius="4dp"
-                app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
-                app:tashieloader_noOfDots="3" />
-
-        </FrameLayout>
-
-        <EditText
-            android:id="@+id/edt_code"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:enabled="false"
-            android:hint="code" />
-    </LinearLayout>
+                app:alliance_animDuration="500"
+                app:alliance_distanceMultiplier="4"
+                app:alliance_dotsRadius="6dp"
+                app:alliance_drawOnlyStroke="false"
+                app:alliance_firstDotsColor="#a3ffa3"
+                app:alliance_secondDotsColor="#0000FF"
+                app:alliance_strokeWidth="8dp"
+                app:alliance_thirdDotsColor="#ff0000" />
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

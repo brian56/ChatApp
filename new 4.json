@@ -17,8 +17,8 @@
 				"chatID3": 155554566
 			},
 			"friendList": {
-				"friendListID1": true,
-				"friendListID2": true
+              "friendListID1": 2,
+              "friendListID2": 3
 			}
 		},
 		"key2": {
@@ -38,8 +38,8 @@
 				"chatID3": 1141153
 			},
 			"friendList": {
-				"friendListID1": true,
-				"friendListID2": true
+              "friendListID1": 5,
+              "friendListID2": 3
 			}
 		}
 	},
@@ -53,15 +53,16 @@
 			"status": 0,
 			"lastMessage": "Adadadasasd",
 			"lastMessageDate": 1234142421,
+          "lastMessageId": "messageID3",
 			"userIds": {
 				"id1": "userID1",
 				"id2": "userID2",
 				"id3": "userID3"
 			},
 			"notificationUserIds": {
-				"userID1": true,
-				"userID2": true,
-				"userID3": true
+              "userID1": 1,
+              "userID2": 1,
+              "userID3": 0
 			}
 		},
 		"chatID2": {
@@ -72,14 +73,15 @@
 			"status": 0,
 			"lastMessage": "Adadadasasd",
 			"lastMessageDate": 1234142421,
+          "lastMessageId": "messageID1",
 			"singleChatId": "asdsdasddas_asfsasfafasf",
 			"userIds": {
 				"id1": "userID1",
 				"id2": "userID2"
 			},
 			"notificationUserIds": {
-				"userID1": true,
-				"userID2": true
+              "userID1": 1,
+              "userID2": 1
 			}
 		}
 	},
@@ -92,8 +94,8 @@
 				"status": 0,
 				"createDate": 1423132144,
 				"seenUsers": {
-					"userID1": true,
-					"userID2": true
+                  "userID1": 1453454353,
+                  "userID2": 14214335335
 				},
 				"media": {
 					"mediaId1": "https://adsdsdsad.com/sdadad",
@@ -106,8 +108,8 @@
 				"status": 0,
 				"createDate": 1423132144,
 				"seenUsers": {
-					"userID1": true,
-					"userID2": true
+                  "userID1": 123414241,
+                  "userID2": 124424445
 				}
 			}
 		}
@@ -118,15 +120,15 @@
 			"friendListID1": {
 				"name": "asdasdsad",
 				"member": {
-					"userID2":true,
-					"userID3":true
+                  "userID2": 1324233525,
+                  "userID3": 114324324342
 				}
 			},
 			"friendListID2": {
 				"name": "Adsasd",
 				"member": {
-					"userID4":true,
-					"userID5":true
+                  "userID4": 13414412421,
+                  "userID5": 14134134134
 				}
 			}
 		},
@@ -134,8 +136,8 @@
 			"friendListID1": {
 				"name": "asdsadasddddd",
 				"member": {
-					"userID2":true,
-					"userID3":true
+                  "userID2": 143134114,
+                  "userID3": 141412414
 				}
 			}
 		}

@@ -13,9 +13,9 @@
         android:layout_centerInParent="true"
         app:tashieloader_animDelay="50"
         app:tashieloader_animDur="1000"
-        app:tashieloader_dotsColor="@color/default_text_color"
+        app:tashieloader_dotsColor="@color/loading_indicator"
         app:tashieloader_dotsDist="4dp"
-        app:tashieloader_dotsRadius="4dp"
+        app:tashieloader_dotsRadius="2dp"
         app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
         app:tashieloader_noOfDots="3" />
     <ImageView

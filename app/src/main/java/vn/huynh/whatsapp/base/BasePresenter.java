@@ -8,8 +8,4 @@ public interface BasePresenter {
     void attachView(BaseView view);
 
     void detachView();
-
-    void removeListener();
-
-    void addListener();
 }

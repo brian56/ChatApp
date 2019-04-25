@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
@@ -30,6 +31,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     Button btnVerify;
     @BindView(R.id.loader_sending_code)
     TashieLoader tashieLoader;
+    @BindView(R.id.ll_loading)
+    LinearLayout llLoading;
 
     private String name = "";
     private String phoneNumber = "";
@@ -53,6 +56,21 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void hideLoadingIndicator() {
+
+    }
+
+    @Override
+    public void showEmptyDataIndicator() {
+
+    }
+
+    @Override
+    public void showErrorIndicator() {
+
+    }
+
+    @Override
+    public void showErrorMessage(String message) {
 
     }
 
@@ -99,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void noLoggedInMoveToLogin() {
-
+        llLoading.setVisibility(View.GONE);
     }
 
     private void setEvents() {

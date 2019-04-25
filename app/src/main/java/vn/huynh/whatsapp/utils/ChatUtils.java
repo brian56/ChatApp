@@ -14,7 +14,7 @@ import vn.huynh.whatsapp.model.User;
  * Created by duong on 3/23/2019.
  */
 
-public class Utils {
+public class ChatUtils {
     public static String currentUserId() {
         return FirebaseAuth.getInstance().getUid();
     }

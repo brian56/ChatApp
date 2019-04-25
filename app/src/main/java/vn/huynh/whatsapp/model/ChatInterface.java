@@ -19,6 +19,14 @@ public interface ChatInterface extends BaseModelInterface {
 
     void checkSingleChatExist(String singleChatId, CheckSingleChatCallBack callBack);
 
+    void removeChatListListener();
+
+    void addChatListListener();
+
+    void removeChatDetailListener();
+
+    void addChatDetailListener();
+
     interface ChatListCallBack {
         void loadSuccess(Chat chat);
 

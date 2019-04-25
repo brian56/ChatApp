@@ -13,6 +13,13 @@
     <color name="white">#fff</color>
 
     <color name="activity_bg_color">#fff</color>
-    <color name="default_text_color">#7e7e7e</color>
+
+    <color name="default_text_color">#5b5b5b</color>
+    <color name="sub_text_color">#a6a6a6</color>
+
     <color name="divider_color">#e1e1e1</color>
+
+    <color name="loading_indicator">#8c8c8c</color>
+    <color name="default_list_background">#FAFAFA</color>
+
 </resources>

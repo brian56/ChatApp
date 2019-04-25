@@ -1,0 +1,73 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_indicator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
+        android:id="@+id/loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:tashieloader_animDelay="50"
+        app:tashieloader_animDur="1000"
+        app:tashieloader_dotsColor="@color/loading_indicator"
+        app:tashieloader_dotsDist="6dp"
+        app:tashieloader_dotsRadius="4dp"
+        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
+        app:tashieloader_noOfDots="3" />
+
+    <LinearLayout
+        android:id="@+id/ll_empty_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_cloud_done_black_24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No data. Tap to reload."
+            android:textColor="@color/sub_text_color"
+            android:gravity="center"
+            android:drawableStart="@drawable/ic_refresh_black_24dp"
+            android:drawablePadding="4dp"
+            android:textStyle="italic" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="visible"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_error_black_24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Error! Tap to reload."
+            android:drawableStart="@drawable/ic_refresh_black_24dp"
+            android:drawablePadding="4dp"
+            android:textColor="@color/sub_text_color"
+            android:textStyle="italic" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -13,11 +13,11 @@ import vn.huynh.whatsapp.model.ChatRepository;
  */
 
 public class ChatListPresenter implements ChatListContract.Presenter {
-    private ChatListContract.View view;
-    private ChatInterface chatInterface;
+    protected ChatListContract.View view;
+    protected ChatInterface chatRepo;
 
     public ChatListPresenter() {
-        chatInterface = new ChatRepository();
+        chatRepo = new ChatRepository();
     }
 
     @Override
@@ -28,27 +28,27 @@ public class ChatListPresenter implements ChatListContract.Presenter {
     @Override
     public void detachView() {
         this.view = null;
-        this.chatInterface.removeListener();
     }
 
     @Override
-    public void removeListener() {
-        this.chatInterface.removeListener();
+    public void removeChatListListener() {
+        this.chatRepo.removeChatListListener();
     }
 
     @Override
-    public void addListener() {
-        this.chatInterface.addListener();
+    public void addChatListListener() {
+        this.chatRepo.addChatListListener();
     }
 
     @Override
-    public void loadChatList(final List<Chat> list) {
+    public void loadChatList(boolean isGroup, final List<Chat> list) {
         if (view != null)
             view.showLoadingIndicator();
-        chatInterface.getChatList(false, new ChatInterface.ChatListCallBack() {
+        chatRepo.getChatList(isGroup, new ChatInterface.ChatListCallBack() {
             @Override
             public void loadSuccess(Chat chatObject) {
                 if (view != null) {
+                    view.hideLoadingIndicator();
                     if (chatObject != null) {
 ////                        removeExistChat(list, chatObject);
                         int addPosition = 0;
@@ -80,9 +80,11 @@ public class ChatListPresenter implements ChatListContract.Presenter {
                         }
 //                        list.add(0, chatObject);
                         view.showChatList(chatObject, addPosition);
+                    } else {
+                        //not a group chat, check empty list
+                        view.showChatList(null, -1);
                     }
                 }
-                view.hideLoadingIndicator();
             }
 
             @Override
@@ -99,15 +101,16 @@ public class ChatListPresenter implements ChatListContract.Presenter {
             public void loadSuccessEmptyData() {
                 if (view != null) {
                     view.hideLoadingIndicator();
-                    view.showChatListEmpty();
+                    view.showEmptyDataIndicator();
                 }
             }
 
             @Override
             public void loadFail(String message) {
                 if (view != null) {
-                    view.showErrorMessage(message);
                     view.hideLoadingIndicator();
+                    view.showErrorIndicator();
+                    view.showErrorMessage(message);
                 }
             }
 

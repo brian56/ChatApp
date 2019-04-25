@@ -12,6 +12,7 @@
     <FrameLayout
         android:id="@+id/frame_container"
         android:layout_width="match_parent"
+        android:background="@color/white"
         android:layout_height="0dp"
         android:layout_weight="1"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
@@ -20,7 +21,6 @@
         android:id="@+id/navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
         android:background="@color/bgBottomNavigation"
         app:itemIconTint="@android:color/white"

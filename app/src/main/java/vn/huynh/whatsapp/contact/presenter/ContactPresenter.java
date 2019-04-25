@@ -16,76 +16,79 @@ import vn.huynh.whatsapp.model.ChatRepository;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.model.UserInterface;
 import vn.huynh.whatsapp.model.UserRepository;
-import vn.huynh.whatsapp.utils.Utils;
+import vn.huynh.whatsapp.utils.ChatUtils;
 
 /**
  * Created by duong on 4/12/2019.
  */
 
 public class ContactPresenter implements ContactContract.Presenter {
-    private ChatInterface chatModelInterface;
-    private UserInterface userModelInterface;
-    private ContactContract.View view;
+    private ChatInterface chatRepo;
+    private UserInterface userRepo;
+    private ContactContract.View viewContact;
     private GroupContract.View viewGroup;
+    private LoadContactAsyncTask loadContactAsyncTask;
 
     public ContactPresenter() {
-        chatModelInterface = new ChatRepository();
-        userModelInterface = new UserRepository();
+        chatRepo = new ChatRepository();
+        userRepo = new UserRepository();
     }
 
     @Override
     public void attachView(BaseView view) {
         if (view instanceof ContactContract.View)
-            this.view = (ContactContract.View) view;
+            this.viewContact = (ContactContract.View) view;
         else if (view instanceof GroupContract.View)
             this.viewGroup = (GroupContract.View) view;
     }
 
     @Override
     public void detachView() {
-        this.view = null;
+        this.viewContact = null;
         this.viewGroup = null;
-        this.chatModelInterface.removeListener();
-        this.userModelInterface.removeListener();
-    }
-
-    @Override
-    public void removeListener() {
-        this.chatModelInterface.removeListener();
-        this.userModelInterface.removeListener();
-    }
-
-    @Override
-    public void addListener() {
-        this.chatModelInterface.addListener();
-        this.userModelInterface.addListener();
     }
 
     @Override
     public void loadListContact(Context context) {
-        view.showLoadingIndicator();
-        LoadContactAsyncTask loadContactAsyncTask = new LoadContactAsyncTask(context);
-        loadContactAsyncTask.execute();
+        if (viewContact != null)
+            viewContact.showLoadingIndicator();
+        if (loadContactAsyncTask == null) {
+            loadContactAsyncTask = new LoadContactAsyncTask(context);
+            loadContactAsyncTask.execute();
+        } else {
+            loadContactAsyncTask.cancel(false);
+            loadContactAsyncTask = new LoadContactAsyncTask(context);
+            loadContactAsyncTask.execute();
+        }
     }
 
     @Override
     public void loadListContactForGroup(Context context) {
-        viewGroup.showLoadingIndicator();
-        LoadContactAsyncTask loadContactAsyncTask = new LoadContactAsyncTask(context);
-        loadContactAsyncTask.execute();
+        if (viewGroup != null)
+            viewGroup.showLoadingIndicator();
+//        loadContactAsyncTask = new LoadContactAsyncTask(context);
+//        loadContactAsyncTask.execute();
+        if (loadContactAsyncTask == null) {
+            loadContactAsyncTask = new LoadContactAsyncTask(context);
+            loadContactAsyncTask.execute();
+        } else {
+            loadContactAsyncTask.cancel(false);
+            loadContactAsyncTask = new LoadContactAsyncTask(context);
+            loadContactAsyncTask.execute();
+        }
     }
 
     @Override
     public void checkSingleChatExist(final boolean isGroup, final String name, final List<User> users) {
-        if(view != null)
-            view.showLoadingIndicator();
-        String singleChatId = Utils.getSingleChatIdFomUsers(users);
-        chatModelInterface.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallBack() {
+        if (viewContact != null)
+            viewContact.showLoadingIndicator();
+        String singleChatId = ChatUtils.getSingleChatIdFomUsers(users);
+        chatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallBack() {
             @Override
             public void exist(String chatId) {
-                if(view != null) {
-                    view.openChat(chatId);
-                    view.hideLoadingIndicator();
+                if (viewContact != null) {
+                    viewContact.openChat(chatId);
+                    viewContact.hideLoadingIndicator();
                 }
             }
 
@@ -98,22 +101,22 @@ public class ContactPresenter implements ContactContract.Presenter {
 
     @Override
     public void createChat(boolean isGroup, String name, List<User> users) {
-        if(view != null)
-            view.showLoadingIndicator();
-        chatModelInterface.createChat(isGroup, name, users, new ChatInterface.CreateChatCallBack() {
+        if (viewContact != null)
+            viewContact.showLoadingIndicator();
+        chatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallBack() {
             @Override
             public void createSuccess(String chatId) {
-                if (view != null) {
-                    view.openChat(chatId);
-                    view.hideLoadingIndicator();
+                if (viewContact != null) {
+                    viewContact.openChat(chatId);
+                    viewContact.hideLoadingIndicator();
                 }
             }
 
             @Override
             public void createFail(String message) {
-                if (view != null) {
-                    view.showErrorMessage(message);
-                    view.hideLoadingIndicator();
+                if (viewContact != null) {
+                    viewContact.showErrorMessage(message);
+                    viewContact.hideLoadingIndicator();
                 }
             }
         });
@@ -128,13 +131,16 @@ public class ContactPresenter implements ContactContract.Presenter {
 
         @Override
         protected List<User> doInBackground(Void... voids) {
+            if (this.isCancelled()) {
+                return null;
+            }
             List<User> contacts = new ArrayList<>();
             Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
             try {
                 while (phones.moveToNext()) {
                     String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
                     String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                    phone = Utils.formatPhone(phone, context);
+                    phone = ChatUtils.formatPhone(phone, context);
                     User contact = new User("", name, phone);
                     contacts.add(contact);
                 }
@@ -148,12 +154,12 @@ public class ContactPresenter implements ContactContract.Presenter {
         @Override
         protected void onPostExecute(List<User> list) {
             super.onPostExecute(list);
-            userModelInterface.loadContact(context, list, new UserInterface.LoadContactCallBack() {
+            userRepo.loadContact(context, list, new UserInterface.LoadContactCallBack() {
                 @Override
                 public void loadSuccess(User userObject) {
-                    if (view != null) {
-                        view.showListContact(userObject);
-                        view.hideLoadingIndicator();
+                    if (viewContact != null) {
+                        viewContact.showListContact(userObject);
+                        viewContact.hideLoadingIndicator();
                     }
                     if (viewGroup != null) {
                         viewGroup.showListContact(userObject);
@@ -163,13 +169,15 @@ public class ContactPresenter implements ContactContract.Presenter {
 
                 @Override
                 public void loadFail(String message) {
-                    if (view != null) {
-                        view.showErrorMessage(message);
-                        view.hideLoadingIndicator();
+                    if (viewContact != null) {
+                        viewContact.hideLoadingIndicator();
+                        viewContact.showErrorIndicator();
+                        viewContact.showErrorMessage(message);
                     }
                     if (viewGroup != null) {
-                        viewGroup.showErrorMessage(message);
                         viewGroup.hideLoadingIndicator();
+                        viewGroup.showErrorIndicator();
+                        viewGroup.showErrorMessage(message);
                     }
                 }
             });

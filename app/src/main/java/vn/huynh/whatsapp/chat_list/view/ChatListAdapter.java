@@ -1,8 +1,6 @@
 package vn.huynh.whatsapp.chat_list.view;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
@@ -19,7 +17,6 @@ import agency.tango.android.avatarview.views.AvatarView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
-import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.utils.GlideLoader;
 
@@ -30,14 +27,20 @@ import vn.huynh.whatsapp.utils.GlideLoader;
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder> {
     private ArrayList<Chat> chatList;
     private Context context;
+    private OnItemClickListener onItemClickListener;
 
-    public ChatListAdapter(ArrayList<Chat> chatList, Context context) {
+    public ChatListAdapter(ArrayList<Chat> chatList, Context context, OnItemClickListener onItemClickListener) {
         this.chatList = chatList;
         this.context = context;
+        this.onItemClickListener = onItemClickListener;
+    }
+
+    public void setChatList(ArrayList<Chat> chatList) {
+        this.chatList = chatList;
     }
 
     @Override
-    public ChatListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ChatListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat, null, false);
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutView.setLayoutParams(lp);
@@ -45,15 +48,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ChatListViewHolder holder, final int position) {
+    public void onBindViewHolder(final ChatListViewHolder holder, final int position) {
         Log.d("Chat group", chatList.get(holder.getAdapterPosition()).getChatName());
         holder.tvTitle.setText(chatList.get(holder.getAdapterPosition()).getChatName());
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, ChatActivity.class);
-                intent.putExtra("chatObject", chatList.get(holder.getAdapterPosition()));
-                context.startActivity(intent);
+                onItemClickListener.onClick(chatList.get(holder.getAdapterPosition()));
             }
         });
         if(TextUtils.isEmpty(chatList.get(holder.getAdapterPosition()).getLastMessage())) {
@@ -62,8 +63,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             holder.tvLastMessage.setVisibility(View.VISIBLE);
             holder.tvLastMessage.setText(chatList.get(holder.getAdapterPosition()).getLastMessage());
         }
-        holder.iImageLoader = new GlideLoader();
-        holder.iImageLoader.loadImage(holder.avatarView, chatList.get(holder.getAdapterPosition()).getChatAvatar(), chatList.get(holder.getAdapterPosition()).getChatName());
+        if (!chatList.get(holder.getAdapterPosition()).isGroup()) {
+            holder.iImageLoader = new GlideLoader();
+            holder.iImageLoader.loadImage(holder.avatarView, chatList.get(holder.getAdapterPosition()).getSingleChatAvatar(), chatList.get(holder.getAdapterPosition()).getChatName());
+        } else {
+            holder.avatarView.setImageResource(R.drawable.ic_google_groups);
+        }
     }
 
     @Override
@@ -91,5 +96,9 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             super(view);
             ButterKnife.bind(this, view);
         }
+    }
+
+    public interface OnItemClickListener {
+        void onClick(Chat chat);
     }
 }

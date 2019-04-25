@@ -2,7 +2,6 @@ package vn.huynh.whatsapp.chat.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -12,18 +11,21 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
+import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
+
 import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
+import vn.huynh.whatsapp.base.BaseActivity;
 import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
-import vn.huynh.whatsapp.utils.Utils;
+import vn.huynh.whatsapp.utils.ChatUtils;
 
-public class ChatActivity extends AppCompatActivity implements ChatContract.View {
+public class ChatActivity extends BaseActivity implements ChatContract.View {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -38,18 +40,30 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     ImageButton btnAddMedia;
     @BindView(R.id.rv_media)
     RecyclerView rvMedia;
+    @BindView(R.id.ll_indicator)
+    LinearLayout llIndicator;
+    @BindView(R.id.loader)
+    TashieLoader loader;
+    @BindView(R.id.ll_empty_data)
+    LinearLayout llEmptyData;
+    @BindView(R.id.ll_error)
+    LinearLayout llError;
 
     private MessageAdapter messageAdapter;
     private LinearLayoutManager chatLayoutManager;
     private ArrayList<Message> messageList = new ArrayList<>();
     private static final int PICK_IMAGE_INTENT = 1;
     private Chat chatObject;
-    private String chatId;
 
     private MediaAdapter mediaAdapter;
     private RecyclerView.LayoutManager mediaLayoutManager;
     private ArrayList<String> mediaUriList = new ArrayList<>();
     private String message = "";
+    private int currentPosition = 0;
+    private boolean firstStart = true;
+    private boolean returnFromGallery = false;
+    private static boolean isVisible = false;
+    private static String chatId;
 
     private ChatContract.Presenter chatPresenter;
 
@@ -66,7 +80,7 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         getSupportActionBar().setTitle("Chat");
 
 
-        chatObject = (Chat) getIntent().getSerializableExtra("chatObject");
+        chatObject = getIntent().getParcelableExtra("chatObject");
         chatId = getIntent().getStringExtra("chatId");
         if (chatObject != null) {
             chatId = chatObject.getId();
@@ -86,19 +100,43 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onStart() {
+        super.onStart();
+        isVisible = true;
+        if (!firstStart && !returnFromGallery) {
+            messageList.clear();
+            messageAdapter.notifyDataSetChanged();
+            chatPresenter.loadChatMessage(chatObject.getId());
+        }
+        if (returnFromGallery) {
+            returnFromGallery = false;
+        }
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onStop() {
+        super.onStop();
+        firstStart = false;
+        if (!returnFromGallery) {
+            isVisible = false;
+            chatPresenter.removeMessageListener();
+        }
+    }
+
+    public static boolean checkVisible() {
+        return isVisible;
+    }
+
+    public static String currentChatId() {
+        return chatId;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         chatPresenter.detachView();
+        chatPresenter.removeMessageListener();
+        chatPresenter.removeChatDetailListener();
     }
 
     private void setupPresenter(ChatContract.View view, Chat chat, String chatId) {
@@ -126,6 +164,15 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
                 openGallery();
             }
         });
+
+        llIndicator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                messageList.clear();
+                messageAdapter.notifyDataSetChanged();
+                chatPresenter.loadChatMessage(chatObject.getId());
+            }
+        });
     }
 
     private void openGallery() {
@@ -133,6 +180,7 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
+        returnFromGallery = true;
         startActivityForResult(Intent.createChooser(intent, "Select picture(s)"), PICK_IMAGE_INTENT);
     }
 
@@ -157,18 +205,11 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         rvChat.setNestedScrollingEnabled(false);
         rvChat.setHasFixedSize(false);
         chatLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
-        chatLayoutManager.setStackFromEnd(true);
+        chatLayoutManager.setStackFromEnd(false);
         chatLayoutManager.setSmoothScrollbarEnabled(true);
         rvChat.setLayoutManager(chatLayoutManager);
         messageAdapter = new MessageAdapter(messageList, chatObject, ChatActivity.this);
         rvChat.setAdapter(messageAdapter);
-//        rvChat.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-//            @Override
-//            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-//                if (messageAdapter.getItemCount() > 0 && bottom < oldBottom)
-//                    chatLayoutManager.smoothScrollToPosition(rvChat, null, messageAdapter.getItemCount() - 1);
-//            }
-//        });
     }
 
     private void initializeMediaList() {
@@ -198,12 +239,26 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
 
     @Override
     public void showLoadingIndicator() {
-
+        showHideListLoadingIndicator(llIndicator, loader, true);
+        showHideListEmptyIndicator(llIndicator, llEmptyData, false);
+        showHideListErrorIndicator(llIndicator, llError, false);
     }
 
     @Override
     public void hideLoadingIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+    }
 
+    @Override
+    public void showEmptyDataIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListEmptyIndicator(llIndicator, llEmptyData, true);
+    }
+
+    @Override
+    public void showErrorIndicator() {
+        showHideListLoadingIndicator(llIndicator, loader, false);
+        showHideListErrorIndicator(llIndicator, llError, true);
     }
 
     @Override
@@ -213,6 +268,7 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
             messageAdapter.setChatObject(chatObject);
             getSupportActionBar().setTitle(chatObject.getChatName());
             messageList.clear();
+            messageAdapter.notifyDataSetChanged();
             chatPresenter.loadChatMessage(chatObject.getId());
         }
     }
@@ -228,20 +284,22 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
             }
             if(messageList.size() > 1)
                 mediaAdapter.notifyItemChanged(messageList.size() -2);
-            chatLayoutManager.scrollToPosition(messageList.size() - 1);
+            chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
         }
     }
 
     @Override
     public void showMessageList(Message messageObject) {
         if (messageObject != null) {
-            if (messageObject.getCreator().equals(Utils.currentUserId())) {
+            showHideListIndicator(llIndicator, false);
+            if (messageObject.getCreator().equals(ChatUtils.currentUserId())) {
                 for (int i = messageList.size() - 1; i >= 0; i--) {
                     if (messageList.get(i).getId().equals(messageObject.getId())) {
                         Message.copyMessageObject(messageList.get(i), messageObject);
                         messageAdapter.notifyItemChanged(i);
                         if (i > 0)
                             messageAdapter.notifyItemChanged(i - 1);
+                        chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
                         return;
                     }
                 }
@@ -253,19 +311,24 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
                 }
                 if(messageList.size() > 1)
                     mediaAdapter.notifyItemChanged(messageList.size() -2);
-                chatLayoutManager.scrollToPosition(messageList.size() - 1);
+                chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
             } else {
                 messageList.add(messageObject);
                 messageAdapter.notifyItemInserted(messageList.size() - 1);
-                if(messageList.size() > 1)
-                    mediaAdapter.notifyItemChanged(messageList.size() -2);
-                chatLayoutManager.scrollToPosition(messageList.size() - 1);
+
+                for (int i = messageList.size() - 1; i >= 0; i--) {
+                    if (messageList.get(i).getCreator().equals(ChatUtils.currentUserId())) {
+                        messageAdapter.notifyItemChanged(i);
+                        break;
+                    }
+                }
+                chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
             }
         }
     }
 
     @Override
-    public void showError(String error) {
+    public void showErrorMessage(String error) {
 
     }
 
@@ -273,9 +336,10 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
     public void newMessage() {
         message = edtMessage.getText().toString().trim();
         if (!message.isEmpty() || !mediaUriList.isEmpty()) {
-            ArrayList<String> medias = new ArrayList<>();
-            medias.addAll(mediaUriList);
-            chatPresenter.sendMessage(chatObject, message, medias);
+            showHideListIndicator(llIndicator, false);
+            ArrayList<String> mediaArrayList = new ArrayList<>();
+            mediaArrayList.addAll(mediaUriList);
+            chatPresenter.sendMessage(chatObject, message, mediaArrayList);
         }
     }
 
@@ -296,69 +360,6 @@ public class ChatActivity extends AppCompatActivity implements ChatContract.View
         mediaUriList.clear();
         mediaAdapter.notifyDataSetChanged();
         if (messageList.size() > 0)
-            chatLayoutManager.scrollToPosition(messageList.size() - 1);
+            chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
     }
-
-//    private void sendMessage() {
-//        String messageId = chatMessageDb.push().getKey();
-//        final DatabaseReference newMessageDB = chatMessageDb.child(messageId);
-//
-//        final Map newMessageMap = new HashMap<>();
-//        newMessageMap.put("creator", FirebaseAuth.getInstance().getUid());
-//        if (!message.isEmpty())
-//            newMessageMap.put("text", message);
-//
-//        if (!mediaUriList.isEmpty()) {
-//            for (final String mediaUri : mediaUriList) {
-//                String mediaId = newMessageDB.child("media").push().getKey();
-//                mediaIdList.add(mediaId);
-//                final StorageReference filePath = FirebaseStorage.getInstance().getReference()
-//                        .child("chat").child(chatObject.getChatId()).child(messageId).child(mediaId);
-//                UploadTask uploadTask = filePath.putFile(Uri.parse(mediaUri));
-//                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                    @Override
-//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        filePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                            @Override
-//                            public void onSuccess(Uri uri) {
-//                                newMessageMap.put("/media/" + mediaIdList.get(totalUploadedMedia) + "/", uri.toString());
-//                                totalUploadedMedia++;
-//                                if (totalUploadedMedia == mediaUriList.size()) {
-//                                    updateDatabaseWithNewMessage(newMessageDB, newMessageMap);
-//                                }
-//
-//                            }
-//                        });
-//                    }
-//                });
-//            }
-//        } else {
-//            if (!edtMessage.getText().toString().trim().isEmpty())
-//                updateDatabaseWithNewMessage(newMessageDB, newMessageMap);
-//        }
-//    }
-//
-//    private void updateDatabaseWithNewMessage(DatabaseReference newMessageDB, Map newMessageMap) {
-//        newMessageDB.updateChildren(newMessageMap);
-//        totalUploadedMedia = 0;
-//        edtMessage.setText(null);
-//        mediaUriList.clear();
-//        mediaIdList.clear();
-//        mediaAdapter.notifyDataSetChanged();
-//        if(messageList.size() > 0)
-//            chatLayoutManager.scrollToPosition(messageList.size() - 1);
-//
-//        String message = "";
-//        if (newMessageMap.get("text") != null) {
-//            message = newMessageMap.get("text").toString();
-//        } else {
-//            message = "Sent media";
-//        }
-//        for (UserObject userObject : chatObject.getUserObjectArrayList()) {
-//            if (!userObject.getUid().equals(FirebaseAuth.getInstance().getUid())) {
-//                new SendNotification(message, "New message", userObject.getNotificationKey());
-//            }
-//        }
-//    }
-
 }

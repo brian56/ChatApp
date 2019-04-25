@@ -8,4 +8,10 @@ public interface BaseView {
     void showLoadingIndicator();
 
     void hideLoadingIndicator();
+
+    void showEmptyDataIndicator();
+
+    void showErrorIndicator();
+
+    void showErrorMessage(String message);
 }

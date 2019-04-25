@@ -36,12 +36,13 @@ public class SettingFragment extends Fragment {
     Button btnWebView;
     Intent playMusicIntent;
 
+    public static final String TAG = "SettingFragment";
+
     public SettingFragment() {
     }
 
     public static SettingFragment newInstance() {
-        SettingFragment chatFragment = new SettingFragment();
-        return chatFragment;
+        return new SettingFragment();
     }
 
     @Nullable
@@ -68,7 +69,6 @@ public class SettingFragment extends Fragment {
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 getActivity().finish();
-                return;
             }
         });
 

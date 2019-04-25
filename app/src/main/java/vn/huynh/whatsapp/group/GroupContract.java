@@ -2,9 +2,7 @@ package vn.huynh.whatsapp.group;
 
 import java.util.List;
 
-import vn.huynh.whatsapp.base.BasePresenter;
-import vn.huynh.whatsapp.base.BaseView;
-import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.chat_list.ChatListContract;
 import vn.huynh.whatsapp.model.User;
 
 /**
@@ -12,25 +10,13 @@ import vn.huynh.whatsapp.model.User;
  */
 
 public interface GroupContract {
-    interface View extends BaseView {
-        void showListGroup(int position);
-
-        void updateListGroupStatus(Chat chatObject);
-
-        void showListGroupEmpty();
-
+    interface View extends ChatListContract.View {
         void showListContact(User userObject);
 
-        void showErrorMessage(String message);
-
         void openChat(String key);
-
     }
 
-    interface Presenter extends BasePresenter {
-        void loadListGroup(List<Chat> list);
-
+    interface Presenter extends ChatListContract.Presenter {
         void createGroupChat(String groupName, List<User> list);
-
     }
 }

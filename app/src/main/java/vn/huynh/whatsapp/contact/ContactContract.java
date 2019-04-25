@@ -6,7 +6,6 @@ import java.util.List;
 
 import vn.huynh.whatsapp.base.BasePresenter;
 import vn.huynh.whatsapp.base.BaseView;
-import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
 
 /**
@@ -16,8 +15,6 @@ import vn.huynh.whatsapp.model.User;
 public interface ContactContract {
     interface View extends BaseView {
         void showListContact(User userObject);
-
-        void showErrorMessage(String message);
 
         void openChat(String chatId);
 

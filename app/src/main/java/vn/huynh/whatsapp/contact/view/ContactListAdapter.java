@@ -1,6 +1,5 @@
 package vn.huynh.whatsapp.contact.view;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +12,15 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import agency.tango.android.avatarview.IImageLoader;
+import agency.tango.android.avatarview.views.AvatarView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.model.User;
-import vn.huynh.whatsapp.utils.Utils;
+import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.GlideLoader;
 
 /**
  * Created by duong on 3/20/2019.
@@ -50,23 +52,25 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
     }
 
     @Override
-    public void onBindViewHolder(final UserListViewHolder holder, final int position) {
+    public void onBindViewHolder(final UserListViewHolder holder, int position) {
         holder.tvName.setText(userList.get(position).getName());
         holder.tvPhone.setText(userList.get(position).getPhoneNumber());
+        holder.iImageLoader = new GlideLoader();
+        holder.iImageLoader.loadImage(holder.avatarView, userList.get(holder.getAdapterPosition()).getAvatar(), userList.get(holder.getAdapterPosition()).getName());
         if (contactClickable) {
+            holder.cbAdd.setVisibility(View.GONE);
             holder.linearLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (presenter != null) {
                         List<User> list = new ArrayList<>();
-                        list.add(new User(Utils.currentUserId()));
-                        list.add(userList.get(position));
+                        list.add(new User(ChatUtils.currentUserId()));
+                        list.add(userList.get(holder.getAdapterPosition()));
                         presenter.checkSingleChatExist(false, "", list);
 //                        presenter.createChat(false, "", list);
                     }
                 }
             });
-            holder.cbAdd.setVisibility(View.GONE);
         } else {
             holder.cbAdd.setVisibility(View.VISIBLE);
             holder.linearLayout.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +97,7 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
     }
 
 //    private void createChat(final int position) {
-//        final String key = Utils.getChatId(FirebaseAuth.getInstance().getUid(), userList.get(position).getId());
+//        final String key = ChatUtils.getChatId(FirebaseAuth.getInstance().getUid(), userList.get(position).getId());
 //        //String key = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
 //
 //        HashMap newChatMap = new HashMap();
@@ -132,6 +136,10 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
         LinearLayout linearLayout;
         @BindView(R.id.cb_add)
         CheckBox cbAdd;
+        @BindView(R.id.avatar)
+        AvatarView avatarView;
+
+        public IImageLoader iImageLoader;
 
         public UserListViewHolder(View view) {
             super(view);
