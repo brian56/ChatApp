@@ -2,7 +2,6 @@ package vn.huynh.whatsapp.chat_list.view;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +17,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.utils.GlideLoader;
+import vn.huynh.whatsapp.utils.MyApp;
 
 /**
  * Created by duong on 3/20/2019.
@@ -57,11 +58,20 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 onItemClickListener.onClick(chatList.get(holder.getAdapterPosition()));
             }
         });
-        if(TextUtils.isEmpty(chatList.get(holder.getAdapterPosition()).getLastMessage())) {
+        if (chatList.get(holder.getAdapterPosition()).getLastMessageSent() == null) {
             holder.tvLastMessage.setVisibility(View.GONE);
         } else {
             holder.tvLastMessage.setVisibility(View.VISIBLE);
-            holder.tvLastMessage.setText(chatList.get(holder.getAdapterPosition()).getLastMessage());
+            if (chatList.get(holder.getAdapterPosition()).getLastMessageSent().getType() == Message.TYPE_TEXT) {
+                //sent text
+                holder.tvLastMessage.setText(chatList.get(holder.getAdapterPosition()).getLastMessageSent().getText());
+                holder.tvLastMessage.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+            } else {
+                //sent media
+                holder.tvLastMessage.setText(MyApp.resources.getString(R.string.message_sent_media));
+                holder.tvLastMessage.setCompoundDrawablePadding(8 * (int) MyApp.resources.getDisplayMetrics().density);
+                holder.tvLastMessage.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_photo_size_select_actual_black_24dp, 0);
+            }
         }
         if (!chatList.get(holder.getAdapterPosition()).isGroup()) {
             holder.iImageLoader = new GlideLoader();

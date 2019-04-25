@@ -26,7 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.MyApp;
 import vn.huynh.whatsapp.utils.SendNotification;
 
 /**
@@ -136,6 +138,7 @@ public class MessageRepository implements MessageInterface {
         message.setText(text);
         message.setCreator(ChatUtils.currentUserId());
         message.setStatus(Message.STATUS_DELIVERED);
+        message.setType(Message.TYPE_TEXT);
         message.setCreateDate(ServerValue.TIMESTAMP);
         Map<String, Long> seenUsersMap = new HashMap<>();
         seenUsersMap.put(ChatUtils.currentUserId(), (long) 1);
@@ -144,6 +147,7 @@ public class MessageRepository implements MessageInterface {
         final Map<String, String> mediaMap = new HashMap<>();
 
         if (uriList != null && !uriList.isEmpty()) {
+            message.setType(Message.TYPE_MEDIA);
             /*ArrayList<UploadTask> tasks = new ArrayList<>();
             for (String mediaUri : uriList) {
                 final String mediaId = messageDb.child("media").push().getKey();
@@ -196,11 +200,11 @@ public class MessageRepository implements MessageInterface {
                 if (databaseError == null) {
                     mediaIdList.clear();
 
-                    String text;
-                    if (message.getText() != null) {
+                    String text = "";
+                    if (message.getType() == Message.TYPE_TEXT) {
                         text = message.getText();
-                    } else {
-                        text = "Sent media";
+                    } else if (message.getType() == Message.TYPE_MEDIA) {
+                        text = MyApp.resources.getString(R.string.message_sent_media);
                     }
                     for (User userObject : chat.getUsers()) {
                         if (!userObject.getId().equals(ChatUtils.currentUserId())) {
@@ -212,7 +216,10 @@ public class MessageRepository implements MessageInterface {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 long timeStamp = Long.parseLong(dataSnapshot.child("createDate").getValue().toString());
-                                updateLastMessageToChat(message.getId(), chat, timeStamp, message.getText(), callBack);
+                                message.setCreateDate(timeStamp);
+                                String id = dataSnapshot.getKey();
+                                message.setId(id);
+                                updateLastMessageToChat(message, chat, callBack);
                             }
                         }
 
@@ -230,15 +237,9 @@ public class MessageRepository implements MessageInterface {
 
     }
 
-    private void updateLastMessageToChat(String messageId, Chat chat, long lastMessageTime, String lastMessageText,
-                                         final SendMessageCallBack callBack) {
-        DatabaseReference chatRef = dbRef.child("chat").child(chat.getId());
-
-        HashMap<String, Object> newChatMap = new HashMap<>();
-        newChatMap.put("lastMessageDate", lastMessageTime);
-        newChatMap.put("lastMessageId", messageId);
-        newChatMap.put("lastMessage", lastMessageText.isEmpty() ? "Sent photo" : lastMessageText);
-        chatRef.updateChildren(newChatMap, new DatabaseReference.CompletionListener() {
+    private void updateLastMessageToChat(Message message, Chat chat, final SendMessageCallBack callBack) {
+        DatabaseReference chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageSent");
+        chatRef.setValue(message, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
@@ -249,10 +250,12 @@ public class MessageRepository implements MessageInterface {
             }
 
         });
+        chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageDate");
+        chatRef.setValue(message.getCreateDate());
         for (String userId : chat.getUserIds().values()) {
             DatabaseReference userRef = dbRef.child("user")
                     .child(userId).child("chat").child(chat.getId());
-            userRef.setValue(lastMessageTime);
+            userRef.setValue(message.getCreateDate());
         }
     }
 

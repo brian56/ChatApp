@@ -17,6 +17,7 @@ public class Message implements Parcelable {
     private String creator;
     private String text;
     private int status = STATUS_SENDING;
+    private int type = TYPE_TEXT;
     private Object createDate;
     private Map<String, Long> seenUsers;
     private Map<String, String> media;
@@ -25,11 +26,17 @@ public class Message implements Parcelable {
     public static final int STATUS_DELETED = -1;
     public static final int STATUS_DELIVERED = 2;
 
+    public static final int TYPE_TEXT = 1;
+    public static final int TYPE_MEDIA = 2;
+    public static final int TYPE_LINK = 3;
+    public static final int TYPE_VIDEO = 3;
+
     protected Message(Parcel in) {
         id = in.readString();
         creator = in.readString();
         text = in.readString();
         status = in.readInt();
+        type = in.readInt();
         createDate = in.readLong();
 
         seenUsers = new HashMap<>();
@@ -79,6 +86,7 @@ public class Message implements Parcelable {
         dest.writeString(creator);
         dest.writeString(text);
         dest.writeInt(status);
+        dest.writeInt(type);
         dest.writeLong((long) createDate);
 
         if (seenUsers != null) {
@@ -119,12 +127,10 @@ public class Message implements Parcelable {
         this.id = id;
     }
 
-    @Exclude
     public String getId() {
         return id;
     }
 
-    @Exclude
     public void setId(String id) {
         this.id = id;
     }
@@ -182,6 +188,14 @@ public class Message implements Parcelable {
         this.status = status;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     @Exclude
     public static void copyMessageObject(Message m1, Message m2) {
         m1.setId(m2.getId());
@@ -189,6 +203,7 @@ public class Message implements Parcelable {
         m1.setCreator(m2.getCreator());
         m1.setText(m2.getText());
         m1.setStatus(m2.getStatus());
+        m1.setType(m2.getType());
         m1.setCreateDate(m2.getCreateDate());
         m1.setMedia(m2.getMedia());
     }

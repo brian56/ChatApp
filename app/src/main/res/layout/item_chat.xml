@@ -43,16 +43,17 @@
 
             <TextView
                 android:id="@+id/tv_last_message"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="afsafsfas asfa "
+                android:textStyle="italic"
                 android:textColor="@color/sub_text_color"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
-
 
     </LinearLayout>
 

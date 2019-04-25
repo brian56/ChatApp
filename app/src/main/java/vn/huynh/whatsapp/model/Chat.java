@@ -25,17 +25,17 @@ public class Chat implements Parcelable {
     private String name;
     private String creatorId;
     private Object createDate;
-    private Object lastMessageDate;
     private int status = STATUS_ENABLE;
-    private String lastMessage;
-    private String lastMessageId;
+    private Object lastMessageDate;
     private String singleChatId;
     private Map<String, String> userIds;
     private Map<String, String> notificationUserIds;
+    private Message lastMessageSent;
     private List<User> users;
 
     public static final int STATUS_ENABLE = 1;
     public static final int STATUS_DELETED = -1;
+
 
     protected Chat(Parcel in) {
         id = in.readString();
@@ -43,12 +43,11 @@ public class Chat implements Parcelable {
         name = in.readString();
         creatorId = in.readString();
         createDate = in.readLong();
-        lastMessageDate = in.readLong();
         status = in.readInt();
-        lastMessage = in.readString();
-        lastMessageId = in.readString();
+        lastMessageDate = in.readLong();
         singleChatId = in.readString();
         users = in.createTypedArrayList(User.CREATOR);
+        lastMessageSent = in.readParcelable(Message.class.getClassLoader());
 
         userIds = new HashMap<>();
         in.readMap(userIds, String.class.getClassLoader());
@@ -97,12 +96,11 @@ public class Chat implements Parcelable {
         dest.writeString(name);
         dest.writeString(creatorId);
         dest.writeLong((long) createDate);
-        dest.writeLong((long) lastMessageDate);
         dest.writeInt(status);
-        dest.writeString(lastMessage);
-        dest.writeString(lastMessageId);
+        dest.writeLong((long) lastMessageDate);
         dest.writeString(singleChatId);
         dest.writeTypedList(users);
+        dest.writeParcelable(lastMessageSent, flags);
 
         if (userIds != null) {
             dest.writeMap(userIds);
@@ -141,12 +139,10 @@ public class Chat implements Parcelable {
         this.id = id;
     }
 
-    @Exclude
     public String getId() {
         return id;
     }
 
-    @Exclude
     public void setId(String id) {
         this.id = id;
     }
@@ -202,22 +198,6 @@ public class Chat implements Parcelable {
         return (long) lastMessageDate;
     }
 
-    public String getLastMessage() {
-        return lastMessage;
-    }
-
-    public void setLastMessage(String lastMessage) {
-        this.lastMessage = lastMessage;
-    }
-
-    public String getLastMessageId() {
-        return lastMessageId;
-    }
-
-    public void setLastMessageId(String lastMessageId) {
-        this.lastMessageId = lastMessageId;
-    }
-
     public Map<String, String> getUserIds() {
         //sort map by key
         return new TreeMap<>(userIds);
@@ -249,6 +229,14 @@ public class Chat implements Parcelable {
 
     public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
+    }
+
+    public Message getLastMessageSent() {
+        return lastMessageSent;
+    }
+
+    public void setLastMessageSent(Message lastMessageSent) {
+        this.lastMessageSent = lastMessageSent;
     }
 
     @Exclude
@@ -344,9 +332,8 @@ public class Chat implements Parcelable {
         this.setCreatorId(c2.getCreatorId());
         this.setCreateDate(c2.getCreateDate());
         this.setGroup(c2.isGroup());
-        this.setLastMessage(c2.getLastMessage());
-        this.setLastMessageId(c2.getLastMessageId());
         this.setLastMessageDate(c2.getLastMessageDate());
+        this.setLastMessageSent(c2.getLastMessageSent());
         this.setSingleChatId(c2.getSingleChatId());
     }
 

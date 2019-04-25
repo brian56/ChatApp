@@ -354,7 +354,6 @@ public class ChatRepository implements ChatInterface {
         chat.setName(name);
         chat.setGroup(isGroup);
         chat.setCreatorId(ChatUtils.currentUserId());
-        chat.setLastMessage("");
         chat.setStatus(Chat.STATUS_ENABLE);
         chat.setCreateDate(ServerValue.TIMESTAMP);
         chat.setLastMessageDate(ServerValue.TIMESTAMP);

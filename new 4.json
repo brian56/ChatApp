@@ -51,9 +51,22 @@
 			"creatorId": "userID1",
 			"createDate": 1231242414,
 			"status": 0,
-			"lastMessage": "Adadadasasd",
+          "type": 1,
 			"lastMessageDate": 1234142421,
-          "lastMessageId": "messageID3",
+          "lastMessageSent": {
+            "creator": "userID1",
+            "text": "asdasdasdadsas",
+            "status": 0,
+            "createDate": 1423132144,
+            "seenUsers": {
+              "userID1": 1453454353,
+              "userID2": 14214335335
+            },
+            "media": {
+              "mediaId1": "https://adsdsdsad.com/sdadad",
+              "mediaId2": "https://adsdsdsad.com/sdadad"
+            }
+          },
 			"userIds": {
 				"id1": "userID1",
 				"id2": "userID2",
@@ -71,10 +84,23 @@
 			"creatorId": "",
 			"createDate": 1231242414,
 			"status": 0,
-			"lastMessage": "Adadadasasd",
-			"lastMessageDate": 1234142421,
-          "lastMessageId": "messageID1",
+          "type": 1,
 			"singleChatId": "asdsdasddas_asfsasfafasf",
+          "lastMessageDate": 1234142421,
+          "lastMessageSent": {
+            "creator": "userID1",
+            "text": "asdasdasdadsas",
+            "status": 0,
+            "createDate": 1423132144,
+            "seenUsers": {
+              "userID1": 1453454353,
+              "userID2": 14214335335
+            },
+            "media": {
+              "mediaId1": "https://adsdsdsad.com/sdadad",
+              "mediaId2": "https://adsdsdsad.com/sdadad"
+            }
+          },
 			"userIds": {
 				"id1": "userID1",
 				"id2": "userID2"
