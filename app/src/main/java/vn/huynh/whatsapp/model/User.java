@@ -19,19 +19,19 @@ public class User implements Parcelable {
     private String email;
     private String password;
     private String notificationKey;
-    private long lastOnline;
+    private Object lastOnline;
     private Object createDate;
     private String avatar;
-    private int status = STATUS_OFFLINE;
+    private int status = STATUS_ONLINE;
     private Map<String, Long> chat;
     private Map<String, Long> friendList;
     private Boolean selected = false;
 
-    private static final int STATUS_ONLINE = 1;
-    private static final int STATUS_OFFLINE = 0;
-    private static final int STATUS_BUSY = -1;
-    private static final int STATUS_BANNED = -2;
-    private static final int STATUS_DELETED = -3;
+    public static final int STATUS_OFFLINE = 0;
+    public static final int STATUS_ONLINE = 1;
+    public static final int STATUS_BUSY = 2;
+    public static final int STATUS_DELETED = -1;
+    public static final int STATUS_BANNED = -2;
 
     protected User(Parcel in) {
         id = in.readString();
@@ -98,7 +98,7 @@ public class User implements Parcelable {
         dest.writeString(password);
         dest.writeString(avatar);
         dest.writeString(notificationKey);
-        dest.writeLong(lastOnline);
+        dest.writeLong((long) lastOnline);
         dest.writeInt(status);
         dest.writeLong((long) createDate);
         dest.writeByte((byte) (selected ? 1 : 0));
@@ -195,12 +195,17 @@ public class User implements Parcelable {
         this.notificationKey = notificationKey;
     }
 
-    public long getLastOnline() {
+    public Object getLastOnline() {
         return lastOnline;
     }
 
-    public void setLastOnline(long lastOnline) {
+    public void setLastOnline(Object lastOnline) {
         this.lastOnline = lastOnline;
+    }
+
+    @Exclude
+    public long getLastOnlineInLong() {
+        return (long) lastOnline;
     }
 
     public Object getCreateDate() {

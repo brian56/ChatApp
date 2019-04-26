@@ -227,7 +227,6 @@ public class ChatRepository implements ChatInterface {
                         callBack.loadSuccess(null);
                     } else {
                         Chat temp = dataSnapshot.getValue(Chat.class);
-                        temp.setId(dataSnapshot.getKey());
                         chat.cloneChat(temp);
                         if (chat.getUsers() != null) {
                             callBack.updateChatStatus(chat);

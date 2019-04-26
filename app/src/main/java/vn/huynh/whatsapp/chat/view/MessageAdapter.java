@@ -12,7 +12,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +24,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.model.User;
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.GlideLoader;
 
 /**
@@ -67,7 +67,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
-        if (messageList.get(position).getCreator().equals(FirebaseAuth.getInstance().getUid()))
+        if (messageList.get(position).getCreator().equals(ChatUtils.currentUserId()))
             return MY_MESSAGE;
         else
             return THEIR_MESSAGE;

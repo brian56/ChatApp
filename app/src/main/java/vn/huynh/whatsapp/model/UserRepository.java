@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import vn.huynh.whatsapp.utils.ChatUtils;
+
 /**
  * Created by duong on 4/15/2019.
  */
@@ -45,15 +47,18 @@ public class UserRepository implements UserInterface {
 
     @Override
     public void isLoggedIn(final CheckLoginCallBack callBack) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            userDb = dbRef.child("user").child(FirebaseAuth.getInstance().getUid());
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            userDb = dbRef.child("user").child(ChatUtils.currentUserId());
             userDb.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()) {
+                        User user = dataSnapshot.getValue(User.class);
+                        ChatUtils.setUser(user);
                         callBack.alreadyLoggedIn();
                     } else {
+                        ChatUtils.clearUser();
                         callBack.noLoggedIn();
                     }
                 }
@@ -172,19 +177,36 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void createUser(String userId, final String phoneNumber, final String name, final CreateUserCallBack callBack) {
+    public void createUser(final String userId, final String phoneNumber, final String name, final CreateUserCallBack callBack) {
         final DatabaseReference userDb = dbRef.child("user").child(userId);
         userDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("phoneNumber", phoneNumber);
+                userMap.put("id", userId);
                 userMap.put("name", name);
+                userMap.put("status", User.STATUS_ONLINE);
+                userMap.put("lastOnline", ServerValue.TIMESTAMP);
                 userMap.put("createDate", ServerValue.TIMESTAMP);
                 userDb.updateChildren(userMap, new DatabaseReference.CompletionListener() {
                     @Override
-                    public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                    public void onComplete(@Nullable final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if(databaseError == null) {
+                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        ChatUtils.setUser(user);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
                             callBack.createSuccess();
                         } else {
                             callBack.createFail(databaseError.getMessage());

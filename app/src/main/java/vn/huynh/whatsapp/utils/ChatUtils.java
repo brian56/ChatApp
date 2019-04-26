@@ -15,8 +15,34 @@ import vn.huynh.whatsapp.model.User;
  */
 
 public class ChatUtils {
+    public static User user;
     public static String currentUserId() {
         return FirebaseAuth.getInstance().getUid();
+    }
+
+    public static User getUser() {
+        return user;
+    }
+
+    public static void setUser(User userObject) {
+        user = new User();
+        user.setId(userObject.getId());
+        user.setAvatar(userObject.getAvatar());
+        user.setChat(userObject.getChat());
+        user.setCreateDate(userObject.getCreateDateInLong());
+        user.setName(userObject.getName());
+        user.setEmail(userObject.getEmail());
+        user.setPassword(userObject.getPassword());
+        user.setPhoneNumber(userObject.getPhoneNumber());
+        user.setFriendList(userObject.getFriendList());
+        user.setLastOnline(userObject.getLastOnline());
+        user.setNotificationKey(userObject.getNotificationKey());
+        user.setStatus(userObject.getStatus());
+        user.setSelected(userObject.getSelected());
+    }
+
+    public static void clearUser() {
+        user = new User();
     }
 
     private static String getPhoneFromCountryISO(Context context) {

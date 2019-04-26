@@ -22,9 +22,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@color/bgBottomNavigation"
-        app:itemIconTint="@android:color/white"
-        app:itemTextColor="@android:color/white"
+        android:background="@color/colorAccent"
+        app:itemIconTint="@color/bottom_nav_colors"
+        app:itemTextColor="@color/bottom_nav_colors"
         app:menu="@menu/navigation" />
 
 </LinearLayout>

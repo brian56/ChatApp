@@ -1,7 +1,7 @@
 {
 	"user": {
 		"key1": {
-			"id": "userId",
+          "id": "key1",
 			"name": "name",
 			"phoneNumber": "+84522222",
 			"email": "adadad",
@@ -22,7 +22,7 @@
 			}
 		},
 		"key2": {
-			"id": "userId",
+          "id": "key2",
 			"name": "name",
 			"phoneNumber": "+84522222",
 			"email": "adadad",
@@ -46,6 +46,7 @@
 	
 	"chat": {
 		"chatID1": {
+          "id": "chatID1",
 			"group": true,
 			"name": "adsdasdsa",
 			"creatorId": "userID1",
@@ -79,6 +80,7 @@
 			}
 		},
 		"chatID2": {
+          "id": "chatID2",
 			"group": false,
 			"name": "adsdasdsa",
 			"creatorId": "",
@@ -115,6 +117,7 @@
 	"message": {
 		"chatID1": {
 			"messageID1": {
+              "id": "messageID1",
 				"creator": "userID1",
 				"text": "asdasdasdadsas",
 				"status": 0,
@@ -129,6 +132,7 @@
 				}
 			},
 			"messageID2": {
+              "id": "messageID2",
 				"creator": "userID2",
 				"text": "asdasdasdadsas",
 				"status": 0,

@@ -15,7 +15,6 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.onesignal.OneSignal;
 
@@ -27,6 +26,7 @@ import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
 import vn.huynh.whatsapp.contact.view.ContactFragment;
 import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.setting.SettingFragment;
+import vn.huynh.whatsapp.utils.ChatUtils;
 
 public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener {
 
@@ -68,7 +68,6 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
         initFragments(savedInstanceState);
         setEvent();
-
         Log.d(HomeActivity.class.getSimpleName(), "On Create");
     }
 
@@ -262,7 +261,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         OneSignal.idsAvailable(new OneSignal.IdsAvailableHandler() {
             @Override
             public void idsAvailable(String userId, String registrationId) {
-                FirebaseDatabase.getInstance().getReference().child("user").child(FirebaseAuth.getInstance().getUid()).child("notificationKey").setValue(userId);
+                FirebaseDatabase.getInstance().getReference().child("user").child(ChatUtils.currentUserId()).child("notificationKey").setValue(userId);
 
             }
         });

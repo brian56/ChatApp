@@ -76,7 +76,7 @@ public class MessageRepository implements MessageInterface {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     Message message = dataSnapshot.getValue(Message.class);
-                    message.setId(dataSnapshot.getKey());
+//                    message.setId(dataSnapshot.getKey());
                     callBack.loadSuccess(message);
                 }
             }
@@ -85,7 +85,7 @@ public class MessageRepository implements MessageInterface {
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     Message message = dataSnapshot.getValue(Message.class);
-                    message.setId(dataSnapshot.getKey());
+//                    message.setId(dataSnapshot.getKey());
 //                    callBack.updateMessageStatus(message);
                 }
             }
@@ -137,6 +137,7 @@ public class MessageRepository implements MessageInterface {
         message.setId(messageId);
         message.setText(text);
         message.setCreator(ChatUtils.currentUserId());
+        message.setCreatorName(ChatUtils.getUser().getName());
         message.setStatus(Message.STATUS_DELIVERED);
         message.setType(Message.TYPE_TEXT);
         message.setCreateDate(ServerValue.TIMESTAMP);

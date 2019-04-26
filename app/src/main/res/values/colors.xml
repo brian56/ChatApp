@@ -22,4 +22,6 @@
     <color name="loading_indicator">#8c8c8c</color>
     <color name="default_list_background">#FAFAFA</color>
 
+    <color name="menu_item_selected">#ffee8f</color>
+
 </resources>

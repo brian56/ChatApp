@@ -15,6 +15,7 @@ import java.util.Map;
 public class Message implements Parcelable {
     private String id;
     private String creator;
+    private String creatorName;
     private String text;
     private int status = STATUS_SENDING;
     private int type = TYPE_TEXT;
@@ -22,9 +23,9 @@ public class Message implements Parcelable {
     private Map<String, Long> seenUsers;
     private Map<String, String> media;
 
-    public static final int STATUS_SENDING = 1;
+    public static final int STATUS_SENDING = 0;
+    public static final int STATUS_DELIVERED = 1;
     public static final int STATUS_DELETED = -1;
-    public static final int STATUS_DELIVERED = 2;
 
     public static final int TYPE_TEXT = 1;
     public static final int TYPE_MEDIA = 2;
@@ -34,6 +35,7 @@ public class Message implements Parcelable {
     protected Message(Parcel in) {
         id = in.readString();
         creator = in.readString();
+        creatorName = in.readString();
         text = in.readString();
         status = in.readInt();
         type = in.readInt();
@@ -84,6 +86,7 @@ public class Message implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
         dest.writeString(creator);
+        dest.writeString(creatorName);
         dest.writeString(text);
         dest.writeInt(status);
         dest.writeInt(type);
@@ -141,6 +144,14 @@ public class Message implements Parcelable {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
     }
 
     public String getText() {
@@ -201,6 +212,7 @@ public class Message implements Parcelable {
         m1.setId(m2.getId());
         m1.setSeenUsers(m2.getSeenUsers());
         m1.setCreator(m2.getCreator());
+        m1.setCreatorName(m2.getCreatorName());
         m1.setText(m2.getText());
         m1.setStatus(m2.getStatus());
         m1.setType(m2.getType());
