@@ -13,6 +13,7 @@ import vn.huynh.whatsapp.model.ChatRepository;
  */
 
 public class ChatListPresenter implements ChatListContract.Presenter {
+    private static final String TAG = ChatListPresenter.class.getSimpleName();
     protected ChatListContract.View view;
     protected ChatInterface chatRepo;
 

@@ -29,6 +29,7 @@ import vn.huynh.whatsapp.group.GroupContract;
 import vn.huynh.whatsapp.group.presenter.GroupPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
+import vn.huynh.whatsapp.utils.Constant;
 
 public class GroupFragment extends BaseFragment implements GroupContract.View {
     @BindView(R.id.swipe_refresh)
@@ -50,6 +51,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     private ChatListAdapter chatListAdapter;
     private LinearLayoutManager chatListLayoutManager;
     private ArrayList<Chat> chatList;
+
     public static final String TAG = "GroupFragment";
 
     private GroupPresenter presenter;
@@ -92,7 +94,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
                 Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra("chatObject", chat);
+                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);
             }
         });
@@ -136,8 +138,8 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == CREATE_GROUP_INTENT) {
-                if(data.getStringExtra("chatId") != null) {
-                    String chatGroupId = data.getStringExtra("chatId");
+                if (data.getStringExtra(Constant.EXTRA_CHAT_ID) != null) {
+                    String chatGroupId = data.getStringExtra(Constant.EXTRA_CHAT_ID);
                     openChat(chatGroupId);
                 }
             }
@@ -231,7 +233,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     public void openChat(String key) {
         parentActivityListener.setReturnFromChildActivity(true);
         Intent intent = new Intent(getContext(), ChatActivity.class);
-        intent.putExtra("chatId", key);
+        intent.putExtra(Constant.EXTRA_CHAT_ID, key);
         startActivity(intent);
     }
 

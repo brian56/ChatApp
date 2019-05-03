@@ -20,11 +20,11 @@ public interface UserInterface extends BaseModelInterface {
 
     Task getUserData(String userId);
 
-//    void getUserData(String userId, Chat chat, ChatInterface.ChatListCallBack callBack);
+    void getContactData(User user, LoadContactCallBack callBack);
 
-//    void getUserData(String userId, Chat chat, ChatInterface.ChatDetailCallBack callBack);
+    void getCurrentUserData(String userId, LoadContactCallBack callBack);
 
-    void getUserData(User user, LoadContactCallBack callBack);
+    void checkPhoneNumberExist(String phoneNumber, CheckPhoneNumberExistCallBack callBack);
 
     void createUser(String userId, String phoneNumber, String name, CreateUserCallBack callBack);
 
@@ -46,5 +46,11 @@ public interface UserInterface extends BaseModelInterface {
         void alreadyLoggedIn();
 
         void noLoggedIn();
+    }
+
+    interface CheckPhoneNumberExistCallBack {
+        void exist();
+
+        void notExist();
     }
 }

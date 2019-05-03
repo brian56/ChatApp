@@ -114,7 +114,7 @@ public class ChatRepository implements ChatInterface {
     public void getChatList(final boolean onlyGroup, final ChatListCallBack callBack) {
         removeListener();
         mValueListenerMap.clear();
-        chatDb = dbRef.child("user").child(ChatUtils.currentUserId()).child("chat");
+        chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -166,7 +166,7 @@ public class ChatRepository implements ChatInterface {
     public void getGroupList(final boolean onlyGroup, final ChatListCallBack callBack) {
         removeListener();
         mValueListenerMap.clear();
-        chatDb = dbRef.child("user").child(ChatUtils.currentUserId()).child("chat");
+        chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -352,7 +352,7 @@ public class ChatRepository implements ChatInterface {
         chat.setId(chatId);
         chat.setName(name);
         chat.setGroup(isGroup);
-        chat.setCreatorId(ChatUtils.currentUserId());
+        chat.setCreatorId(ChatUtils.getCurrentUserId());
         chat.setStatus(Chat.STATUS_ENABLE);
         chat.setCreateDate(ServerValue.TIMESTAMP);
         chat.setLastMessageDate(ServerValue.TIMESTAMP);

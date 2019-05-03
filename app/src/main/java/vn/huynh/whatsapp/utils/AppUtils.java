@@ -15,8 +15,4 @@ public class AppUtils {
             return false;
         }
     }
-
-    public static String currentChatId() {
-        return ChatActivity.currentChatId();
-    }
 }

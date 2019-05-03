@@ -50,9 +50,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.google.firebase:firebase-core:16.0.8'
-    implementation 'com.google.firebase:firebase-auth:16.2.0'
-    implementation 'com.google.firebase:firebase-database:16.0.1'
-    implementation 'com.google.firebase:firebase-storage:16.0.1'
+    implementation 'com.google.firebase:firebase-auth:16.2.1'
+    implementation 'com.google.firebase:firebase-database:16.1.0'
+    implementation 'com.google.firebase:firebase-storage:16.1.0'
 
     implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
@@ -66,6 +66,8 @@ dependencies {
 
     implementation 'agency.tango.android:avatar-view:0.0.2'
     implementation 'com.agrawalsuneet.androidlibs:dotsloader:1.3'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.github.joielechong:countrycodepicker:2.3.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

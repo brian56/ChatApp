@@ -76,7 +76,12 @@ public class LoginActivityold extends AppCompatActivity {
             public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(s, forceResendingToken);
                 verificationId = s;
-                btnVerify.setText("Verify");
+                btnVerify.setText(getResources().getString(R.string.label_verify));
+            }
+
+            @Override
+            public void onCodeAutoRetrievalTimeOut(String s) {
+                super.onCodeAutoRetrievalTimeOut(s);
             }
         };
     }

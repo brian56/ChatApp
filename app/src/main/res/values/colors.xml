@@ -5,12 +5,11 @@
     <color name="colorAccent">#FF4081</color>
 
 
-    <color name="bgBottomNavigation">#fe485a</color>
-
     <color name="contact_name">#333333</color>
     <color name="contact_number">#8c8c8c</color>
 
     <color name="white">#fff</color>
+    <color name="button_disable">#cacaca</color>
 
     <color name="activity_bg_color">#fff</color>
 
@@ -22,6 +21,9 @@
     <color name="loading_indicator">#8c8c8c</color>
     <color name="default_list_background">#FAFAFA</color>
 
-    <color name="menu_item_selected">#ffee8f</color>
+    <color name="menu_item_selected">#ffee8e</color>
+
+    <color name="colorAccent_1">#ffaec9</color>
+    <color name="colorAccent_2">#ff86af</color>
 
 </resources>

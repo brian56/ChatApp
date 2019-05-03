@@ -45,7 +45,7 @@
             android:id="@+id/edt_group_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Group's name..." />
+            android:hint="@string/hint_group_name" />
 
         <Button
             android:id="@+id/btn_create_chat_room"
@@ -55,6 +55,6 @@
             android:layout_gravity="center"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:text="Create group" />
+            android:text="@string/label_create_group" />
     </LinearLayout>
 </LinearLayout>

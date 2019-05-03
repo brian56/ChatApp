@@ -19,6 +19,7 @@ import vn.huynh.whatsapp.utils.ChatUtils;
  */
 
 public class ChatPresenter implements ChatContract.Presenter {
+    private static final String TAG = ChatPresenter.class.getSimpleName();
     private ChatContract.View view;
     private ChatInterface chatRepo;
     private MessageInterface messageRepo;
@@ -130,10 +131,10 @@ public class ChatPresenter implements ChatContract.Presenter {
             public void getNewMessageIdSuccess(String messageId) {
                 Message message = new Message(messageId);
                 message.setStatus(Message.STATUS_SENDING);
-                message.setCreator(ChatUtils.currentUserId());
+                message.setCreator(ChatUtils.getCurrentUserId());
                 message.setText(text);
                 Map<String, Long> seenUsers = new HashMap<>();
-                seenUsers.put(ChatUtils.currentUserId(), (long) 1);
+                seenUsers.put(ChatUtils.getCurrentUserId(), (long) 1);
                 message.setSeenUsers(seenUsers);
 
                 if(mediaUri.size() > 0) {

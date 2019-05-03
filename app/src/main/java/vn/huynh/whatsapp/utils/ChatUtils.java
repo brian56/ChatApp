@@ -3,10 +3,10 @@ package vn.huynh.whatsapp.utils;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 
-import com.google.firebase.auth.FirebaseAuth;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import vn.huynh.whatsapp.model.User;
 
@@ -15,9 +15,17 @@ import vn.huynh.whatsapp.model.User;
  */
 
 public class ChatUtils {
+    private static final String TAG = ChatUtils.class.getSimpleName();
+
+    public static String currentChatId = "";
     public static User user;
-    public static String currentUserId() {
-        return FirebaseAuth.getInstance().getUid();
+
+    public static String getCurrentUserId() {
+        return SharedPrefsUtil.getInstance().get(Constant.SP_USER_ID, String.class);
+    }
+
+    public static String getCurrentUserName() {
+        return SharedPrefsUtil.getInstance().get(Constant.SP_USER_NAME, String.class);
     }
 
     public static User getUser() {
@@ -39,10 +47,22 @@ public class ChatUtils {
         user.setNotificationKey(userObject.getNotificationKey());
         user.setStatus(userObject.getStatus());
         user.setSelected(userObject.getSelected());
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_ID, user.getId());
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_NAME, user.getName());
     }
 
     public static void clearUser() {
-        user = new User();
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_ID, "");
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_NAME, "");
+        user = null;
+    }
+
+    public static void setCurrentChatId(String chatId) {
+        currentChatId = chatId;
+    }
+
+    public static String getCurrentChatId() {
+        return currentChatId;
     }
 
     private static String getPhoneFromCountryISO(Context context) {
@@ -75,6 +95,7 @@ public class ChatUtils {
 
     public static String getSingleChatId(List<String> list) {
         String singleChatId = "";
+        Collections.sort(list);
         for (int i = 0; i < list.size(); i++) {
             if(i == list.size() -1)
                 singleChatId += list.get(i);
@@ -90,6 +111,7 @@ public class ChatUtils {
             listId.add(user.getId());
         }
         String singleChatId = "";
+        Collections.sort(listId);
         for (int i = 0; i < listId.size(); i++) {
             if(i == listId.size() -1)
                 singleChatId += listId.get(i);
@@ -99,4 +121,10 @@ public class ChatUtils {
         return singleChatId;
     }
 
+    public static int generateRandomInteger() {
+        Random r = new Random();
+        int low = 0;
+        int high = Integer.MAX_VALUE;
+        return r.nextInt(high - low) + low;
+    }
 }

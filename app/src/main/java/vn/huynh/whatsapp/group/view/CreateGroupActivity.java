@@ -30,6 +30,7 @@ import vn.huynh.whatsapp.group.presenter.GroupPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Constant;
 
 public class CreateGroupActivity extends BaseActivity implements GroupContract.View {
 
@@ -52,6 +53,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
+    private static final String TAG = CreateGroupActivity.class.getSimpleName();
     private RecyclerView.Adapter userListAdapter;
     private RecyclerView.LayoutManager userListLayoutManager;
     private ArrayList<User> userList;
@@ -105,7 +107,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
                     }
                 }
                 if (isSelected) {
-                    User currentUser = new User(ChatUtils.currentUserId());
+                    User currentUser = new User(ChatUtils.getCurrentUserId());
                     selectedUserList.add(0, currentUser);
                     groupPresenter.createGroupChat(edtGroupName.getText().toString().trim(), selectedUserList);
                 } else {
@@ -188,7 +190,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     public void openChat(String key) {
         selectedUserList.clear();
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("chatId", key);
+        returnIntent.putExtra(Constant.EXTRA_CHAT_ID, key);
         setResult(Activity.RESULT_OK, returnIntent);
         finish();
     }

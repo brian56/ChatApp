@@ -3,6 +3,8 @@ package vn.huynh.whatsapp.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
@@ -48,14 +50,15 @@ public class UserRepository implements UserInterface {
     @Override
     public void isLoggedIn(final CheckLoginCallBack callBack) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
-            userDb = dbRef.child("user").child(ChatUtils.currentUserId());
+        if (firebaseUser != null && !TextUtils.isEmpty(ChatUtils.getCurrentUserId())) {
+            userDb = dbRef.child("user").child(ChatUtils.getCurrentUserId());
             userDb.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()) {
-                        User user = dataSnapshot.getValue(User.class);
-                        ChatUtils.setUser(user);
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("lastOnline", ServerValue.TIMESTAMP);
+                        userDb.updateChildren(map);
                         callBack.alreadyLoggedIn();
                     } else {
                         ChatUtils.clearUser();
@@ -76,7 +79,7 @@ public class UserRepository implements UserInterface {
     @Override
     public void loadContact(Context context, List<User> contacts, LoadContactCallBack callBack) {
         for (int i = 0; i < contacts.size(); i++) {
-            getUserData(contacts.get(i), callBack);
+            getContactData(contacts.get(i), callBack);
         }
     }
 
@@ -147,7 +150,58 @@ public class UserRepository implements UserInterface {
     }*/
 
     @Override
-    public void getUserData(final User contact, final LoadContactCallBack callBack) {
+    public void getCurrentUserData(String userId, final LoadContactCallBack callBack) {
+        final DatabaseReference userDb = dbRef.child("user").child(userId);
+        ValueEventListener userValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    User user = dataSnapshot.getValue(User.class);
+                    Log.d(TAG, user.getName());
+                    if (callBack != null) {
+                        callBack.loadSuccess(user);
+                    }
+                } else {
+                    callBack.loadFail("");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        userDb.addListenerForSingleValueEvent(userValueEventListener);
+    }
+
+    @Override
+    public void checkPhoneNumberExist(String phoneNumber, final CheckPhoneNumberExistCallBack callBack) {
+        DatabaseReference userDb = dbRef.child("user");
+        Query query = userDb.orderByChild("phoneNumber").equalTo(phoneNumber);
+        ValueEventListener userValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    if (dataSnapshot.getChildrenCount() > 0) {
+                        callBack.exist();
+                    } else {
+                        callBack.notExist();
+                    }
+                } else {
+                    callBack.notExist();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        query.addListenerForSingleValueEvent(userValueEventListener);
+    }
+
+    @Override
+    public void getContactData(final User contact, final LoadContactCallBack callBack) {
         DatabaseReference userDb = dbRef.child("user");
         Query query = userDb.orderByChild("phoneNumber").equalTo(contact.getPhoneNumber());
         ValueEventListener userValueEventListener = new ValueEventListener() {
@@ -199,6 +253,7 @@ public class UserRepository implements UserInterface {
                                     if (dataSnapshot.exists()) {
                                         User user = dataSnapshot.getValue(User.class);
                                         ChatUtils.setUser(user);
+                                        callBack.createSuccess();
                                     }
                                 }
 
@@ -207,7 +262,6 @@ public class UserRepository implements UserInterface {
 
                                 }
                             });
-                            callBack.createSuccess();
                         } else {
                             callBack.createFail(databaseError.getMessage());
                         }

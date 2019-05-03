@@ -1,8 +1,13 @@
 package vn.huynh.whatsapp.home;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
@@ -25,8 +30,10 @@ import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
 import vn.huynh.whatsapp.contact.view.ContactFragment;
 import vn.huynh.whatsapp.group.view.GroupFragment;
+import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.setting.SettingFragment;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.ServiceUtils;
 
 public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener {
 
@@ -38,6 +45,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     @BindView(R.id.navigation)
     BottomNavigationView navigation;
+    private static final String TAG = HomeActivity.class.getSimpleName();
 
     final FragmentManager fm = getSupportFragmentManager();
     private Fragment chatListFragment = new ChatListFragment();
@@ -49,6 +57,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     private BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener;
     private boolean returnFromChildActivity = false;
     private static boolean isVisible = false;
+    private NewMessageService newMessageService;
+    private boolean isBound = false;
 
     private static final String KEY_CURRENT_FRAGMENT_TAG = "KEY_CURRENT_FRAGMENT_TAG";
 
@@ -64,7 +74,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         getPermission();
 
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Chat");
+        getSupportActionBar().setTitle(getResources().getString(R.string.menu_chat));
 
         initFragments(savedInstanceState);
         setEvent();
@@ -139,22 +149,22 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
                 invalidateOptionsMenu();
                 switch (item.getItemId()) {
                     case R.id.navigation_chat:
-                        toolbar.setTitle("Chat");
+                        toolbar.setTitle(getResources().getString(R.string.menu_chat));
                         currentFragmentTAG = ChatListFragment.TAG;
                         loadFragment(chatListFragment, ChatListFragment.TAG);
                         return true;
                     case R.id.navigation_contact:
-                        toolbar.setTitle("Contact");
+                        toolbar.setTitle(getResources().getString(R.string.menu_contact));
                         currentFragmentTAG = ContactFragment.TAG;
                         loadFragment(contactFragment, ContactFragment.TAG);
                         return true;
                     case R.id.navigation_group:
-                        toolbar.setTitle("Group");
+                        toolbar.setTitle(getResources().getString(R.string.menu_group));
                         currentFragmentTAG = GroupFragment.TAG;
                         loadFragment(groupFragment, GroupFragment.TAG);
                         return true;
                     case R.id.navigation_setting:
-                        toolbar.setTitle("Setting");
+                        toolbar.setTitle(getResources().getString(R.string.menu_setting));
                         currentFragmentTAG = SettingFragment.TAG;
                         loadFragment(settingFragment, SettingFragment.TAG);
                         return true;
@@ -214,9 +224,35 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         return isVisible;
     }
 
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
+            newMessageService = binder.getService();
+            Log.d("Noti_MainActivity", "setShowNotification()");
+            newMessageService.setShowNotification(false);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+    };
+
     @Override
     protected void onStart() {
         super.onStart();
+//        Intent intent = new Intent(HomeActivity.this, PushStateOnlineService.class);
+//        startService(intent);
+        if (newMessageService != null) {
+            Log.d("Home onStop()", "setShowNotification()");
+            newMessageService.setShowNotification(false);
+        }
+        if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), getApplicationContext())) {
+            Intent intent2 = new Intent(this, NewMessageService.class);
+            startService(intent2);
+            bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
+            isBound = true;
+        }
         isVisible = true;
         Log.d(HomeActivity.class.getSimpleName(), "On Start");
     }
@@ -240,12 +276,22 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     protected void onStop() {
         super.onStop();
         isVisible = false;
+        if (newMessageService != null) {
+            Log.d("Home onStop()", "setShowNotification()");
+            newMessageService.setShowNotification(true);
+        }
         Log.d(HomeActivity.class.getSimpleName(), "On Stop");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (isBound) {
+            if (newMessageService != null)
+                newMessageService.removeListener();
+            unbindService(serviceConnection);
+            isBound = false;
+        }
         Log.d(HomeActivity.class.getSimpleName(), "On Destroy");
     }
 
@@ -261,7 +307,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         OneSignal.idsAvailable(new OneSignal.IdsAvailableHandler() {
             @Override
             public void idsAvailable(String userId, String registrationId) {
-                FirebaseDatabase.getInstance().getReference().child("user").child(ChatUtils.currentUserId()).child("notificationKey").setValue(userId);
+                FirebaseDatabase.getInstance().getReference().child("user").child(ChatUtils.getCurrentUserId()).child("notificationKey").setValue(userId);
 
             }
         });

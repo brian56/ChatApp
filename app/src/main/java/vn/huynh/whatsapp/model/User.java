@@ -22,6 +22,7 @@ public class User implements Parcelable {
     private Object lastOnline;
     private Object createDate;
     private String avatar;
+    private String lastChatId;
     private int status = STATUS_ONLINE;
     private Map<String, Long> chat;
     private Map<String, Long> friendList;
@@ -40,6 +41,7 @@ public class User implements Parcelable {
         email = in.readString();
         password = in.readString();
         avatar = in.readString();
+        lastChatId = in.readString();
         notificationKey = in.readString();
         lastOnline = in.readLong();
         status = in.readInt();
@@ -48,10 +50,10 @@ public class User implements Parcelable {
         byte tmpSelected = in.readByte();
         selected = tmpSelected == 0 ? null : tmpSelected == 1;
 
-        chat = new HashMap<String, Long>();
+        chat = new HashMap<>();
         in.readMap(chat, Long.class.getClassLoader());
 
-        friendList = new HashMap<String, Long>();
+        friendList = new HashMap<>();
         in.readMap(friendList, Long.class.getClassLoader());
 
         /*int chatSize = in.readInt();
@@ -97,6 +99,7 @@ public class User implements Parcelable {
         dest.writeString(email);
         dest.writeString(password);
         dest.writeString(avatar);
+        dest.writeString(lastChatId);
         dest.writeString(notificationKey);
         dest.writeLong((long) lastOnline);
         dest.writeInt(status);
@@ -212,14 +215,15 @@ public class User implements Parcelable {
         return createDate;
     }
 
+    public void setCreateDate(Object createDate) {
+        this.createDate = createDate;
+    }
+
     @Exclude
     public long getCreateDateInLong() {
         return (long) createDate;
     }
 
-    public void setCreateDate(Object createDate) {
-        this.createDate = createDate;
-    }
 
     public String getAvatar() {
         return avatar;
@@ -227,6 +231,14 @@ public class User implements Parcelable {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getLastChatId() {
+        return lastChatId;
+    }
+
+    public void setLastChatId(String lastChatId) {
+        this.lastChatId = lastChatId;
     }
 
     public int getStatus() {

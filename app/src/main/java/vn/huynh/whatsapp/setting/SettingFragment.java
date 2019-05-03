@@ -18,6 +18,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.login.view.LoginActivity;
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.PlayMusicService;
 
 /**
@@ -65,6 +66,8 @@ public class SettingFragment extends Fragment {
             public void onClick(View v) {
                 FirebaseAuth.getInstance().signOut();
                 OneSignal.setSubscription(false);
+                ChatUtils.clearUser();
+
                 Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);

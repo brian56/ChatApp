@@ -27,6 +27,7 @@ import vn.huynh.whatsapp.utils.GlideLoader;
  */
 
 public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.UserListViewHolder> {
+    private static final String TAG = ContactListAdapter.class.getSimpleName();
     private ArrayList<User> userList;
     private boolean contactClickable = true;
     private ContactContract.Presenter presenter;
@@ -47,8 +48,7 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
         View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, null, false);
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutView.setLayoutParams(lp);
-        UserListViewHolder rcv = new UserListViewHolder(layoutView);
-        return rcv;
+        return new UserListViewHolder(layoutView);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
                 public void onClick(View v) {
                     if (presenter != null) {
                         List<User> list = new ArrayList<>();
-                        list.add(new User(ChatUtils.currentUserId()));
+                        list.add(new User(ChatUtils.getCurrentUserId()));
                         list.add(userList.get(holder.getAdapterPosition()));
                         presenter.checkSingleChatExist(false, "", list);
 //                        presenter.createChat(false, "", list);

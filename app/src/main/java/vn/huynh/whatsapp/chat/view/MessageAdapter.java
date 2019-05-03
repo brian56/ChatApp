@@ -32,6 +32,7 @@ import vn.huynh.whatsapp.utils.GlideLoader;
  */
 
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final String TAG = MessageAdapter.class.getSimpleName();
     private ArrayList<Message> messageList;
     private Chat chatObject;
     private static final int MY_MESSAGE = 0;
@@ -67,7 +68,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
-        if (messageList.get(position).getCreator().equals(ChatUtils.currentUserId()))
+        if (messageList.get(position).getCreator().equals(ChatUtils.getCurrentUserId()))
             return MY_MESSAGE;
         else
             return THEIR_MESSAGE;

@@ -25,6 +25,7 @@ import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.contact.ContactContract;
 import vn.huynh.whatsapp.contact.presenter.ContactPresenter;
 import vn.huynh.whatsapp.model.User;
+import vn.huynh.whatsapp.utils.Constant;
 
 /**
  * Created by duong on 3/23/2019.
@@ -45,10 +46,11 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
+    public static final String TAG = "ContactFragment";
+
     private RecyclerView.Adapter userListAdapter;
     private RecyclerView.LayoutManager userListLayoutManager;
     private ArrayList<User> userList;
-    public static final String TAG = "ContactFragment";
 
     private boolean firstStart = true;
     private ContactContract.Presenter presenter;
@@ -166,7 +168,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     public void openChat(String key) {
         parentActivityListener.setReturnFromChildActivity(true);
         Intent intent = new Intent(getContext(), ChatActivity.class);
-        intent.putExtra("chatId", key);
+        intent.putExtra(Constant.EXTRA_CHAT_ID, key);
         startActivity(intent);
     }
 

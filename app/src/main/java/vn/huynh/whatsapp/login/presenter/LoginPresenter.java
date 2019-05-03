@@ -18,21 +18,32 @@ import java.util.concurrent.TimeUnit;
 
 import vn.huynh.whatsapp.base.BaseView;
 import vn.huynh.whatsapp.login.LoginContract;
+import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.model.UserInterface;
 import vn.huynh.whatsapp.model.UserRepository;
+import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Constant;
 
 /**
  * Created by duong on 4/13/2019.
  */
 
 public class LoginPresenter implements LoginContract.Presenter {
+    private static final String TAG = LoginPresenter.class.getSimpleName();
+
     private LoginContract.View view;
     private UserInterface userInterface;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     private String verificationId;
+    private PhoneAuthProvider.ForceResendingToken resendingToken;
+    private boolean isLogin = false;
 
     public LoginPresenter() {
         userInterface = new UserRepository();
+    }
+
+    public void setLogin(boolean login) {
+        this.isLogin = login;
     }
 
     @Override
@@ -51,16 +62,17 @@ public class LoginPresenter implements LoginContract.Presenter {
         userInterface.isLoggedIn(new UserInterface.CheckLoginCallBack() {
             @Override
             public void alreadyLoggedIn() {
-                if(view != null) {
+                if (view != null) {
                     view.loggedInMoveToHome();
                 }
             }
 
             @Override
             public void noLoggedIn() {
-                if(view != null) {
+                if (view != null) {
                     FirebaseAuth.getInstance().signOut();
                     OneSignal.setSubscription(false);
+                    ChatUtils.clearUser();
                     view.noLoggedInMoveToLogin();
                 }
             }
@@ -68,17 +80,60 @@ public class LoginPresenter implements LoginContract.Presenter {
     }
 
     @Override
-    public void sendVerificationCode(Activity activity, String phoneNumber, String name) {
-        initBeforeLogin(activity, name);
-        startPhoneNumberVerification(activity, phoneNumber);
+    public void sendVerificationCode(final Activity activity, final String phoneNumber, final String name) {
+        userInterface.checkPhoneNumberExist(phoneNumber, new UserInterface.CheckPhoneNumberExistCallBack() {
+            @Override
+            public void exist() {
+                if (isLogin) {
+                    //login
+                    initBeforeLogin(activity, name);
+                    startPhoneNumberVerification(activity, phoneNumber);
+                } else {
+                    //register
+                    if (view != null)
+                        view.userExistDoLogin();
+                }
+            }
+
+            @Override
+            public void notExist() {
+                if (isLogin) {
+                    //login
+                    if (view != null)
+                        view.userNotExistDoRegister();
+                } else {
+                    //register
+                    initBeforeLogin(activity, name);
+                    startPhoneNumberVerification(activity, phoneNumber);
+                }
+            }
+        });
     }
 
     @Override
-    public void doLogin(Activity activity, String name, String phoneNumber, String input) {
-        if(view != null)
+    public void resendVerificationCode(Activity activity, String phoneNumber) {
+        resendVerificationCode(phoneNumber, activity);
+    }
+
+    @Override
+    public void doRegister(Activity activity, String name, String phoneNumber, String input) {
+        if (view != null)
             view.showLoadingIndicator();
         if (verificationId != null) {
             verifyPhoneNumberWithCode(activity, name, verificationId, input);
+        } else {
+            view.verifyFail("verification null");
+        }
+    }
+
+    @Override
+    public void doLogin(Activity activity, String phoneNumber, String input) {
+        if (view != null)
+            view.showLoadingIndicator();
+        if (verificationId != null) {
+            verifyPhoneNumberWithCode(activity, "", verificationId, input);
+        } else {
+            view.verifyFail("verification null");
         }
     }
 
@@ -86,11 +141,21 @@ public class LoginPresenter implements LoginContract.Presenter {
     public void startPhoneNumberVerification(Activity activity, String phoneNumber) {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 phoneNumber,
-                60,
+                Constant.TIMEOUT_VERIFY_SMS,
                 TimeUnit.SECONDS,
                 activity,
                 mCallbacks
         );
+    }
+
+    private void resendVerificationCode(String phoneNumber, Activity activity) {
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                phoneNumber,        // Phone number to verify
+                Constant.TIMEOUT_VERIFY_SMS,                 // Timeout duration
+                TimeUnit.SECONDS,   // Unit of timeout
+                activity,               // Activity (for callback binding)
+                mCallbacks,         // OnVerificationStateChangedCallbacks
+                resendingToken);             // ForceResendingToken from callbacks
     }
 
     @Override
@@ -104,16 +169,24 @@ public class LoginPresenter implements LoginContract.Presenter {
             @Override
             public void onVerificationFailed(FirebaseException e) {
                 verificationId = null;
-                if(view != null)
+                if (view != null)
                     view.verifyFail(e.getMessage());
             }
 
             @Override
             public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(s, forceResendingToken);
+                resendingToken = forceResendingToken;
                 verificationId = s;
-                if(view != null)
+                if (view != null)
                     view.showVerifyButton();
+            }
+
+            @Override
+            public void onCodeAutoRetrievalTimeOut(String s) {
+                super.onCodeAutoRetrievalTimeOut(s);
+                if (view != null)
+                    view.timeOut(s);
             }
         };
     }
@@ -126,9 +199,49 @@ public class LoginPresenter implements LoginContract.Presenter {
                     view.hideLoadingIndicator();
                 }
                 if (task.isSuccessful()) {
-                    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null) {
-                        userInterface.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                    final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                    if (firebaseUser != null) {
+                        userInterface.getCurrentUserData(firebaseUser.getUid(), new UserInterface.LoadContactCallBack() {
+                            @Override
+                            public void loadSuccess(User user) {
+                                if (user != null) {
+                                    ChatUtils.setUser(user);
+                                    checkLogin();
+                                } else {
+                                    userInterface.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                        @Override
+                                        public void createSuccess() {
+                                            checkLogin();
+                                        }
+
+                                        @Override
+                                        public void createFail(String error) {
+                                            if (view != null) {
+                                                view.loginFail(error);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void loadFail(String message) {
+                                userInterface.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                    @Override
+                                    public void createSuccess() {
+                                        checkLogin();
+                                    }
+
+                                    @Override
+                                    public void createFail(String error) {
+                                        if (view != null) {
+                                            view.loginFail(error);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        /*userInterface.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                             @Override
                             public void createSuccess() {
                                 checkLogin();
@@ -140,17 +253,17 @@ public class LoginPresenter implements LoginContract.Presenter {
                                     view.loginFail(error);
                                 }
                             }
-                        });
+                        });*/
                     }
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                verificationId = null;
+//                verificationId = null;
                 if (view != null) {
                     view.hideLoadingIndicator();
-                    view.loginFail(e.getMessage());
+                    view.invalidCode(e.getMessage());
                 }
             }
         });

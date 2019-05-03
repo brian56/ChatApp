@@ -38,7 +38,6 @@
                 android:ellipsize="end"
                 android:textColor="@color/default_text_color"
                 android:maxLines="1"
-                android:text="asdsfs asfsa af"
                 android:textSize="18sp" />
 
             <TextView
@@ -47,7 +46,6 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="afsafsfas asfa "
                 android:textColor="@color/sub_text_color"
                 android:textSize="14sp" />
 

@@ -6,4 +6,48 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="message_sent_media">Sent media</string>
+
+    <!--login activity-->
+    <string name="label_verify">Verify</string>
+    <string name="label_register_account">Register</string>
+    <string name="label_log_in">Log in</string>
+    <string name="hint_phone_number">Phone number</string>
+    <string name="hint_name">Name</string>
+    <string name="label_send_code">Send code</string>
+    <string name="hint_code">Security code</string>
+    <string name="label_resend_code">Did not receive code? Tap to resend.</string>
+    <string name="label_time_out_resend_code">Timeout. Tap to resend code.</string>
+    <string name="label_tap_to_login">Already have account? Tap to login</string>
+    <string name="label_tap_to_register">Don\'t have account? Tap to register</string>
+    <string name="error_phone_number_exist_please_login">Phone number exists, please login.</string>
+    <string name="error_phone_number_not_exist_please_register">Phone number not found, please register first.</string>
+    <string name="toast_please_provide_phone">Please provide phone number</string>
+    <string name="toast_please_provide_phone_and_name">Please provide phone number and name</string>
+    <string name="toast_please_provide_verify_code">Please provide verify code</string>
+    <string name="toast_invalid_verify_code_please_try_again">Invalid verify code. Please try again</string>
+    <string name="toast_timeout_please_try_again">Timeout. Please try again</string>
+    <string name="toast_verify_failed_please_try_again">Verify failed. Please check the phone number and try again</string>
+    <string name="toast_login_failed_please_try_again">Login failed. Please try again</string>
+    <string name="toast_register_successful">Register successful</string>
+    <string name="toast_login_successful">Login successful</string>
+
+    <!--home activity-->
+    <string name="menu_chat">Chat</string>
+    <string name="menu_contact">Contact</string>
+    <string name="menu_group">Group</string>
+    <string name="menu_setting">Setting</string>
+
+    <!--create group activity-->
+    <string name="hint_group_name">Group\'s name</string>
+    <string name="label_create_group">Create group</string>
+
+    <!--setting activity-->
+    <string name="label_log_out">Log out</string>
+
+    <!--chat activity-->
+    <string name="title_select_pictures">Select picture(s)</string>
+    <!--layout indicator-->
+    <string name="label_indicator_no_data">No data. Tap to reload.</string>
+    <string name="label_indicator_error">Error! Tap to reload.</string>
+
 </resources>

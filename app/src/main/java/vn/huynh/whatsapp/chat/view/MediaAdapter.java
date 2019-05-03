@@ -30,6 +30,8 @@ import vn.huynh.whatsapp.R;
  */
 
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHolder> {
+    private static final String TAG = MediaAdapter.class.getSimpleName();
+
     private List<String> mediaList;
     private Context context;
 
@@ -73,6 +75,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
             public void onClick(View v) {
                 new ImageViewer.Builder(v.getContext(), mediaList)
                         .setStartPosition(holder.getAdapterPosition())
+                        .hideStatusBar(false)
                         .show();
             }
         });

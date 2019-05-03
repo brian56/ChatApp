@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -26,6 +27,7 @@ import vn.huynh.whatsapp.utils.MyApp;
  */
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder> {
+    private static final String TAG = ChatListAdapter.class.getSimpleName();
     private ArrayList<Chat> chatList;
     private Context context;
     private OnItemClickListener onItemClickListener;
@@ -74,10 +76,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             }
         }
         if (!chatList.get(holder.getAdapterPosition()).isGroup()) {
+            holder.ivGroup.setVisibility(View.GONE);
+            holder.avatarView.setVisibility(View.VISIBLE);
             holder.iImageLoader = new GlideLoader();
             holder.iImageLoader.loadImage(holder.avatarView, chatList.get(holder.getAdapterPosition()).getSingleChatAvatar(), chatList.get(holder.getAdapterPosition()).getChatName());
         } else {
-            holder.avatarView.setImageResource(R.drawable.ic_google_groups);
+            holder.ivGroup.setVisibility(View.VISIBLE);
+            holder.avatarView.setVisibility(View.GONE);
         }
     }
 
@@ -99,6 +104,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         LinearLayout linearLayout;
         @BindView(R.id.avatar)
         AvatarView avatarView;
+        @BindView(R.id.iv_group)
+        ImageView ivGroup;
 
         public IImageLoader iImageLoader;
 

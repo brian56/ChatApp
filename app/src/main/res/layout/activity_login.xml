@@ -14,100 +14,166 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
+            android:background="@color/colorPrimary"
+            android:gravity="center_vertical"
             android:orientation="vertical">
-
-            <EditText
-                android:id="@+id/edt_phone_number"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="phone number" />
-
-            <EditText
-                android:id="@+id/edt_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="name" />
-
-
-            <!--<Button-->
-            <!--android:id="@+id/btn_verify"-->
-            <!--style="@style/button_normal"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:paddingHorizontal="16dp"-->
-            <!--android:text="Send verifycation code" />-->
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_gravity="center_vertical"
+                android:layout_margin="24dp"
+                android:background="@drawable/bg_white_round"
+                android:elevation="6dp"
+                android:orientation="vertical"
+                android:padding="12dp">
 
-                <FrameLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="2">
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:text="@string/label_register_account"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                        <Button
-                            android:id="@+id/btn_verify"
-                            style="@style/button_normal"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Send code"
-                            android:visibility="visible" />
-                    </FrameLayout>
-
-                    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
-                        android:id="@+id/loader_sending_code"
+                    <com.rilixtech.CountryCodePicker
+                        android:id="@+id/ccp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:visibility="gone"
-                        app:tashieloader_animDelay="50"
-                        app:tashieloader_animDur="1000"
-                        app:tashieloader_dotsColor="@color/colorAccent"
-                        app:tashieloader_dotsDist="6dp"
-                        app:tashieloader_dotsRadius="4dp"
-                        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
-                        app:tashieloader_noOfDots="3" />
+                        android:layout_marginStart="6dp"
+                        app:ccp_textColor="@color/default_text_color"
+                        app:ccp_textSize="18sp"
+                        app:ccp_hideNameCode="true" />
 
-                </FrameLayout>
+                    <EditText
+                        android:id="@+id/edt_phone_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_phone_number"
+                        android:inputType="phone"
+                        android:singleLine="true" />
+                </LinearLayout>
 
                 <EditText
-                    android:id="@+id/edt_code"
-                    android:layout_width="0dp"
+                    android:id="@+id/edt_name"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:enabled="false"
-                    android:hint="code" />
+                    android:layout_margin="8dp"
+                    android:hint="@string/hint_name"
+                    android:singleLine="true" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <Button
+                                android:id="@+id/btn_verify"
+                                style="@style/button_normal"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:text="@string/label_send_code"
+                                android:visibility="visible" />
+                        </FrameLayout>
+
+                        <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
+                            android:id="@+id/loader_sending_code"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:loader_animDur="300"
+                            app:loader_bigCircleRadius="12dp"
+                            app:loader_circleRadius="3dp"
+                            app:loader_defaultColor="@color/white"
+                            app:loader_firstShadowColor="@color/colorAccent_2"
+                            app:loader_secondShadowColor="@color/colorAccent_1"
+                            app:loader_selectedColor="@color/colorAccent"
+                            app:loader_showRunningShadow="true" />
+
+                    </FrameLayout>
+
+                    <EditText
+                        android:id="@+id/edt_code"
+                        android:layout_width="1dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:enabled="false"
+                        android:singleLine="true"
+                        android:hint="@string/hint_code"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_resend"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="italic"
+                    android:singleLine="true"
+                    android:visibility="gone"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/label_resend_code" />
+
+                <TextView
+                    android:id="@+id/tv_login_register"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:singleLine="true"
+                    android:text="@string/label_tap_to_login"
+                    android:textSize="16sp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textStyle="bold|italic"
+                    android:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_loading"
-            android:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/white"
-            android:gravity="center">
+            android:gravity="center"
+            android:visibility="visible">
 
-            <com.agrawalsuneet.dotsloader.loaders.AllianceLoader
+
+            <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
+                android:layout_gravity="center"
+                android:visibility="visible"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:alliance_animDuration="500"
-                app:alliance_distanceMultiplier="4"
-                app:alliance_dotsRadius="6dp"
-                app:alliance_drawOnlyStroke="false"
-                app:alliance_firstDotsColor="#a3ffa3"
-                app:alliance_secondDotsColor="#0000FF"
-                app:alliance_strokeWidth="8dp"
-                app:alliance_thirdDotsColor="#ff0000" />
+                app:loader_animDur="300"
+                app:loader_bigCircleRadius="16dp"
+                app:loader_circleRadius="4dp"
+                app:loader_defaultColor="@color/browser_actions_bg_grey"
+                app:loader_firstShadowColor="@color/colorAccent_2"
+                app:loader_secondShadowColor="@color/colorAccent_1"
+                app:loader_selectedColor="@color/colorAccent"
+                app:loader_showRunningShadow="true" />
         </LinearLayout>
     </FrameLayout>
 </LinearLayout>

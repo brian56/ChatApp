@@ -8,6 +8,7 @@
 			"password": "addadsada",
 			"notificationKey": "asdadsa",
 			"lastOnline": 1241343431,
+			"lastChatId": "chatID1",
 			"createDate": 1341414244,
 			"avatar": "https://adadasd.com/asdjsdadjad",
 			"status": 1,
@@ -29,6 +30,7 @@
 			"password": "addadsada",
 			"notificationKey": "asdadsa",
 			"lastOnline": 1241343431,
+			"lastChatId": "chatID2",
 			"createDate": 1341414244,
 			"avatar": "https://adadasd.com/asdjsdadjad",
 			"status": 1,
@@ -123,8 +125,8 @@
 				"status": 0,
 				"createDate": 1423132144,
 				"seenUsers": {
-                  "userID1": 1453454353,
-                  "userID2": 14214335335
+					"userID1": 1,
+					"userID2": 0
 				},
 				"media": {
 					"mediaId1": "https://adsdsdsad.com/sdadad",

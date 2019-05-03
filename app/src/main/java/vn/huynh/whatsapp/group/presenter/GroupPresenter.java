@@ -12,6 +12,7 @@ import vn.huynh.whatsapp.model.User;
  */
 
 public class GroupPresenter extends ChatListPresenter implements GroupContract.Presenter {
+    private static final String TAG = GroupPresenter.class.getSimpleName();
     public GroupPresenter() {
         super();
     }

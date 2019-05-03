@@ -35,7 +35,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No data. Tap to reload."
+            android:text="@string/label_indicator_no_data"
             android:textColor="@color/sub_text_color"
             android:gravity="center"
             android:drawableStart="@drawable/ic_refresh_black_24dp"
@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Error! Tap to reload."
+            android:text="@string/label_indicator_error"
             android:drawableStart="@drawable/ic_refresh_black_24dp"
             android:drawablePadding="4dp"
             android:textColor="@color/sub_text_color"

@@ -25,13 +25,13 @@ import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.chat_list.ChatListContract;
 import vn.huynh.whatsapp.chat_list.presenter.ChatListPresenter;
 import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.utils.Constant;
 
 /**
  * Created by duong on 4/2/2019.
  */
 
 public class ChatListFragment extends BaseFragment implements ChatListContract.View {
-
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout;
     @BindView(R.id.rv_chat_list)
@@ -45,12 +45,13 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
+    public static final String TAG = "ChatListFragment";
+
     private ChatListAdapter chatListAdapter;
     private LinearLayoutManager chatListLayoutManager;
     private ArrayList<Chat> chatList;
     private ChatListContract.Presenter presenter = new ChatListPresenter();
 
-    public static final String TAG = "ChatListFragment";
     private static final String KEY_CHAT_LIST = "KEY_CHAT_LIST";
     private static final String KEY_CURRENT_POSITION = "KEY_CURRENT_POSITION";
 
@@ -198,7 +199,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
                 Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra("chatObject", chat);
+                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);
             }
         });

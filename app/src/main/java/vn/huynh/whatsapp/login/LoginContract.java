@@ -16,9 +16,17 @@ public interface LoginContract {
 
         void noLoggedInMoveToLogin();
 
+        void userExistDoLogin();
+
+        void userNotExistDoRegister();
+
         void loginFail(String message);
 
         void verifyFail(String message);
+
+        void invalidCode(String message);
+
+        void timeOut(String message);
 
         void showVerifyButton();
     }
@@ -31,9 +39,13 @@ public interface LoginContract {
 
         void startPhoneNumberVerification(Activity activity, String input);
 
-        void doLogin(Activity activity, String name, String phoneNumber, String input);
+        void doLogin(Activity activity, String phoneNumber, String input);
+
+        void doRegister(Activity activity, String name, String phoneNumber, String input);
 
         void sendVerificationCode(Activity activity, String phoneNumber, String name);
+
+        void resendVerificationCode(Activity activity, String phoneNumber);
 
     }
 }

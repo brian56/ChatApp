@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -23,7 +24,9 @@ import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
+import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Constant;
 
 public class ChatActivity extends BaseActivity implements ChatContract.View {
 
@@ -49,21 +52,25 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
+    private static final String TAG = ChatActivity.class.getSimpleName();
     private MessageAdapter messageAdapter;
     private LinearLayoutManager chatLayoutManager;
-    private ArrayList<Message> messageList = new ArrayList<>();
+    private ArrayList<Message> messageList;
     private static final int PICK_IMAGE_INTENT = 1;
     private Chat chatObject;
 
     private MediaAdapter mediaAdapter;
     private RecyclerView.LayoutManager mediaLayoutManager;
-    private ArrayList<String> mediaUriList = new ArrayList<>();
+    private ArrayList<String> mediaUriList;
     private String message = "";
     private int currentPosition = 0;
     private boolean firstStart = true;
     private boolean returnFromGallery = false;
     private static boolean isVisible = false;
-    private static String chatId;
+    private String chatId;
+    private boolean isBound = false;
+
+    private NewMessageService newMessageService;
 
     private ChatContract.Presenter chatPresenter;
 
@@ -79,16 +86,33 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setTitle("Chat");
 
+        Bundle bundle = getIntent().getExtras();
 
-        chatObject = getIntent().getParcelableExtra("chatObject");
-        chatId = getIntent().getStringExtra("chatId");
+        chatObject = bundle.getParcelable(Constant.EXTRA_CHAT_OBJECT);
+        chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
         if (chatObject != null) {
             chatId = chatObject.getId();
         }
+        Log.d("ChatActivity", chatId);
+        ChatUtils.setCurrentChatId(chatId);
         initializeMessageList();
         initializeMediaList();
         setupPresenter(this, chatObject, chatId);
         setEvents();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Bundle bundle = intent.getExtras();
+
+        chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
+        if (!chatId.equals(ChatUtils.getCurrentChatId())) {
+            chatObject = null;
+            ChatUtils.setCurrentChatId(chatId);
+            setupPresenter(this, chatObject, chatId);
+        }
+        Log.d("ChatActivity", chatId);
     }
 
     @Override
@@ -99,14 +123,38 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         return super.onOptionsItemSelected(item);
     }
 
+//    private ServiceConnection serviceConnection = new ServiceConnection() {
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
+//            newMessageService = binder.getService();
+//            Log.d("Noti_ChatActivity", "setShowNotification()");
+//            newMessageService.setShowNotification(true);
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//        }
+//    };
+
     @Override
     protected void onStart() {
         super.onStart();
+//        Intent intent2 = new Intent(this, NewMessageService.class);
+//        startService(intent2);
+//        bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
+//        isBound = true;
+
         isVisible = true;
+        ChatUtils.setCurrentChatId(chatId);
         if (!firstStart && !returnFromGallery) {
             messageList.clear();
             messageAdapter.notifyDataSetChanged();
-            chatPresenter.loadChatMessage(chatObject.getId());
+            if (chatObject != null) {
+                chatPresenter.loadChatMessage(chatId);
+            } else {
+                chatPresenter.loadChatDetail(chatId);
+            }
         }
         if (returnFromGallery) {
             returnFromGallery = false;
@@ -116,6 +164,11 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     protected void onStop() {
         super.onStop();
+//        if (newMessageService != null) {
+//            Log.d("Noti_ChatActivity", "setShowNotification()");
+//            newMessageService.setShowNotification(true);
+//        }
+        isVisible = false;
         firstStart = false;
         if (!returnFromGallery) {
             isVisible = false;
@@ -127,21 +180,25 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         return isVisible;
     }
 
-    public static String currentChatId() {
-        return chatId;
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ChatUtils.setCurrentChatId("");
         chatPresenter.detachView();
         chatPresenter.removeMessageListener();
         chatPresenter.removeChatDetailListener();
+//        if (isBound) {
+//            newMessageService.removeListener();
+//            unbindService(serviceConnection);
+//            isBound = false;
+//        }
     }
 
     private void setupPresenter(ChatContract.View view, Chat chat, String chatId) {
         chatPresenter = new ChatPresenter();
         chatPresenter.attachView(view);
+
+        Log.d("ChatActivity", chatId);
 
         if (chat != null) {
             showChatDetail(chat);
@@ -181,7 +238,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
         returnFromGallery = true;
-        startActivityForResult(Intent.createChooser(intent, "Select picture(s)"), PICK_IMAGE_INTENT);
+        startActivityForResult(Intent.createChooser(intent, getResources().getString(R.string.title_select_pictures)), PICK_IMAGE_INTENT);
     }
 
     @Override
@@ -204,6 +261,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private void initializeMessageList() {
         rvChat.setNestedScrollingEnabled(false);
         rvChat.setHasFixedSize(false);
+        messageList = new ArrayList<>();
         chatLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
         chatLayoutManager.setStackFromEnd(false);
         chatLayoutManager.setSmoothScrollbarEnabled(true);
@@ -215,6 +273,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private void initializeMediaList() {
         rvMedia.setNestedScrollingEnabled(false);
         rvMedia.setHasFixedSize(false);
+        mediaUriList = new ArrayList<>();
         mediaLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.HORIZONTAL, false);
         rvMedia.setLayoutManager(mediaLayoutManager);
         mediaAdapter = new MediaAdapter(getApplicationContext(), mediaUriList);
@@ -292,7 +351,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     public void showMessageList(Message messageObject) {
         if (messageObject != null) {
             showHideListIndicator(llIndicator, false);
-            if (messageObject.getCreator().equals(ChatUtils.currentUserId())) {
+            if (messageObject.getCreator().equals(ChatUtils.getCurrentUserId())) {
                 for (int i = messageList.size() - 1; i >= 0; i--) {
                     if (messageList.get(i).getId().equals(messageObject.getId())) {
                         Message.copyMessageObject(messageList.get(i), messageObject);
@@ -317,7 +376,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                 messageAdapter.notifyItemInserted(messageList.size() - 1);
 
                 for (int i = messageList.size() - 1; i >= 0; i--) {
-                    if (messageList.get(i).getCreator().equals(ChatUtils.currentUserId())) {
+                    if (messageList.get(i).getCreator().equals(ChatUtils.getCurrentUserId())) {
                         messageAdapter.notifyItemChanged(i);
                         break;
                     }
@@ -335,7 +394,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     public void newMessage() {
         message = edtMessage.getText().toString().trim();
-        if (!message.isEmpty() || !mediaUriList.isEmpty()) {
+        if (!message.isEmpty() || mediaUriList != null) {
             showHideListIndicator(llIndicator, false);
             ArrayList<String> mediaArrayList = new ArrayList<>();
             mediaArrayList.addAll(mediaUriList);

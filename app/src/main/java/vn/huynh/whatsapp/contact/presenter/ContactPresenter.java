@@ -23,6 +23,7 @@ import vn.huynh.whatsapp.utils.ChatUtils;
  */
 
 public class ContactPresenter implements ContactContract.Presenter {
+    public static final String TAG = ContactPresenter.class.getSimpleName();
     private ChatInterface chatRepo;
     private UserInterface userRepo;
     private ContactContract.View viewContact;
