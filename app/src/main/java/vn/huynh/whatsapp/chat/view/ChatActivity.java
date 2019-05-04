@@ -159,15 +159,13 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         if (returnFromGallery) {
             returnFromGallery = false;
         }
+        chatPresenter.resetNumberUnread(chatId);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        if (newMessageService != null) {
-//            Log.d("Noti_ChatActivity", "setShowNotification()");
-//            newMessageService.setShowNotification(true);
-//        }
+        chatPresenter.resetNumberUnread(chatId);
         isVisible = false;
         firstStart = false;
         if (!returnFromGallery) {
@@ -349,6 +347,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
     @Override
     public void showMessageList(Message messageObject) {
+        chatPresenter.resetNumberUnread(chatId);
         if (messageObject != null) {
             showHideListIndicator(llIndicator, false);
             if (messageObject.getCreator().equals(ChatUtils.getCurrentUserId())) {

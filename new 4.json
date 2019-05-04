@@ -2,25 +2,25 @@
 	"user": {
 		"key1": {
           "id": "key1",
-			"name": "name",
-			"phoneNumber": "+84522222",
-			"email": "adadad",
-			"password": "addadsada",
-			"notificationKey": "asdadsa",
-			"lastOnline": 1241343431,
-			"lastChatId": "chatID1",
-			"createDate": 1341414244,
-			"avatar": "https://adadasd.com/asdjsdadjad",
-			"status": 1,
-			"chat": {
-				"chatID1": 122323322,
-				"chatID2": 11222222,
-				"chatID3": 155554566
-			},
-			"friendList": {
+          "name": "name",
+          "phoneNumber": "+84522222",
+          "email": "adadad",
+          "password": "addadsada",
+          "notificationKey": "asdadsa",
+          "lastOnline": 1241343431,
+          "lastChatId": "chatID1",
+          "createDate": 1341414244,
+          "avatar": "https://adadasd.com/asdjsdadjad",
+          "status": 1,
+          "chat": {
+            "chatID1": 122323322,
+            "chatID2": 11222222,
+            "chatID3": 155554566
+          },
+          "friendList": {
               "friendListID1": 2,
               "friendListID2": 3
-			}
+          }
 		},
 		"key2": {
           "id": "key2",
@@ -45,7 +45,7 @@
 			}
 		}
 	},
-	
+
 	"chat": {
 		"chatID1": {
           "id": "chatID1",
@@ -76,9 +76,14 @@
 				"id3": "userID3"
 			},
 			"notificationUserIds": {
-              "userID1": 1,
-              "userID2": 1,
-              "userID3": 0
+              "id1": "userID1",
+              "id2": "userID2",
+              "id3": "userID3"
+            },
+          "numberUnread": {
+            "userID1": 1,
+            "userID2": 0,
+            "userID3": 4
 			}
 		},
 		"chatID2": {
@@ -115,7 +120,7 @@
 			}
 		}
 	},
-	
+
 	"message": {
 		"chatID1": {
 			"messageID1": {
@@ -146,8 +151,7 @@
 			}
 		}
 	},
-	
-	"friendList": {
+  "friendList": {
 		"userID1": {
 			"friendListID1": {
 				"name": "asdasdsad",

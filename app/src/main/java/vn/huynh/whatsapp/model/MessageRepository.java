@@ -195,53 +195,78 @@ public class MessageRepository implements MessageInterface {
     }
 
 
-    private void updateDatabaseWithNewMessage(final Chat chat, DatabaseReference newMessageDB,
+    private void updateDatabaseWithNewMessage(final Chat chat, final DatabaseReference newMessageDB,
                                               final Message message, final SendMessageCallBack callBack) {
-        newMessageDB.setValue(message, new DatabaseReference.CompletionListener() {
+        //update number unread message in chat object
+        final DatabaseReference dbRefChat = dbRef.child("chat").child(chat.getId()).child("numberUnread");
+        dbRefChat.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                if (databaseError == null) {
-                    mediaIdList.clear();
-
-//                    String text = "";
-//                    if (message.getType() == Message.TYPE_TEXT) {
-//                        text = message.getText();
-//                    } else if (message.getType() == Message.TYPE_MEDIA) {
-//                        text = MyApp.resources.getString(R.string.message_sent_media);
-//                    }
-//                    for (User userObject : chat.getUsers()) {
-//                        if (!userObject.getId().equals(ChatUtils.getCurrentUserId())) {
-//                            new SendNotification(text, "New message", userObject.getNotificationKey());
-//                        }
-//                    }
-                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.exists()) {
-                                long timeStamp = Long.parseLong(dataSnapshot.child("createDate").getValue().toString());
-                                message.setCreateDate(timeStamp);
-                                String id = dataSnapshot.getKey();
-                                message.setId(id);
-                                updateLastMessageToChatAndUser(message, chat, callBack);
-                            }
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                        Long num = 0l;
+                        if (!dataSnapshot1.getKey().equals(ChatUtils.getCurrentUserId())) {
+                            num = (long) dataSnapshot1.getValue();
+                            num++;
                         }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-
-                } else {
-                    callBack.sendFail(databaseError.getMessage());
+                        DatabaseReference df = dbRefChat.child(dataSnapshot1.getKey());
+                        df.setValue(num);
+                    }
                 }
+                //save new message
+                newMessageDB.setValue(message, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                        if (databaseError == null) {
+                            mediaIdList.clear();
+                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        long timeStamp = Long.parseLong(dataSnapshot.child("createDate").getValue().toString());
+                                        message.setCreateDate(timeStamp);
+                                        String id = dataSnapshot.getKey();
+                                        message.setId(id);
+                                        updateLastMessageToChatAndUser(message, chat, callBack);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+
+                        } else {
+                            callBack.sendFail(databaseError.getMessage());
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
 
     }
 
     private void updateLastMessageToChatAndUser(Message message, Chat chat, final SendMessageCallBack callBack) {
-        DatabaseReference chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageSent");
+        DatabaseReference chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageDate");
+        chatRef.setValue(message.getCreateDateInLong());
+        for (String userId : chat.getUserIds().values()) {
+            DatabaseReference userRef = dbRef.child("user")
+                    .child(userId).child("chat").child(chat.getId());
+            userRef.setValue(message.getCreateDateInLong());
+            //update user object
+            if (!userId.equals(ChatUtils.getCurrentUserId())) {
+                userRef = dbRef.child("user")
+                        .child(userId).child("lastChatId");
+                userRef.setValue(chat.getId() + "=" + message.getCreateDateInLong() + "=" + ChatUtils.generateRandomInteger());
+            }
+        }
+        chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageSent");
         chatRef.setValue(message, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
@@ -253,19 +278,6 @@ public class MessageRepository implements MessageInterface {
             }
 
         });
-        chatRef = dbRef.child("chat").child(chat.getId()).child("lastMessageDate");
-        chatRef.setValue(message.getCreateDateInLong());
-        for (String userId : chat.getUserIds().values()) {
-            DatabaseReference userRef = dbRef.child("user")
-                    .child(userId).child("chat").child(chat.getId());
-            userRef.setValue(message.getCreateDateInLong());
-
-            if (!userId.equals(ChatUtils.getCurrentUserId())) {
-                userRef = dbRef.child("user")
-                        .child(userId).child("lastChatId");
-                userRef.setValue(chat.getId() + "=" + System.currentTimeMillis() + "=" + ChatUtils.generateRandomInteger());
-            }
-        }
     }
 
     public class UploadMediaAsyncTask extends AsyncTask<List<String>, Void, Void> {

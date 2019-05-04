@@ -31,8 +31,6 @@ public class ChatRepository implements ChatInterface {
     private ChildEventListener childEventListener;
     private DatabaseReference chatDb;
 
-    private DatabaseReference userDb;
-
     private DatabaseReference chatDetailDb;
     private ValueEventListener valueEventListener;
 
@@ -111,7 +109,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void getChatList(final boolean onlyGroup, final ChatListCallBack callBack) {
+    public void getChatList(final boolean onlyGroup, final ChatListCallback callBack) {
         removeListener();
         mValueListenerMap.clear();
         chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
@@ -163,7 +161,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     /*@Override
-    public void getGroupList(final boolean onlyGroup, final ChatListCallBack callBack) {
+    public void getGroupList(final boolean onlyGroup, final ChatListCallback callBack) {
         removeListener();
         mValueListenerMap.clear();
         chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
@@ -215,7 +213,7 @@ public class ChatRepository implements ChatInterface {
     }*/
 
     @Override
-    public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatInterface.ChatListCallBack callBack) {
+    public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatListCallback callBack) {
         //get chat detail for chat list
         DatabaseReference chatDetailRef = dbRef.child("chat").child(chat.getId());
         ValueEventListener valueEventListener = new ValueEventListener() {
@@ -272,7 +270,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void getChatDetail(final String chatId, final ChatDetailCallBack callBack) {
+    public void getChatDetail(final String chatId, final ChatDetailCallback callBack) {
         removeListener();
         //get chat detail
         chatDetailDb = dbRef.child("chat").child(chatId);
@@ -282,17 +280,6 @@ public class ChatRepository implements ChatInterface {
                 if (dataSnapshot.exists()) {
                     final Chat chat = dataSnapshot.getValue(Chat.class);
                     chat.setId(chatId);
-
-//                    List<String> userList = new ArrayList<>(chat.getUserIds().values());
-//                    long pos = 0;
-//                    for (String userId : userList) {
-//                        pos++;
-//                        if (pos == chat.getUserIds().size()) {
-//                            userRepository.getUserData(userId, chat, callBack);
-//                        } else {
-//                            userRepository.getUserData(userId, chat, null);
-//                        }
-//                    }
 
                     List<String> userList = new ArrayList<>(chat.getUserIds().values());
                     List<Task<DataSnapshot>> taskList = new ArrayList<>();
@@ -332,7 +319,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallBack callBack) {
+    public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallback callBack) {
         removeListener();
         chatDb = dbRef.child("chat").push();
         final String chatId = chatDb.getKey();
@@ -341,8 +328,8 @@ public class ChatRepository implements ChatInterface {
             callBack.createFail("Cannot get chat Id");
             return;
         }
-        DatabaseReference userIdRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId).child("userIds");
-        DatabaseReference notificationIdRef = FirebaseDatabase.getInstance().getReference().child("chat").child(chatId).child("notificationUserIds");
+        DatabaseReference userIdRef = dbRef.child("chat").child(chatId).child("userIds");
+        DatabaseReference notificationIdRef = dbRef.child("chat").child(chatId).child("notificationUserIds");
 
         final List<String> userIds = new ArrayList<>();
         for (User user : users) {
@@ -364,15 +351,16 @@ public class ChatRepository implements ChatInterface {
             chat.setSingleChatId("");
         }
         Map<String, String> userIdsMap = new HashMap<>();
-        for (String userId : userIds) {
-            userIdsMap.put(userIdRef.push().getKey(), userId);
-        }
-        chat.setUserIds(userIdsMap);
+        Map<String, Long> numberUnread = new HashMap<>();
         Map<String, String> notificationIdMap = new HashMap<>();
         for (String userId : userIds) {
+            userIdsMap.put(userIdRef.push().getKey(), userId);
             notificationIdMap.put(notificationIdRef.push().getKey(), userId);
+            numberUnread.put(userId, 0l);
         }
+        chat.setUserIds(userIdsMap);
         chat.setNotificationUserIds(notificationIdMap);
+        chat.setNumberUnread(numberUnread);
 
         chatDb.setValue(chat, new DatabaseReference.CompletionListener() {
             @Override
@@ -386,7 +374,6 @@ public class ChatRepository implements ChatInterface {
                                 for (String userId : userIds) {
                                     dbRef.child("user").child(userId).child("chat").child(chatId).setValue(lastMessageDate);
                                 }
-//                                dbRef.child("message").child(chatId).setValue("");
                                 callBack.createSuccess(dataSnapshot.getKey());
                             }
                         }
@@ -404,7 +391,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallBack callBack) {
+    public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallback callBack) {
         chatDb = dbRef.child("chat");
 //        chatDb.keepSynced(true);
         query = chatDb.orderByChild("singleChatId").equalTo(singleChatId);
@@ -427,5 +414,37 @@ public class ChatRepository implements ChatInterface {
             }
         };
         query.addListenerForSingleValueEvent(valueEventListener);
+    }
+
+    @Override
+    public void resetNumberUnread(String chatId, final ResetUnreadMessageCallback callback) {
+        final DatabaseReference dbRefChat = dbRef.child("chat").child(chatId).child("numberUnread");
+        dbRefChat.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                        if (dataSnapshot1.getKey().equals(ChatUtils.getCurrentUserId())) {
+                            DatabaseReference df = dbRefChat.child(dataSnapshot1.getKey());
+                            df.setValue(0, new DatabaseReference.CompletionListener() {
+                                @Override
+                                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                    if (databaseError == null)
+                                        callback.success();
+                                    else
+                                        callback.fail();
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }

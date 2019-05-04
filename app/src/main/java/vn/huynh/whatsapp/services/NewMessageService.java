@@ -34,6 +34,7 @@ import java.util.Map;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
@@ -144,7 +145,7 @@ public class NewMessageService extends Service {
         Log.d(TAG, chat.getId());
         String title = "", message = "";
         if (chat.isGroup()) {
-            title = sender.getName() + " in " + chat.getChatName();
+            title = chat.getChatName();
         } else {
             title = sender.getName();
         }
@@ -164,7 +165,7 @@ public class NewMessageService extends Service {
         notification.setContent(simpleContentView);
 
         new GetBitmapFromUrl().execute(sender.getAvatar());
-        simpleContentView.setTextViewText(R.id.txt_user_name, title);
+        simpleContentView.setTextViewText(R.id.txt_chat_name, title);
         message = chat.getLastMessageSent().getText();
         if (TextUtils.isEmpty(message)) {
             if (!chat.getLastMessageSent().getMedia().isEmpty()) {
@@ -174,6 +175,18 @@ public class NewMessageService extends Service {
         simpleContentView.setTextViewText(R.id.txt_message, message);
         String time = DateUtils.formatTimeWithMarker(chat.getLastMessageSent().getCreateDateInLong());
         simpleContentView.setTextViewText(R.id.tv_time, time);
+        if (chat.getLastMessageSent().getType() == Message.TYPE_TEXT) {
+            //sent text
+            simpleContentView.setTextViewCompoundDrawables(R.id.txt_message, 0, 0, 0, 0);
+        } else {
+            //sent media
+            simpleContentView.setTextViewCompoundDrawables(R.id.txt_message, 0, 0, R.drawable.ic_photo_size_select_actual_black_24dp, 0);
+        }
+        if (chat.isGroup()) {
+            simpleContentView.setTextViewText(R.id.tv_creator, chat.getLastMessageSent().getCreatorName() + ": ");
+        } else {
+            simpleContentView.setTextViewText(R.id.tv_creator, "");
+        }
 
         notificationManager.notify(ID_NOTIFICATION, notification.build());
 

@@ -84,7 +84,7 @@ public class ContactPresenter implements ContactContract.Presenter {
         if (viewContact != null)
             viewContact.showLoadingIndicator();
         String singleChatId = ChatUtils.getSingleChatIdFomUsers(users);
-        chatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallBack() {
+        chatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallback() {
             @Override
             public void exist(String chatId) {
                 if (viewContact != null) {
@@ -104,7 +104,7 @@ public class ContactPresenter implements ContactContract.Presenter {
     public void createChat(boolean isGroup, String name, List<User> users) {
         if (viewContact != null)
             viewContact.showLoadingIndicator();
-        chatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallBack() {
+        chatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallback() {
             @Override
             public void createSuccess(String chatId) {
                 if (viewContact != null) {

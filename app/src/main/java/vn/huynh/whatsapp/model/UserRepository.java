@@ -104,7 +104,7 @@ public class UserRepository implements UserInterface {
     }
 
     /*@Override
-    public void getUserData(final String userId, final Chat chat, final ChatInterface.ChatListCallBack callBack) {
+    public void getUserData(final String userId, final Chat chat, final ChatInterface.ChatListCallback callBack) {
         final DatabaseReference userDb = dbRef.child("user").child(userId);
         ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
@@ -127,7 +127,7 @@ public class UserRepository implements UserInterface {
     }*/
 
     /*@Override
-    public void getUserData(String userId, final Chat chat, final ChatInterface.ChatDetailCallBack callBack) {
+    public void getUserData(String userId, final Chat chat, final ChatInterface.ChatDetailCallback callBack) {
         final DatabaseReference userDb = dbRef.child("user").child(userId);
         ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override

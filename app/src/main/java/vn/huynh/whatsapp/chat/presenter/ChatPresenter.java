@@ -60,15 +60,26 @@ public class ChatPresenter implements ChatContract.Presenter {
     }
 
     @Override
-    public void loadChatDetail(String chatId) {
+    public void loadChatDetail(final String chatId) {
         if (view != null)
             view.showLoadingIndicator();
-        chatRepo.getChatDetail(chatId, new ChatInterface.ChatDetailCallBack() {
+        chatRepo.getChatDetail(chatId, new ChatInterface.ChatDetailCallback() {
             @Override
-            public void loadSuccess(Chat chatObject) {
+            public void loadSuccess(final Chat chatObject) {
                 if (view != null) {
-                    view.showChatDetail(chatObject);
-                    view.hideLoadingIndicator();
+                    chatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
+                        @Override
+                        public void success() {
+                            view.showChatDetail(chatObject);
+                            view.hideLoadingIndicator();
+                        }
+
+                        @Override
+                        public void fail() {
+                            view.showErrorMessage("");
+                            view.hideLoadingIndicator();
+                        }
+                    });
                 }
             }
 
@@ -83,7 +94,20 @@ public class ChatPresenter implements ChatContract.Presenter {
     }
 
     @Override
-    public void loadChatMessage(String chatId) {
+    public void resetNumberUnread(String chatId) {
+        chatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
+            @Override
+            public void success() {
+            }
+
+            @Override
+            public void fail() {
+            }
+        });
+    }
+
+    @Override
+    public void loadChatMessage(final String chatId) {
         if (view != null)
             view.showLoadingIndicator();
         messageRepo.getChatMessageData(chatId, new MessageInterface.GetChatMessageCallBack() {
@@ -121,11 +145,6 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void sendMessage(final Chat chat, final String text, final ArrayList<String> mediaUri) {
-//        if (mediaUri.size() > 0) {
-//            if(view != null)
-//                view.showLoadingIndicator();
-//        }
-
         messageRepo.getNewMessageId(chat.getId(), new MessageInterface.SendMessageCallBack() {
             @Override
             public void getNewMessageIdSuccess(String messageId) {

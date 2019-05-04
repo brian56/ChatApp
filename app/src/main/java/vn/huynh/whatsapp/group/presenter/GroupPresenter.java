@@ -33,7 +33,7 @@ public class GroupPresenter extends ChatListPresenter implements GroupContract.P
 //    public void loadListGroup(final List<Chat> list) {
 //        if(view != null)
 //            view.showLoadingSwipeLayout();
-//        chatRepo.getChatList(true, new ChatInterface.ChatListCallBack() {
+//        chatRepo.getChatList(true, new ChatInterface.ChatListCallback() {
 //            @Override
 //            public void loadSuccess(Chat chatObject) {
 //                if (view != null) {
@@ -120,7 +120,7 @@ public class GroupPresenter extends ChatListPresenter implements GroupContract.P
         if (view != null) {
             view.showLoadingIndicator();
         }
-        chatRepo.createChat(true, groupName, list, new ChatInterface.CreateChatCallBack() {
+        chatRepo.createChat(true, groupName, list, new ChatInterface.CreateChatCallback() {
             @Override
             public void createSuccess(String chatId) {
                 if (view != null) {

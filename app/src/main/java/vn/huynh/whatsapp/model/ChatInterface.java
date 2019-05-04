@@ -9,15 +9,15 @@ import vn.huynh.whatsapp.base.BaseModelInterface;
  */
 
 public interface ChatInterface extends BaseModelInterface {
-    void getChatList(boolean onlyGroup, ChatListCallBack callBack);
+    void getChatList(boolean onlyGroup, ChatListCallback callBack);
 
-    void getChatDetail(String chatId, ChatInterface.ChatDetailCallBack callBack);
+    void getChatDetail(String chatId, ChatDetailCallback callBack);
 
-    void getChatDetail(boolean onlyGroup, Chat chat, ChatInterface.ChatListCallBack callBack);
+    void getChatDetail(boolean onlyGroup, Chat chat, ChatListCallback callBack);
 
-    void createChat(boolean isGroup, String name, List<User> users, CreateChatCallBack callBack);
+    void createChat(boolean isGroup, String name, List<User> users, CreateChatCallback callBack);
 
-    void checkSingleChatExist(String singleChatId, CheckSingleChatCallBack callBack);
+    void checkSingleChatExist(String singleChatId, CheckSingleChatCallback callBack);
 
     void removeChatListListener();
 
@@ -27,7 +27,9 @@ public interface ChatInterface extends BaseModelInterface {
 
     void addChatDetailListener();
 
-    interface ChatListCallBack {
+    void resetNumberUnread(String chatId, ResetUnreadMessageCallback callback);
+
+    interface ChatListCallback {
         void loadSuccess(Chat chat);
 
         void updateChatStatus(Chat chat);
@@ -41,21 +43,27 @@ public interface ChatInterface extends BaseModelInterface {
         void removeFail(String message);
     }
 
-    interface ChatDetailCallBack {
+    interface ChatDetailCallback {
         void loadSuccess(Chat chat);
 
         void loadFail(String message);
     }
 
-    interface CreateChatCallBack {
+    interface CreateChatCallback {
         void createSuccess(String chatId);
 
         void createFail(String message);
     }
 
-    interface CheckSingleChatCallBack {
+    interface CheckSingleChatCallback {
         void exist(String chatId);
 
         void notExist();
+    }
+
+    interface ResetUnreadMessageCallback {
+        void success();
+
+        void fail();
     }
 }

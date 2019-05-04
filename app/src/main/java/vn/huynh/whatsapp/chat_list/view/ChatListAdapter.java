@@ -19,6 +19,7 @@ import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.GlideLoader;
 import vn.huynh.whatsapp.utils.MyApp;
 
@@ -54,6 +55,18 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public void onBindViewHolder(final ChatListViewHolder holder, final int position) {
         Log.d("Chat group", chatList.get(holder.getAdapterPosition()).getChatName());
         holder.tvTitle.setText(chatList.get(holder.getAdapterPosition()).getChatName());
+        if (chatList.get(holder.getAdapterPosition()).getNumberUnread() != null
+                && chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+            Long num = chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getCurrentUserId());
+            holder.tvUnread.setVisibility(View.VISIBLE);
+            if (num > 99)
+                holder.tvUnread.setText("99+");
+            else
+                holder.tvUnread.setText(num + "");
+        } else {
+            holder.tvUnread.setVisibility(View.GONE);
+        }
+
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,6 +119,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         AvatarView avatarView;
         @BindView(R.id.iv_group)
         ImageView ivGroup;
+        @BindView(R.id.tv_unread)
+        TextView tvUnread;
 
         public IImageLoader iImageLoader;
 

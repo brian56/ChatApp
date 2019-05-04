@@ -29,7 +29,7 @@ public interface ChatContract {
 
     interface Presenter extends BasePresenter {
 
-//        void getMessageId(String chatId);
+        void resetNumberUnread(String chatId);
 
         void loadChatDetail(String chatId);
 

@@ -136,6 +136,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
                         ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
                     }
+                } else {
+                    //first message
+                    ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+                    ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                    ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
                 }
                 if (TextUtils.isEmpty(messageList.get(holder.getAdapterPosition()).getText())) {
                     ((TheirMessageViewHolder) holder).tvMessage.setVisibility(View.GONE);

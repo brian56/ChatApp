@@ -30,6 +30,7 @@ public class Chat implements Parcelable {
     private String singleChatId;
     private Map<String, String> userIds;
     private Map<String, String> notificationUserIds;
+    private Map<String, Long> numberUnread;
     private Message lastMessageSent;
     private List<User> users;
 
@@ -54,6 +55,9 @@ public class Chat implements Parcelable {
 
         notificationUserIds = new HashMap<>();
         in.readMap(notificationUserIds, String.class.getClassLoader());
+
+        numberUnread = new HashMap<>();
+        in.readMap(numberUnread, String.class.getClassLoader());
 
         /*int userIdsSize = in.readInt();
         this.userIds = new HashMap<>(userIdsSize);
@@ -113,6 +117,13 @@ public class Chat implements Parcelable {
         } else {
             notificationUserIds = new HashMap<>();
             dest.writeMap(notificationUserIds);
+        }
+
+        if (numberUnread != null) {
+            dest.writeMap(numberUnread);
+        } else {
+            numberUnread = new HashMap<>();
+            dest.writeMap(numberUnread);
         }
         /*if(this.userIds != null) {
             dest.writeInt(this.userIds.size());
@@ -213,6 +224,14 @@ public class Chat implements Parcelable {
 
     public void setNotificationUserIds(Map<String, String> notificationUserIds) {
         this.notificationUserIds = notificationUserIds;
+    }
+
+    public Map<String, Long> getNumberUnread() {
+        return numberUnread;
+    }
+
+    public void setNumberUnread(Map<String, Long> numberUnread) {
+        this.numberUnread = numberUnread;
     }
 
     public String getSingleChatId() {
@@ -328,6 +347,7 @@ public class Chat implements Parcelable {
         this.setUserIds(c2.getUserIds());
         this.setStatus(c2.getStatus());
         this.setNotificationUserIds(c2.getNotificationUserIds());
+        this.setNumberUnread(c2.getNumberUnread());
         this.setName(c2.getName());
         this.setCreatorId(c2.getCreatorId());
         this.setCreateDate(c2.getCreateDate());

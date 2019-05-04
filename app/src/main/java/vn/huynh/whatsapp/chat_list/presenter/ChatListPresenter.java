@@ -45,7 +45,7 @@ public class ChatListPresenter implements ChatListContract.Presenter {
     public void loadChatList(boolean isGroup, final List<Chat> list) {
         if (view != null)
             view.showLoadingIndicator();
-        chatRepo.getChatList(isGroup, new ChatInterface.ChatListCallBack() {
+        chatRepo.getChatList(isGroup, new ChatInterface.ChatListCallback() {
             @Override
             public void loadSuccess(Chat chatObject) {
                 if (view != null) {
