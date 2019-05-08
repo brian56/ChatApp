@@ -206,6 +206,8 @@ public class Chat implements Parcelable {
 
     @Exclude
     public long getLastMessageDateInLong() {
+        if (lastMessageDate == null)
+            return -1;
         return (long) lastMessageDate;
     }
 

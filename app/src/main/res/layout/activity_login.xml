@@ -77,6 +77,18 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <EditText
+                        android:id="@+id/edt_code"
+                        android:layout_width="1dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:enabled="false"
+                        android:singleLine="true"
+                        android:digits="0123456789"
+                        android:inputType="numberDecimal"
+                        android:hint="@string/hint_code"
+                        android:visibility="gone" />
+
                     <FrameLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -102,7 +114,7 @@
                             android:visibility="gone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:loader_animDur="300"
+                            app:loader_animDur="100"
                             app:loader_bigCircleRadius="12dp"
                             app:loader_circleRadius="3dp"
                             app:loader_defaultColor="@color/white"
@@ -112,16 +124,6 @@
                             app:loader_showRunningShadow="true" />
 
                     </FrameLayout>
-
-                    <EditText
-                        android:id="@+id/edt_code"
-                        android:layout_width="1dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        android:enabled="false"
-                        android:singleLine="true"
-                        android:hint="@string/hint_code"
-                        android:visibility="gone" />
                 </LinearLayout>
 
                 <TextView
@@ -166,7 +168,7 @@
                 android:visibility="visible"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:loader_animDur="300"
+                app:loader_animDur="100"
                 app:loader_bigCircleRadius="16dp"
                 app:loader_circleRadius="4dp"
                 app:loader_defaultColor="@color/browser_actions_bg_grey"

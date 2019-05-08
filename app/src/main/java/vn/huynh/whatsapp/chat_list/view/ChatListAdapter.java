@@ -20,6 +20,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.DateUtils;
 import vn.huynh.whatsapp.utils.GlideLoader;
 import vn.huynh.whatsapp.utils.MyApp;
 
@@ -60,9 +61,9 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             Long num = chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getCurrentUserId());
             holder.tvUnread.setVisibility(View.VISIBLE);
             if (num > 99)
-                holder.tvUnread.setText("99+");
+                holder.tvUnread.setText(MyApp.resources.getString(R.string.label_number_unread_message_max));
             else
-                holder.tvUnread.setText(num + "");
+                holder.tvUnread.setText(num.toString());
         } else {
             holder.tvUnread.setVisibility(View.GONE);
         }
@@ -97,6 +98,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             holder.ivGroup.setVisibility(View.VISIBLE);
             holder.avatarView.setVisibility(View.GONE);
         }
+        String time = DateUtils.formatTimeWithMarker(chatList.get(holder.getAdapterPosition()).getLastMessageDateInLong());
+        holder.tvTime.setText(time);
     }
 
     @Override
@@ -121,6 +124,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         ImageView ivGroup;
         @BindView(R.id.tv_unread)
         TextView tvUnread;
+        @BindView(R.id.tv_time)
+        TextView tvTime;
 
         public IImageLoader iImageLoader;
 

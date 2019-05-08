@@ -46,8 +46,12 @@
 
     <!--chat activity-->
     <string name="title_select_pictures">Select picture(s)</string>
+
     <!--layout indicator-->
     <string name="label_indicator_no_data">No data. Tap to reload.</string>
     <string name="label_indicator_error">Error! Tap to reload.</string>
+
+    <!--chat list-->
+    <string name="label_number_unread_message_max">99+</string>
 
 </resources>

@@ -182,7 +182,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     }
 
     @Override
-    public void updateChatListStatus(Chat chatObject) {
+    public void updateChatStatus(Chat chatObject, boolean hasNewMessage) {
 
     }
 

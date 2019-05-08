@@ -4,7 +4,7 @@
     android:id="@+id/ll_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground"
+    android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical">
 
     <LinearLayout
@@ -35,10 +35,14 @@
             android:layout_margin="16dp"
             android:src="@drawable/ic_google_groups" />
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="vertical">
 
@@ -46,6 +50,7 @@
                 android:id="@+id/tv_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
                 android:ellipsize="end"
                 android:textColor="@color/default_text_color"
                 android:maxLines="1"
@@ -56,6 +61,7 @@
                 android:id="@+id/tv_last_message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
                 android:gravity="center_vertical"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -70,16 +76,32 @@
             android:id="@+id/tv_unread"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:visibility="gone"
-            android:layout_marginEnd="16dp"
+            android:visibility="visible"
             android:gravity="center"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
             android:elevation="3dp"
-            android:text="15"
+            android:text=""
             android:textSize="12sp"
             android:textColor="@color/white"
-            android:background="@drawable/circle" />
+            android:background="@drawable/bg_badge_number_circle" />
+
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="12dp"
+                android:layout_marginTop="6dp"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="@color/sub_text_color" />
+        </RelativeLayout>
 
     </LinearLayout>
+
 
     <View
         android:layout_width="match_parent"

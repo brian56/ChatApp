@@ -3,21 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
     android:background="#00ffffff">
 
-    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
+    <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
         android:id="@+id/loader_image"
+        android:layout_centerInParent="true"
         android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        app:tashieloader_animDelay="50"
-        app:tashieloader_animDur="1000"
-        app:tashieloader_dotsColor="@color/loading_indicator"
-        app:tashieloader_dotsDist="4dp"
-        app:tashieloader_dotsRadius="2dp"
-        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
-        app:tashieloader_noOfDots="3" />
+        app:loader_animDur="100"
+        app:loader_bigCircleRadius="8dp"
+        app:loader_circleRadius="2dp"
+        app:loader_defaultColor="@color/white"
+        app:loader_firstShadowColor="@color/colorAccent_2"
+        app:loader_secondShadowColor="@color/colorAccent_1"
+        app:loader_selectedColor="@color/colorAccent"
+        app:loader_showRunningShadow="true" />
+
     <ImageView
         android:id="@+id/iv_media"
         android:layout_margin="8dp"
@@ -25,4 +28,15 @@
         android:scaleType="center"
         android:layout_width="64dp"
         android:layout_height="64dp" />
+
+    <ImageView
+        android:id="@+id/iv_remove"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:visibility="gone"
+        android:padding="4dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/ic_clear_black_24dp"
+        android:background="@drawable/bg_delete_button_circle" />
 </RelativeLayout>

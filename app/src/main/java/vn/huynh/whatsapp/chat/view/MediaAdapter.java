@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
+import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -34,10 +34,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
     private List<String> mediaList;
     private Context context;
+    private boolean showRemoveButton = false;
 
-    public MediaAdapter(Context context, List<String> mediaList) {
+    public MediaAdapter(Context context, List<String> mediaList, boolean showRemoveButton) {
         this.context = context;
         this.mediaList = mediaList;
+        this.showRemoveButton = showRemoveButton;
     }
 
     @Override
@@ -49,6 +51,18 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     @Override
     public void onBindViewHolder(final MediaViewHolder holder, int position) {
         holder.loader.setVisibility(View.VISIBLE);
+        if (showRemoveButton) {
+            holder.ivRemove.setVisibility(View.VISIBLE);
+            holder.ivRemove.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mediaList.remove(holder.getAdapterPosition());
+                    notifyItemRemoved(holder.getAdapterPosition());
+                }
+            });
+        } else {
+            holder.ivRemove.setVisibility(View.GONE);
+        }
         try {
             Glide.with(context)
                     .load(Uri.parse(mediaList.get(holder.getAdapterPosition())))
@@ -68,6 +82,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
                     })
                     .into(holder.ivMedia);
         } catch (NullPointerException e) {
+            e.printStackTrace();
+        } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
         holder.ivMedia.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +109,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
         @BindView(R.id.iv_media)
         ImageView ivMedia;
         @BindView(R.id.loader_image)
-        TashieLoader loader;
+        CircularDotsLoader loader;
+        @BindView(R.id.iv_remove)
+        ImageView ivRemove;
 
         public MediaViewHolder(View itemView) {
             super(itemView);

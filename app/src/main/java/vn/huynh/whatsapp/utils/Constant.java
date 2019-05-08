@@ -12,6 +12,7 @@ public class Constant {
 
     public static final String EXTRA_CHAT_OBJECT = "EXTRA_CHAT_OBJECT";
     public static final String EXTRA_CHAT_ID = "EXTRA_CHAT_ID";
+    public static final String EXTRA_CHAT_NAME = "EXTRA_CHAT_NAME";
 
     public static final int TIMEOUT_VERIFY_SMS = 30;
 

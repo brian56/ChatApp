@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,11 +23,14 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseActivity;
 import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
+import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
+import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
+import vn.huynh.whatsapp.utils.MyApp;
 
 public class ChatActivity extends BaseActivity implements ChatContract.View {
 
@@ -68,6 +72,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private boolean returnFromGallery = false;
     private static boolean isVisible = false;
     private String chatId;
+    private String chatName;
     private boolean isBound = false;
 
     private NewMessageService newMessageService;
@@ -84,21 +89,37 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setTitle("Chat");
+        getSupportActionBar().setTitle(MyApp.resources.getString(R.string.menu_chat));
 
         Bundle bundle = getIntent().getExtras();
-
-        chatObject = bundle.getParcelable(Constant.EXTRA_CHAT_OBJECT);
-        chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
-        if (chatObject != null) {
-            chatId = chatObject.getId();
+        if (bundle != null) {
+            chatObject = bundle.getParcelable(Constant.EXTRA_CHAT_OBJECT);
+            chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
+            chatName = bundle.getString(Constant.EXTRA_CHAT_NAME);
+            if (!TextUtils.isEmpty(chatName)) {
+                getSupportActionBar().setTitle(chatName);
+            }
+            if (chatObject != null) {
+                chatId = chatObject.getId();
+                getSupportActionBar().setTitle(chatObject.getChatName());
+            }
+            Log.d("ChatActivity", chatId);
+            ChatListFragment.unreadChatIdMap.remove(chatId);
+            GroupFragment.unreadChatIdMap.remove(chatId);
+            if (ChatListFragment.unreadChatIdMap.isEmpty()) {
+                ChatListFragment.newNotificationCallback.removeChatNotificationDot();
+            }
+            if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                GroupFragment.newNotificationCallback.removeGroupNotificationDot();
+            }
+            ChatUtils.setCurrentChatId(chatId);
+            initializeMessageList();
+            initializeMediaList();
+            setupPresenter(this, chatObject, chatId);
+            setEvents();
+        } else {
+            finish();
         }
-        Log.d("ChatActivity", chatId);
-        ChatUtils.setCurrentChatId(chatId);
-        initializeMessageList();
-        initializeMediaList();
-        setupPresenter(this, chatObject, chatId);
-        setEvents();
     }
 
     @Override
@@ -107,6 +128,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         Bundle bundle = intent.getExtras();
 
         chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
+        chatName = bundle.getString(Constant.EXTRA_CHAT_NAME);
+        if (!TextUtils.isEmpty(chatName)) {
+            getSupportActionBar().setTitle(chatName);
+        }
         if (!chatId.equals(ChatUtils.getCurrentChatId())) {
             chatObject = null;
             ChatUtils.setCurrentChatId(chatId);
@@ -123,27 +148,9 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         return super.onOptionsItemSelected(item);
     }
 
-//    private ServiceConnection serviceConnection = new ServiceConnection() {
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
-//            newMessageService = binder.getService();
-//            Log.d("Noti_ChatActivity", "setShowNotification()");
-//            newMessageService.setShowNotification(true);
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//        }
-//    };
-
     @Override
     protected void onStart() {
         super.onStart();
-//        Intent intent2 = new Intent(this, NewMessageService.class);
-//        startService(intent2);
-//        bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
-//        isBound = true;
 
         isVisible = true;
         ChatUtils.setCurrentChatId(chatId);
@@ -274,7 +281,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         mediaUriList = new ArrayList<>();
         mediaLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.HORIZONTAL, false);
         rvMedia.setLayoutManager(mediaLayoutManager);
-        mediaAdapter = new MediaAdapter(getApplicationContext(), mediaUriList);
+        mediaAdapter = new MediaAdapter(getApplicationContext(), mediaUriList, true);
         rvMedia.setAdapter(mediaAdapter);
     }
 
@@ -393,10 +400,12 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     public void newMessage() {
         message = edtMessage.getText().toString().trim();
-        if (!message.isEmpty() || mediaUriList != null) {
+        if (!message.isEmpty() || (mediaUriList != null && !mediaUriList.isEmpty())) {
             showHideListIndicator(llIndicator, false);
             ArrayList<String> mediaArrayList = new ArrayList<>();
-            mediaArrayList.addAll(mediaUriList);
+            if (mediaUriList != null) {
+                mediaArrayList.addAll(mediaUriList);
+            }
             chatPresenter.sendMessage(chatObject, message, mediaArrayList);
         }
     }

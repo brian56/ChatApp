@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,7 +26,9 @@ import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.chat_list.ChatListContract;
 import vn.huynh.whatsapp.chat_list.presenter.ChatListPresenter;
+import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 
 /**
@@ -57,6 +61,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
 
     private int currentItemPosition = 0;
     private boolean firstStart = true;
+    public static Map<String, Long> unreadChatIdMap = new HashMap<>();
 //    private boolean returnFromChatActivity = false;
 
     public ChatListFragment() {
@@ -86,8 +91,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         initializeRecyclerView();
         setupPresenter();
         setEvents();
-//        chatList.clear();
-//        chatListAdapter.notifyDataSetChanged();
         presenter.loadChatList(false, chatList);
     }
 
@@ -111,6 +114,11 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 parentActivityListener = (ParentActivityListener) context;
             }
         }
+        if (newNotificationCallback == null) {
+            if (context instanceof NewNotificationCallback) {
+                newNotificationCallback = (NewNotificationCallback) context;
+            }
+        }
     }
 
     private void setupPresenter() {
@@ -124,6 +132,10 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             public void onRefresh() {
                 chatList.clear();
                 chatListAdapter.notifyDataSetChanged();
+                unreadChatIdMap.clear();
+                GroupFragment.unreadChatIdMap.clear();
+                newNotificationCallback.removeChatNotificationDot();
+                newNotificationCallback.removeGroupNotificationDot();
                 presenter.loadChatList(false, chatList);
             }
         });
@@ -153,6 +165,16 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             chatList.clear();
             chatListAdapter.notifyDataSetChanged();
             presenter.loadChatList(false, chatList);
+        }
+        if (!unreadChatIdMap.isEmpty()) {
+            newNotificationCallback.newChatNotificationDot();
+        } else {
+            newNotificationCallback.removeChatNotificationDot();
+        }
+        if (!GroupFragment.unreadChatIdMap.isEmpty()) {
+            newNotificationCallback.newGroupNotificationDot();
+        } else {
+            newNotificationCallback.removeGroupNotificationDot();
         }
     }
 
@@ -198,9 +220,11 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             @Override
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
+                parentActivityListener.showNotification(true);
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);
+
             }
         });
         rvChatList.setAdapter(chatListAdapter);
@@ -210,6 +234,18 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void showChatList(Chat chat, int position) {
         if (chat != null) {
+            if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+                if (unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.newChatNotificationDot();
+                }
+                unreadChatIdMap.put(chat.getId(), 1L);
+                if (chat.isGroup()) {
+                    if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                        newNotificationCallback.newGroupNotificationDot();
+                    }
+                    GroupFragment.unreadChatIdMap.put(chat.getId(), 1L);
+                }
+            }
             showHideListIndicator(llIndicator, false);
             chatList.add(position, chat);
             try {
@@ -222,19 +258,43 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     }
 
     @Override
-    public void updateChatListStatus(Chat chatObject) {
+    public void updateChatStatus(Chat chat, boolean hasNewMessage) {
         try {
             if (chatList.size() > 0) {
-                int i = chatList.indexOf(chatObject);
-                if (i > 0) {
-                    chatList.remove(chatObject);
-                    chatListAdapter.notifyItemRemoved(i);
-                    chatList.add(0, chatObject);
-                    chatListAdapter.notifyItemInserted(0);
-                } else if (i == 0) {
-                    chatListAdapter.notifyDataSetChanged();
+                int i = chatList.indexOf(chat);
+                if (i >= 0) {
+                    if (hasNewMessage) {
+                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+                            unreadChatIdMap.put(chat.getId(), 1L);
+                            newNotificationCallback.newChatNotificationDot();
+                            if (chat.isGroup()) {
+                                GroupFragment.unreadChatIdMap.put(chat.getId(), 1L);
+                                newNotificationCallback.newGroupNotificationDot();
+                            }
+                        }
+                        if (i == 0) {
+                            chatListAdapter.notifyItemChanged(i);
+                        } else {
+                            chatList.remove(chat);
+                            chatListAdapter.notifyItemRemoved(i);
+                            chatList.add(0, chat);
+                            chatListAdapter.notifyItemInserted(0);
+                            chatListLayoutManager.scrollToPositionWithOffset(0, 0);
+                        }
+                    } else {
+                        chatListAdapter.notifyItemChanged(i);
+                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) == 0) {
+                            unreadChatIdMap.remove(chat.getId());
+                            if (unreadChatIdMap.isEmpty())
+                                newNotificationCallback.removeChatNotificationDot();
+                            if (chat.isGroup()) {
+                                GroupFragment.unreadChatIdMap.remove(chat.getId());
+                                if (unreadChatIdMap.isEmpty())
+                                    newNotificationCallback.removeGroupNotificationDot();
+                            }
+                        }
+                    }
                 }
-                chatListLayoutManager.scrollToPositionWithOffset(0, 0);
             }
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -256,6 +316,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
 
     @Override
     public void showEmptyDataIndicator() {
+        newNotificationCallback.removeChatNotificationDot();
         showHideListLoadingIndicator(llIndicator, loader, false);
         showHideListEmptyIndicator(llIndicator, llEmptyData, true);
     }

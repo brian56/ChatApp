@@ -14,7 +14,7 @@ public interface ChatListContract {
     interface View extends BaseView {
         void showChatList(Chat chat, int position);
 
-        void updateChatListStatus(Chat chatObject);
+        void updateChatStatus(Chat chatObject, boolean hasNewMessage);
 
     }
 

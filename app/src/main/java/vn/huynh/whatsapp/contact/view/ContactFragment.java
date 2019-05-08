@@ -88,6 +88,11 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
                 parentActivityListener = (ParentActivityListener) context;
             }
         }
+        if (newNotificationCallback == null) {
+            if (context instanceof NewNotificationCallback) {
+                newNotificationCallback = (NewNotificationCallback) context;
+            }
+        }
     }
 
     private void setupPresenter() {

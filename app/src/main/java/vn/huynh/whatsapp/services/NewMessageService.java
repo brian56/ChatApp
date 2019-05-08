@@ -2,6 +2,7 @@ package vn.huynh.whatsapp.services;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -15,6 +16,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -34,12 +36,10 @@ import java.util.Map;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.model.Chat;
-import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
-import vn.huynh.whatsapp.utils.DateUtils;
 import vn.huynh.whatsapp.utils.ImageUtils;
 import vn.huynh.whatsapp.utils.MyApp;
 
@@ -52,13 +52,13 @@ public class NewMessageService extends Service {
     private NotificationCompat.Builder notification;
     public static int ID_NOTIFICATION = 9;
     boolean showNotification = true;
+    private static String NOTIFICATION_CHANNEL = "WHATSAPP_CHANNEL_ID";
 
     NotificationManager notificationManager;
     RemoteViews simpleContentView;
 
     private final IBinder mBinder = new LocalBinder();
     private DatabaseReference mDF = FirebaseDatabase.getInstance().getReference();
-    ;
     private DatabaseReference mDatabase;
     private ValueEventListener valueEventListener;
 
@@ -142,6 +142,7 @@ public class NewMessageService extends Service {
                 R.layout.notification_new_message);
         Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
         intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
+        intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
         Log.d(TAG, chat.getId());
         String title = "", message = "";
         if (chat.isGroup()) {
@@ -151,24 +152,52 @@ public class NewMessageService extends Service {
         }
         PendingIntent contentIntent = PendingIntent.getActivity(NewMessageService.this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        notification = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.mipmap.ic_launcher)
+        /*notification = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.mipmap.ic_launcher_new)
                 .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
-                        R.mipmap.ic_launcher))
+                        R.mipmap.ic_launcher_new))
                 .setContentIntent(contentIntent)
                 .setContentTitle(title)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND)
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setAutoCancel(true);
+*/
+        notification = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
+            notificationManager.createNotificationChannel(notificationChannel);
+            notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+        } else {
+            notification = new NotificationCompat.Builder(getApplicationContext());
+        }
 
-        notification.setContent(simpleContentView);
+        message = chat.getLastMessageSent().getText();
+        if (TextUtils.isEmpty(message)) {
+            if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
+                message = MyApp.resources.getString(R.string.message_sent_media);
+            }
+        }
+        notification = notification
+                .setSmallIcon(R.drawable.ic_notification_new)
+                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
+                .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
+                        R.mipmap.ic_launcher_new))
+                .setContentIntent(contentIntent)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setPriority(Notification.PRIORITY_HIGH)
+                .setAutoCancel(true);
+
+        /*notification.setContent(simpleContentView);
 
         new GetBitmapFromUrl().execute(sender.getAvatar());
         simpleContentView.setTextViewText(R.id.txt_chat_name, title);
         message = chat.getLastMessageSent().getText();
         if (TextUtils.isEmpty(message)) {
-            if (!chat.getLastMessageSent().getMedia().isEmpty()) {
+            if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
                 message = MyApp.resources.getString(R.string.message_sent_media);
             }
         }
@@ -186,7 +215,7 @@ public class NewMessageService extends Service {
             simpleContentView.setTextViewText(R.id.tv_creator, chat.getLastMessageSent().getCreatorName() + ": ");
         } else {
             simpleContentView.setTextViewText(R.id.tv_creator, "");
-        }
+        }*/
 
         notificationManager.notify(ID_NOTIFICATION, notification.build());
 
@@ -254,7 +283,7 @@ public class NewMessageService extends Service {
 
             } else {
                 Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                        R.mipmap.ic_launcher);
+                        R.mipmap.ic_launcher_new);
 
                 simpleContentView.setImageViewBitmap(R.id.img_avatar, icon);
                 notificationManager.notify(ID_NOTIFICATION, notification.build());

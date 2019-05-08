@@ -3,6 +3,7 @@
     android:id="@+id/ll_indicator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:foreground="?android:attr/selectableItemBackground"
     android:gravity="center">
 
     <com.agrawalsuneet.dotsloader.loaders.TashieLoader

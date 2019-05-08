@@ -89,10 +89,10 @@ public class ChatListPresenter implements ChatListContract.Presenter {
             }
 
             @Override
-            public void updateChatStatus(Chat chatObject) {
+            public void updateChatStatus(Chat chatObject, boolean hasNewMessage) {
                 if (view != null) {
                     if (chatObject != null) {
-                        view.updateChatListStatus(chatObject);
+                        view.updateChatStatus(chatObject, hasNewMessage);
                     }
                     view.hideLoadingIndicator();
                 }

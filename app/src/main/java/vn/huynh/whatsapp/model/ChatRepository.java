@@ -65,6 +65,7 @@ public class ChatRepository implements ChatInterface {
             ValueEventListener listener = entry.getValue();
             ref.removeEventListener(listener);
         }
+        mValueListenerMap.clear();
     }
 
     @Override
@@ -225,9 +226,13 @@ public class ChatRepository implements ChatInterface {
                         callBack.loadSuccess(null);
                     } else {
                         Chat temp = dataSnapshot.getValue(Chat.class);
+                        boolean newMessage = false;
+                        if (temp.getLastMessageDateInLong() != chat.getLastMessageDateInLong()) {
+                            newMessage = true;
+                        }
                         chat.cloneChat(temp);
                         if (chat.getUsers() != null) {
-                            callBack.updateChatStatus(chat);
+                            callBack.updateChatStatus(chat, newMessage);
                         } else {
                             List<String> userList = new ArrayList<>(chat.getUserIds().values());
                             List<Task<DataSnapshot>> taskList = new ArrayList<>();
@@ -356,7 +361,7 @@ public class ChatRepository implements ChatInterface {
         for (String userId : userIds) {
             userIdsMap.put(userIdRef.push().getKey(), userId);
             notificationIdMap.put(notificationIdRef.push().getKey(), userId);
-            numberUnread.put(userId, 0l);
+            numberUnread.put(userId, 0L);
         }
         chat.setUserIds(userIdsMap);
         chat.setNotificationUserIds(notificationIdMap);

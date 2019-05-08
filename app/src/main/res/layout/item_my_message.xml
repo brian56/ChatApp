@@ -4,6 +4,7 @@
     android:id="@+id/ll_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical">
 
     <View
@@ -38,7 +39,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:textColor="@color/default_text_color"
                 android:padding="10dp"
                 android:text="Placeholder message"
                 android:textSize="14sp" />

@@ -32,7 +32,7 @@ public interface ChatInterface extends BaseModelInterface {
     interface ChatListCallback {
         void loadSuccess(Chat chat);
 
-        void updateChatStatus(Chat chat);
+        void updateChatStatus(Chat chat, boolean hasNewMessage);
 
         void loadSuccessEmptyData();
 

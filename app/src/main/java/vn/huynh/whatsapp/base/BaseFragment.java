@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 public class BaseFragment extends Fragment {
     protected ParentActivityListener parentActivityListener;
+    public static NewNotificationCallback newNotificationCallback;
 
     protected void showLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
         if(swipeRefreshLayout != null)
@@ -73,9 +74,35 @@ public class BaseFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        newNotificationCallback = null;
+    }
+
     public interface ParentActivityListener {
         boolean returnFromChildActivity();
 
         void setReturnFromChildActivity(boolean returnFromChildActivity);
+
+        void showNotification(boolean show);
+    }
+
+    public interface NewNotificationCallback {
+        void newChatNotificationDot();
+
+        void removeChatNotificationDot();
+
+        void newGroupNotificationDot();
+
+        void removeGroupNotificationDot();
+
+        void newContactNotificationDot();
+
+        void removeContactNotificationDot();
+
+        void newSettingNotificationDot();
+
+        void removeSettingNotification();
     }
 }

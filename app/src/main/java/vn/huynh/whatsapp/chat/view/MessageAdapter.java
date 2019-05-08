@@ -112,7 +112,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     ((MyMessageViewHolder) holder).rvMedia.setVisibility(View.VISIBLE);
                     List<String> mediaUrl = new ArrayList<>(messageList.get(holder.getAdapterPosition()).getMedia().values());
 
-                    MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl);
+                    MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl, false);
                     ((MyMessageViewHolder) holder).rvMedia.setHasFixedSize(true);
                     ((MyMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumnMediaList(mediaAdapter.getItemCount())));
                     ((MyMessageViewHolder) holder).rvMedia.setAdapter(mediaAdapter);
@@ -162,7 +162,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                     List<String> mediaUrl = new ArrayList<>(messageList.get(holder.getAdapterPosition()).getMedia().values());
 
-                    MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl);
+                    MediaAdapter mediaAdapter = new MediaAdapter(context, mediaUrl, false);
                     ((TheirMessageViewHolder) holder).rvMedia.setHasFixedSize(true);
                     ((TheirMessageViewHolder) holder).rvMedia.setLayoutManager(new GridLayoutManager(context, numberColumnMediaList(mediaAdapter.getItemCount())));
                     ((TheirMessageViewHolder) holder).rvMedia.setAdapter(mediaAdapter);

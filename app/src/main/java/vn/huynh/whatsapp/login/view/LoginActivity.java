@@ -22,6 +22,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.home.HomeActivity;
 import vn.huynh.whatsapp.login.LoginContract;
 import vn.huynh.whatsapp.login.presenter.LoginPresenter;
+import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.ViewUtils;
@@ -75,6 +76,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         presenter.attachView(this);
         presenter.setLogin(isLogin);
         presenter.checkLogin();
+        AppUtils.hideKeyBoard(getApplicationContext(), edtPhoneNumber);
         countDownTimer = new CountDownTimer(Constant.TIMEOUT_VERIFY_SMS * 1000, 1000) {
             public void onTick(long millisUntilFinished) {
                 if (updateVerifyButton)
@@ -83,14 +85,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
             public void onFinish() {
                 timeOut("");
-//                circularDotsLoader.setVisibility(View.GONE);
-//                btnVerify.setText(getResources().getString(R.string.label_time_out_resend_code));
-//                btnVerify.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        presenter.resendVerificationCode(LoginActivity.this, phoneNumber);
-//                    }
-//                });
             }
         };
     }
@@ -194,6 +188,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         ViewUtils.expandWidth(edtCode);
         edtCode.setEnabled(true);
         edtCode.requestFocus();
+        AppUtils.showKeyBoard(getApplicationContext(), edtCode);
         btnVerify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -252,7 +247,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         } else {
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_register_successful), Toast.LENGTH_LONG).show();
         }
-        startActivity(new Intent(getApplicationContext(), HomeActivity.class));
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(intent);
         finish();
     }
 

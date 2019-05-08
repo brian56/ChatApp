@@ -4,6 +4,7 @@
     android:id="@+id/ll_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
     android:paddingStart="8dp"
     android:paddingEnd="46dp"
     android:paddingTop="2dp"
