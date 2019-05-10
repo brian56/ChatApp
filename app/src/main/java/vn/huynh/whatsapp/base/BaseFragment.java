@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 public class BaseFragment extends Fragment {
     protected ParentActivityListener parentActivityListener;
-    public static NewNotificationCallback newNotificationCallback;
+    public NewNotificationCallback newNotificationCallback;
 
     protected void showLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
         if(swipeRefreshLayout != null)
@@ -77,6 +77,7 @@ public class BaseFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        parentActivityListener = null;
         newNotificationCallback = null;
     }
 

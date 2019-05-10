@@ -29,13 +29,12 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
 import vn.huynh.whatsapp.contact.view.ContactFragment;
+import vn.huynh.whatsapp.custom_views.BadgedBottomNavigationBar;
 import vn.huynh.whatsapp.group.view.GroupFragment;
-import vn.huynh.whatsapp.helper.BottomNavigationViewHelper;
 import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.setting.SettingFragment;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.ServiceUtils;
-import vn.huynh.whatsapp.views.BadgedBottomNavigationBar;
 
 public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener, BaseFragment.NewNotificationCallback {
 
@@ -87,7 +86,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(getResources().getString(R.string.menu_chat));
-        BottomNavigationViewHelper.removeShiftMode(bottomNavigationView);//disable BottomNavigationView shift mode
+        setupBottomNavigation(bottomNavigationView);
         initFragments(savedInstanceState);
         setEvent();
         Log.d(HomeActivity.class.getSimpleName(), "On Create");
@@ -227,35 +226,11 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         transaction.commit();
     }
 
-    /*private void addBadgeNumber(int childMenuIndex) {
-        BottomNavigationMenuView bottomNavigationMenuView =
-                (BottomNavigationMenuView) bottomNavigationView.getChildAt(0);
-        View v = bottomNavigationMenuView.getChildAt(childMenuIndex);
-        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
-
-        while (itemView.getChildCount() > 2) {
-            itemView.removeViewAt(itemView.getChildCount() - 1);
-        }
-
-        View badge = LayoutInflater.from(this)
-                .inflate(R.layout.tab_badge_number, bottomNavigationMenuView, false);
-        if (itemView.getChildCount() <= 2) {
-//            TextView tv = badge.findViewById(R.id.notification_badge);
-//        tv.setText(number + "");
-            itemView.addView(badge);
-        }
+    private void setupBottomNavigation(BadgedBottomNavigationBar badgedBottomNavigationBar) {
+        badgedBottomNavigationBar.removeTextAndShiftMode();//disable BottomNavigationView shift mode
+        badgedBottomNavigationBar.changeIconSize(28);
     }
 
-    private void removeBadgeNumber(int childMenuIndex) {
-        BottomNavigationMenuView bottomNavigationMenuView =
-                (BottomNavigationMenuView) bottomNavigationView.getChildAt(0);
-        View v = bottomNavigationMenuView.getChildAt(childMenuIndex);
-        BottomNavigationItemView itemView = (BottomNavigationItemView) v;
-        while (itemView.getChildCount() > 2) {
-            itemView.removeViewAt(itemView.getChildCount() - 1);
-        }
-    }
-*/
     @Override
     public void newChatNotificationDot() {
         bottomNavigationView.showBadge(CHAT_LIST_FRAGMENT_INDEX);

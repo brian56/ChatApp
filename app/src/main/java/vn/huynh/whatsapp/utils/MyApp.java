@@ -24,6 +24,7 @@ public class MyApp extends Application {
         mSelf = this;
         mGSon = new Gson();
         resources = getResources();
+
 //        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
     }
 

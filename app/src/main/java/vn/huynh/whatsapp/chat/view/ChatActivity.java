@@ -23,8 +23,6 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseActivity;
 import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
-import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
-import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.services.NewMessageService;
@@ -104,14 +102,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                 getSupportActionBar().setTitle(chatObject.getChatName());
             }
             Log.d("ChatActivity", chatId);
-            ChatListFragment.unreadChatIdMap.remove(chatId);
-            GroupFragment.unreadChatIdMap.remove(chatId);
-            if (ChatListFragment.unreadChatIdMap.isEmpty()) {
-                ChatListFragment.newNotificationCallback.removeChatNotificationDot();
-            }
-            if (GroupFragment.unreadChatIdMap.isEmpty()) {
-                GroupFragment.newNotificationCallback.removeGroupNotificationDot();
-            }
             ChatUtils.setCurrentChatId(chatId);
             initializeMessageList();
             initializeMediaList();

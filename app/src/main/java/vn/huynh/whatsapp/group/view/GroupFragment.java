@@ -27,6 +27,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.chat_list.view.ChatListAdapter;
+import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
 import vn.huynh.whatsapp.group.GroupContract;
 import vn.huynh.whatsapp.group.presenter.GroupPresenter;
 import vn.huynh.whatsapp.model.Chat;
@@ -97,6 +98,17 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             @Override
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
+                parentActivityListener.showNotification(true);
+
+                ChatListFragment.unreadChatIdMap.remove(chat.getId());
+                GroupFragment.unreadChatIdMap.remove(chat.getId());
+                if (ChatListFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeChatNotificationDot();
+                }
+                if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeGroupNotificationDot();
+                }
+
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);

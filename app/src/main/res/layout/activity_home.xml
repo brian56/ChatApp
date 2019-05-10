@@ -17,14 +17,13 @@
         android:layout_weight="1"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <vn.huynh.whatsapp.views.BadgedBottomNavigationBar
+    <vn.huynh.whatsapp.custom_views.BadgedBottomNavigationBar
         android:id="@+id/navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@color/colorAccent"
-        app:itemIconTint="@color/bottom_nav_colors"
-        app:itemTextColor="@color/bottom_nav_colors"
+        app:itemBackground="@drawable/nav_item_state_bg"
+        app:itemIconTint="@drawable/nav_icon_state_bg"
         app:menu="@menu/navigation" />
 
 </LinearLayout>

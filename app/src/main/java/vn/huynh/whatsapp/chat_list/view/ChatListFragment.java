@@ -221,6 +221,14 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
                 parentActivityListener.showNotification(true);
+                ChatListFragment.unreadChatIdMap.remove(chat.getId());
+                GroupFragment.unreadChatIdMap.remove(chat.getId());
+                if (ChatListFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeChatNotificationDot();
+                }
+                if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeGroupNotificationDot();
+                }
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);

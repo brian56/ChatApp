@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -80,6 +81,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
                             return false;
                         }
                     })
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .into(holder.ivMedia);
         } catch (NullPointerException e) {
             e.printStackTrace();

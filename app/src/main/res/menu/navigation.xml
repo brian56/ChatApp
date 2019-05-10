@@ -4,21 +4,21 @@
     <item
         android:id="@+id/navigation_chat"
         android:icon="@drawable/ic_chat"
-        android:title="@string/menu_chat" />
+        android:title="" />
 
     <item
         android:id="@+id/navigation_contact"
         android:icon="@drawable/ic_contact"
-        android:title="@string/menu_contact" />
+        android:title="" />
 
     <item
         android:id="@+id/navigation_group"
         android:icon="@drawable/ic_group"
-        android:title="@string/menu_group" />
+        android:title="" />
 
     <item
         android:id="@+id/navigation_setting"
         android:icon="@drawable/ic_setting"
-        android:title="@string/menu_setting" />
+        android:title="" />
 
 </menu>

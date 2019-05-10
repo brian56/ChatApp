@@ -3,6 +3,7 @@ package vn.huynh.whatsapp.utils;
 import android.support.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import agency.tango.android.avatarview.AvatarPlaceholder;
 import agency.tango.android.avatarview.ImageLoaderBase;
@@ -27,6 +28,7 @@ public class GlideLoader extends  ImageLoaderBase {
         Glide.with(avatarView.getContext())
                 .load(avatarUrl)
                 .placeholder(avatarPlaceholder)
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
                 .into(avatarView);
     }
 }

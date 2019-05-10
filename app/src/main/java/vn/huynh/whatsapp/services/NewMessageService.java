@@ -143,7 +143,7 @@ public class NewMessageService extends Service {
         Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
         intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
         intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
-        Log.d(TAG, chat.getId());
+        Log.d(TAG, "show notification: " + chat.getId());
         String title = "", message = "";
         if (chat.isGroup()) {
             title = chat.getChatName();
