@@ -229,7 +229,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     private void setupBottomNavigation(BadgedBottomNavigationBar badgedBottomNavigationBar) {
         badgedBottomNavigationBar.removeTextAndShiftMode();//disable BottomNavigationView shift mode
-        badgedBottomNavigationBar.changeIconSize(28);
+        badgedBottomNavigationBar.changeIconSize(24);
     }
 
     @Override

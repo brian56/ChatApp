@@ -134,7 +134,7 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
                 BottomNavigationItemView item = (BottomNavigationItemView) bottomNavigationView.getChildAt(i);
                 //noinspection RestrictedApi
                 item.setShiftingMode(false);
-                item.setPadding(0, 12, 0, 0);
+                item.setPadding(0, 20, 0, 0);
                 // set once again checked value, so view will be updated
                 //noinspection RestrictedApi
                 item.setChecked(item.getItemData().isChecked());
