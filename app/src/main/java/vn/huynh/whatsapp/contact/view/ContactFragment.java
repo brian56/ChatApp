@@ -130,6 +130,10 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     }
 
+    private void resetDataBeforeReload() {
+
+    }
+
     @Override
     public void showListContact(User userObject) {
         if(userObject != null) {

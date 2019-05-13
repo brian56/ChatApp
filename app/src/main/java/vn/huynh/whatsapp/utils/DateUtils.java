@@ -11,6 +11,11 @@ import java.util.TimeZone;
 
 public class DateUtils {
     private static final String TAG = DateUtils.class.getSimpleName();
+    private static int MINUTE = 60;
+    private static int HOUR = 60;
+    private static int DAY = 24;
+    private static int WEEK = 7;
+    private static int MONTH = 30;
 
     // This class should not be initialized
     private DateUtils() {

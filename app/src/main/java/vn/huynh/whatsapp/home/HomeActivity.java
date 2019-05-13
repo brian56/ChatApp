@@ -65,6 +65,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     private static boolean isVisible = false;
     private NewMessageService newMessageService;
     private boolean isBound = false;
+    private Intent intentNewMessageService;
 
     public static int NUMBER_NOTIFICATION_ALL = 0;
     public static int NUMBER_NOTIFICATION_GROUP = 0;
@@ -303,18 +304,19 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+
         }
     };
 
     @Override
     protected void onStart() {
         super.onStart();
-//        Intent intent = new Intent(HomeActivity.this, PushStateOnlineService.class);
-//        startService(intent);
-        if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), getApplicationContext())) {
-            Intent intent2 = new Intent(this, NewMessageService.class);
-            startService(intent2);
-            bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
+        if (!isBound) {
+            intentNewMessageService = new Intent(this, NewMessageService.class);
+            if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), this)) {
+                startService(intentNewMessageService);
+            }
+            bindService(intentNewMessageService, serviceConnection, Context.BIND_AUTO_CREATE);
             isBound = true;
         }
         if (newMessageService != null) {
@@ -356,11 +358,11 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         super.onDestroy();
         if (isBound) {
             if (newMessageService != null)
-                newMessageService.removeListener();
+                newMessageService.setShowNotification(true);
             unbindService(serviceConnection);
             isBound = false;
+            Log.d(HomeActivity.class.getSimpleName(), "unbind service");
         }
-        Log.d(HomeActivity.class.getSimpleName(), "On Destroy");
     }
 
     @Override

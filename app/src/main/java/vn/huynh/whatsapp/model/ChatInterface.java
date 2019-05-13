@@ -38,6 +38,8 @@ public interface ChatInterface extends BaseModelInterface {
 
         void loadFail(String message);
 
+        void getChatCount(long count);
+
         void removeSuccess(Chat chat);
 
         void removeFail(String message);

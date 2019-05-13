@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -42,6 +43,7 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.ImageUtils;
 import vn.huynh.whatsapp.utils.MyApp;
+import vn.huynh.whatsapp.utils.SharedPrefsUtil;
 
 /**
  * Created by duong on 4/26/2019.
@@ -131,38 +133,35 @@ public class NewMessageService extends Service {
             }
         };
         mDatabase.addValueEventListener(valueEventListener);
-        return START_REDELIVER_INTENT;
+        return START_STICKY;
     }
 
     @SuppressLint("NewApi")
     public void createNotification(User sender, Chat chat) {
-//        User friend = chat.getFriend();
+        String lastMessageId = chat.getLastMessageSent().getId();
+        if (!lastMessageId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, String.class))) {
+            SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, chat.getLastMessageSent().getId());
+        } else {
+            return;
+        }
 
-        simpleContentView = new RemoteViews(getApplicationContext().getPackageName(),
-                R.layout.notification_new_message);
         Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
         intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
         intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
         Log.d(TAG, "show notification: " + chat.getId());
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(intent);
+        // Get the PendingIntent containing the entire back stack
+        PendingIntent contentIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
         String title = "", message = "";
         if (chat.isGroup()) {
             title = chat.getChatName();
         } else {
             title = sender.getName();
         }
-        PendingIntent contentIntent = PendingIntent.getActivity(NewMessageService.this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        /*notification = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.mipmap.ic_launcher_new)
-                .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
-                        R.mipmap.ic_launcher_new))
-                .setContentIntent(contentIntent)
-                .setContentTitle(title)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND)
-                .setPriority(Notification.PRIORITY_HIGH)
-                .setAutoCancel(true);
-*/
         notification = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
@@ -191,7 +190,10 @@ public class NewMessageService extends Service {
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setAutoCancel(true);
 
-        /*notification.setContent(simpleContentView);
+        /*
+        simpleContentView = new RemoteViews(getApplicationContext().getPackageName(),
+                R.layout.notification_new_message);
+        notification.setContent(simpleContentView);
 
         new GetBitmapFromUrl().execute(sender.getAvatar());
         simpleContentView.setTextViewText(R.id.txt_chat_name, title);
@@ -236,17 +238,15 @@ public class NewMessageService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        removeListener();
-        Intent intent = new Intent();
-        intent.setAction(Constant.BROADCAST_APP_KILL_ACTION);
-        sendBroadcast(intent);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
+        Log.d(TAG, "onTaskRemove");
         removeListener();
-        Intent intent = new Intent();
+        stopSelf();
+        Intent intent = new Intent(this, AppKilledBroadcast.class);
         intent.setAction(Constant.BROADCAST_APP_KILL_ACTION);
         sendBroadcast(intent);
     }

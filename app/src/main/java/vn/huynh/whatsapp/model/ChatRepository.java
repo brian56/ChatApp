@@ -148,10 +148,12 @@ public class ChatRepository implements ChatInterface {
         chatDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                chatDb.addChildEventListener(childEventListener);
                 if (!dataSnapshot.exists()) {
                     callBack.loadSuccessEmptyData();
+                } else {
+                    callBack.getChatCount(dataSnapshot.getChildrenCount());
                 }
+                chatDb.addChildEventListener(childEventListener);
             }
 
             @Override

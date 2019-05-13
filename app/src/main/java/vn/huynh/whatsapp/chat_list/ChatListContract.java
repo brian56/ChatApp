@@ -16,6 +16,8 @@ public interface ChatListContract {
 
         void updateChatStatus(Chat chatObject, boolean hasNewMessage);
 
+        void setChatCount(long count);
+
     }
 
     interface Presenter extends BasePresenter {

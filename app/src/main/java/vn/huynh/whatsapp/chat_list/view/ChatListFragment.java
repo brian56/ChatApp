@@ -59,7 +59,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     private static final String KEY_CHAT_LIST = "KEY_CHAT_LIST";
     private static final String KEY_CURRENT_POSITION = "KEY_CURRENT_POSITION";
 
-    private int currentItemPosition = 0;
+    private long totalChat = 0;
+    private long chatCount = 0;
     private boolean firstStart = true;
     public static Map<String, Long> unreadChatIdMap = new HashMap<>();
 //    private boolean returnFromChatActivity = false;
@@ -91,6 +92,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         initializeRecyclerView();
         setupPresenter();
         setEvents();
+        resetDataBeforeReload();
         presenter.loadChatList(false, chatList);
     }
 
@@ -121,6 +123,45 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         }
     }
 
+    private void initializeRecyclerView() {
+        chatList = new ArrayList<>();
+        rvChatList.setNestedScrollingEnabled(false);
+        chatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
+        rvChatList.setLayoutManager(chatListLayoutManager);
+        chatListAdapter = new ChatListAdapter(chatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(Chat chat) {
+                parentActivityListener.setReturnFromChildActivity(true);
+                parentActivityListener.showNotification(true);
+                ChatListFragment.unreadChatIdMap.remove(chat.getId());
+                GroupFragment.unreadChatIdMap.remove(chat.getId());
+                if (ChatListFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeChatNotificationDot();
+                }
+                if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeGroupNotificationDot();
+                }
+                Intent intent = new Intent(getContext(), ChatActivity.class);
+                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
+                startActivity(intent);
+
+            }
+        });
+        rvChatList.setAdapter(chatListAdapter);
+
+    }
+
+    private void resetDataBeforeReload() {
+        chatList.clear();
+        chatListAdapter.notifyDataSetChanged();
+        unreadChatIdMap.clear();
+        GroupFragment.unreadChatIdMap.clear();
+        newNotificationCallback.removeChatNotificationDot();
+        newNotificationCallback.removeGroupNotificationDot();
+        totalChat = 0;
+        chatCount = 0;
+    }
+
     private void setupPresenter() {
         presenter = new ChatListPresenter();
         presenter.attachView(this);
@@ -130,20 +171,14 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                chatList.clear();
-                chatListAdapter.notifyDataSetChanged();
-                unreadChatIdMap.clear();
-                GroupFragment.unreadChatIdMap.clear();
-                newNotificationCallback.removeChatNotificationDot();
-                newNotificationCallback.removeGroupNotificationDot();
+                resetDataBeforeReload();
                 presenter.loadChatList(false, chatList);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chatList.clear();
-                chatListAdapter.notifyDataSetChanged();
+                resetDataBeforeReload();
                 presenter.loadChatList(false, chatList);
             }
         });
@@ -162,8 +197,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         super.onStart();
         //TODO: attach the listener for chat list items
         if (!firstStart && !parentActivityListener.returnFromChildActivity()) {
-            chatList.clear();
-            chatListAdapter.notifyDataSetChanged();
+            resetDataBeforeReload();
             presenter.loadChatList(false, chatList);
         }
         if (!unreadChatIdMap.isEmpty()) {
@@ -211,37 +245,15 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         presenter.removeChatListListener();
     }
 
-    private void initializeRecyclerView() {
-        chatList = new ArrayList<>();
-        rvChatList.setNestedScrollingEnabled(false);
-        chatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
-        rvChatList.setLayoutManager(chatListLayoutManager);
-        chatListAdapter = new ChatListAdapter(chatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
-            @Override
-            public void onClick(Chat chat) {
-                parentActivityListener.setReturnFromChildActivity(true);
-                parentActivityListener.showNotification(true);
-                ChatListFragment.unreadChatIdMap.remove(chat.getId());
-                GroupFragment.unreadChatIdMap.remove(chat.getId());
-                if (ChatListFragment.unreadChatIdMap.isEmpty()) {
-                    newNotificationCallback.removeChatNotificationDot();
-                }
-                if (GroupFragment.unreadChatIdMap.isEmpty()) {
-                    newNotificationCallback.removeGroupNotificationDot();
-                }
-                Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
-                startActivity(intent);
-
-            }
-        });
-        rvChatList.setAdapter(chatListAdapter);
-
+    @Override
+    public void setChatCount(long count) {
+        totalChat = count;
     }
 
     @Override
     public void showChatList(Chat chat, int position) {
         if (chat != null) {
+            chatCount++;
             if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
                 if (unreadChatIdMap.isEmpty()) {
                     newNotificationCallback.newChatNotificationDot();
@@ -261,6 +273,9 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 chatListLayoutManager.scrollToPositionWithOffset(0, 0);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
+            }
+            if (chatCount == totalChat) {
+                hideLoadingIndicator();
             }
         }
     }

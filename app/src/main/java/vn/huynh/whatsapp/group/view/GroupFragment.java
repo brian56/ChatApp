@@ -60,6 +60,8 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
 
     private GroupPresenter presenter;
     private boolean firstStart = true;
+    private long totalChat = 0;
+    private long chatCount = 0;
     public static Map<String, Long> unreadChatIdMap = new HashMap<>();
 
     public GroupFragment() {
@@ -83,8 +85,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         initializeRecyclerView();
         setupPresenter();
         setEvents();
-        chatList.clear();
-        chatListAdapter.notifyDataSetChanged();
+        resetDataBeforeReload();
         presenter.loadChatList(true, chatList);
     }
 
@@ -122,6 +123,15 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         presenter.attachView(this);
     }
 
+    private void resetDataBeforeReload() {
+        chatList.clear();
+        chatListAdapter.notifyDataSetChanged();
+        unreadChatIdMap.clear();
+        totalChat = 0;
+        chatCount = 0;
+        newNotificationCallback.removeGroupNotificationDot();
+    }
+
     private void setEvents() {
         fabCreateGroup.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,18 +144,14 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                chatList.clear();
-                chatListAdapter.notifyDataSetChanged();
-                unreadChatIdMap.clear();
-                newNotificationCallback.removeGroupNotificationDot();
+                resetDataBeforeReload();
                 presenter.loadChatList(true, chatList);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chatList.clear();
-                chatListAdapter.notifyDataSetChanged();
+                resetDataBeforeReload();
                 presenter.loadChatList(true, chatList);
             }
         });
@@ -210,7 +216,13 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     }
 
     @Override
+    public void setChatCount(long count) {
+        totalChat = count;
+    }
+
+    @Override
     public void showChatList(Chat chat, int position) {
+        chatCount++;
         if (chat != null) {
             /*showHideListIndicator(llIndicator, false);
             chatList.add(position, chat);
@@ -234,7 +246,9 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
-        } else {
+        }
+        if (chatCount == totalChat) {
+            hideLoadingIndicator();
             if (chatList.size() == 0 && !swipeRefreshLayout.isRefreshing()) {
                 showHideListEmptyIndicator(llIndicator, llEmptyData, true);
             }
@@ -305,8 +319,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     public void onStart() {
         super.onStart();
         if (!firstStart && !parentActivityListener.returnFromChildActivity()) {
-            chatList.clear();
-            chatListAdapter.notifyDataSetChanged();
+            resetDataBeforeReload();
             presenter.loadChatList(true, chatList);
         }
     }

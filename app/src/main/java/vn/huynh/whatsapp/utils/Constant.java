@@ -7,8 +7,10 @@ package vn.huynh.whatsapp.utils;
 public class Constant {
     public static final String BROADCAST_APP_KILL_ACTION = "vn.huynh.whatsapp.KILLED";
 
+    //shared preferences
     public static final String SP_USER_ID = "SP_USER_ID";
     public static final String SP_USER_NAME = "SP_USER_NAME";
+    public static final String SP_LAST_NOTIFICATION_MESSAGE_ID = "SP_LAST_NOTIFICATION_MESSAGE_ID";
 
     public static final String EXTRA_CHAT_OBJECT = "EXTRA_CHAT_OBJECT";
     public static final String EXTRA_CHAT_ID = "EXTRA_CHAT_ID";

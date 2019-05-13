@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
+
+import vn.huynh.whatsapp.utils.ServiceUtils;
 
 /**
  * Created by hieuapp on 02/03/2018.
@@ -32,8 +35,12 @@ public class AppKilledBroadcast extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("AppKilledBroadcast", intent.getAction());
-        Intent intent2 = new Intent(context, NewMessageService.class);
-        context.startService(intent2);
-        context.getApplicationContext().bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
+        Toast.makeText(context, "app killed", Toast.LENGTH_LONG).show();
+        if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), context)) {
+            Toast.makeText(context, "app killed: start service", Toast.LENGTH_LONG).show();
+            Intent intent2 = new Intent(context, NewMessageService.class);
+            context.startService(intent2);
+            context.getApplicationContext().bindService(intent2, serviceConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 }

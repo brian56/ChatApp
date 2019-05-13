@@ -25,7 +25,6 @@ import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
-import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.MyApp;
@@ -56,7 +55,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
     private static final String TAG = ChatActivity.class.getSimpleName();
     private MessageAdapter messageAdapter;
-    private LinearLayoutManager chatLayoutManager;
+    private LinearLayoutManager messageLayoutManager;
     private ArrayList<Message> messageList;
     private static final int PICK_IMAGE_INTENT = 1;
     private Chat chatObject;
@@ -66,16 +65,20 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private ArrayList<String> mediaUriList;
     private String message = "";
     private int currentPosition = 0;
-    private boolean firstStart = true;
+    //    private boolean firstStart = true;
     private boolean returnFromGallery = false;
     private static boolean isVisible = false;
     private String chatId;
     private String chatName;
-    private boolean isBound = false;
-
-    private NewMessageService newMessageService;
 
     private ChatContract.Presenter chatPresenter;
+    private long totalMessage = 0;
+    private long messageCount = 0;
+
+//    private static String KEY_CHAT_ID = "KEY_CHAT_ID";
+//    private static String KEY_CHAT_NAME = "KEY_CHAT_NAME";
+//    private static String KEY_MESSAGE_LIST = "KEY_MESSAGE_LIST";
+//    private static String KEY_CURRENT_POSITION = "KEY_CURRENT_POSITION";
 
 
     @Override
@@ -89,6 +92,8 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setTitle(MyApp.resources.getString(R.string.menu_chat));
 
+        totalMessage = 0;
+        messageCount = 0;
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             chatObject = bundle.getParcelable(Constant.EXTRA_CHAT_OBJECT);
@@ -122,10 +127,12 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         if (!TextUtils.isEmpty(chatName)) {
             getSupportActionBar().setTitle(chatName);
         }
-        if (!chatId.equals(ChatUtils.getCurrentChatId())) {
+        if (!TextUtils.isEmpty(ChatUtils.getCurrentChatId()) && !chatId.equals(ChatUtils.getCurrentChatId())) {
             chatObject = null;
             ChatUtils.setCurrentChatId(chatId);
             setupPresenter(this, chatObject, chatId);
+        } else {
+            ChatUtils.setCurrentChatId(chatId);
         }
         Log.d("ChatActivity", chatId);
     }
@@ -133,7 +140,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -144,15 +151,15 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
         isVisible = true;
         ChatUtils.setCurrentChatId(chatId);
-        if (!firstStart && !returnFromGallery) {
-            messageList.clear();
-            messageAdapter.notifyDataSetChanged();
-            if (chatObject != null) {
-                chatPresenter.loadChatMessage(chatId);
-            } else {
-                chatPresenter.loadChatDetail(chatId);
-            }
-        }
+//        if (!firstStart && !returnFromGallery) {
+//            resetDataBeforeReload();
+//            if (chatObject != null) {
+//                resetDataBeforeReload();
+//                chatPresenter.loadChatMessage(chatId);
+//            } else {
+//                chatPresenter.loadChatDetail(chatId);
+//            }
+//        }
         if (returnFromGallery) {
             returnFromGallery = false;
         }
@@ -164,10 +171,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         super.onStop();
         chatPresenter.resetNumberUnread(chatId);
         isVisible = false;
-        firstStart = false;
+//        firstStart = false;
         if (!returnFromGallery) {
             isVisible = false;
-            chatPresenter.removeMessageListener();
+//            chatPresenter.removeMessageListener();
         }
     }
 
@@ -182,11 +189,13 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         chatPresenter.detachView();
         chatPresenter.removeMessageListener();
         chatPresenter.removeChatDetailListener();
-//        if (isBound) {
-//            newMessageService.removeListener();
-//            unbindService(serviceConnection);
-//            isBound = false;
-//        }
+    }
+
+    private void resetDataBeforeReload() {
+        messageList.clear();
+        messageAdapter.notifyDataSetChanged();
+        totalMessage = 0;
+        messageCount = 0;
     }
 
     private void setupPresenter(ChatContract.View view, Chat chat, String chatId) {
@@ -220,8 +229,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                messageList.clear();
-                messageAdapter.notifyDataSetChanged();
+                resetDataBeforeReload();
                 chatPresenter.loadChatMessage(chatObject.getId());
             }
         });
@@ -257,10 +265,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         rvChat.setNestedScrollingEnabled(false);
         rvChat.setHasFixedSize(false);
         messageList = new ArrayList<>();
-        chatLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
-        chatLayoutManager.setStackFromEnd(false);
-        chatLayoutManager.setSmoothScrollbarEnabled(true);
-        rvChat.setLayoutManager(chatLayoutManager);
+        messageLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
+        messageLayoutManager.setStackFromEnd(false);
+        messageLayoutManager.setSmoothScrollbarEnabled(true);
+        rvChat.setLayoutManager(messageLayoutManager);
         messageAdapter = new MessageAdapter(messageList, chatObject, ChatActivity.this);
         rvChat.setAdapter(messageAdapter);
     }
@@ -280,6 +288,12 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         outState.putString("message", edtMessage.getText().toString().trim());
         if (mediaUriList != null && mediaUriList.size() > 0)
             outState.putStringArrayList("mediaList", mediaUriList);
+//        if(messageList != null && !messageList.isEmpty()) {
+//            outState.putParcelableArrayList(KEY_MESSAGE_LIST, messageList);
+//            outState.putInt(KEY_CURRENT_POSITION, messageLayoutManager.findFirstCompletelyVisibleItemPosition());
+//        }
+//        outState.putString(KEY_CHAT_ID, chatId);
+//        outState.putString(KEY_CHAT_NAME, chatName);
         super.onSaveInstanceState(outState);
     }
 
@@ -288,6 +302,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         edtMessage.setText(savedInstanceState.getString("message"));
         mediaUriList = savedInstanceState.getStringArrayList("mediaList");
         mediaAdapter.notifyDataSetChanged();
+//        messageList = savedInstanceState.getParcelableArrayList(KEY_MESSAGE_LIST);
+//        currentPosition = savedInstanceState.getInt(KEY_CURRENT_POSITION);
+//        messageAdapter.notifyDataSetChanged();
+//        messageLayoutManager.scrollToPositionWithOffset(currentPosition,0);
         super.onRestoreInstanceState(savedInstanceState);
     }
 
@@ -321,8 +339,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             chatObject = object;
             messageAdapter.setChatObject(chatObject);
             getSupportActionBar().setTitle(chatObject.getChatName());
-            messageList.clear();
-            messageAdapter.notifyDataSetChanged();
+            resetDataBeforeReload();
             chatPresenter.loadChatMessage(chatObject.getId());
         }
     }
@@ -338,7 +355,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             }
             if(messageList.size() > 1)
                 mediaAdapter.notifyItemChanged(messageList.size() -2);
-            chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
+            messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
         }
     }
 
@@ -354,7 +371,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                         messageAdapter.notifyItemChanged(i);
                         if (i > 0)
                             messageAdapter.notifyItemChanged(i - 1);
-                        chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
+                        messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
                         return;
                     }
                 }
@@ -366,7 +383,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                 }
                 if(messageList.size() > 1)
                     mediaAdapter.notifyItemChanged(messageList.size() -2);
-                chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
+                messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
             } else {
                 messageList.add(messageObject);
                 messageAdapter.notifyItemInserted(messageList.size() - 1);
@@ -377,7 +394,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                         break;
                     }
                 }
-                chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
+                messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
             }
         }
     }
@@ -417,6 +434,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         mediaUriList.clear();
         mediaAdapter.notifyDataSetChanged();
         if (messageList.size() > 0)
-            chatLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
+            messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
     }
 }

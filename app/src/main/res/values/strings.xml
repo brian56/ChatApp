@@ -54,4 +54,17 @@
     <!--chat list-->
     <string name="label_number_unread_message_max">99+</string>
 
+
+    <!--date time-->
+    <string name="time_now">now</string>
+    <string name="time_minutes">minutes</string>
+    <string name="time_hour">hours</string>
+    <string name="time_yesterday">yesterday</string>
+    <string name="time_day">days</string>
+    <string name="time_last_week">last week</string>
+    <string name="time_week">weeks</string>
+    <string name="time_month">months</string>
+    <string name="time_last_month">last month</string>
+    <string name="time_year">years</string>
+    <string name="time_last_year">last year</string>
 </resources>

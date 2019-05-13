@@ -90,7 +90,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -169,6 +169,11 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     public void showErrorIndicator() {
         showHideListLoadingIndicator(llIndicator, loader, false);
         showHideListErrorIndicator(llIndicator, llError, true);
+    }
+
+    @Override
+    public void setChatCount(long count) {
+
     }
 
     @Override

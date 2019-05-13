@@ -49,7 +49,6 @@ public class ChatListPresenter implements ChatListContract.Presenter {
             @Override
             public void loadSuccess(Chat chatObject) {
                 if (view != null) {
-                    view.hideLoadingIndicator();
                     if (chatObject != null) {
 ////                        removeExistChat(list, chatObject);
                         int addPosition = 0;
@@ -94,7 +93,6 @@ public class ChatListPresenter implements ChatListContract.Presenter {
                     if (chatObject != null) {
                         view.updateChatStatus(chatObject, hasNewMessage);
                     }
-                    view.hideLoadingIndicator();
                 }
             }
 
@@ -112,6 +110,13 @@ public class ChatListPresenter implements ChatListContract.Presenter {
                     view.hideLoadingIndicator();
                     view.showErrorIndicator();
                     view.showErrorMessage(message);
+                }
+            }
+
+            @Override
+            public void getChatCount(long count) {
+                if (view != null) {
+                    view.setChatCount(count);
                 }
             }
 
