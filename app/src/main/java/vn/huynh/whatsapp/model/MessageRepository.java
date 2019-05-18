@@ -15,6 +15,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Config;
 
 /**
  * Created by duong on 4/16/2019.
@@ -34,41 +36,283 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 
 public class MessageRepository implements MessageInterface {
     private DatabaseReference dbRef;
-    private DatabaseReference messageDb;
-    private ChildEventListener childEventListener;
+
+    private DatabaseReference loadMessageDb;
+    private ChildEventListener loadMessageChildEventListener;
+
     private List<String> mediaIdList;
+    private List<Message> messageList;
+    private String lastMessagePaginationId;
+    private String newestMessageId;
+    private long totalMessageCurrentPage = 0;
+    private boolean isLoadingMore = false;
+
+    private Query newMessageQuery;
+    private ChildEventListener newMessageChildEventListener;
+
+    private Query loadMoreMessageQuery;
+    private ChildEventListener loadMoreMessageChildEventListener;
 
     public MessageRepository() {
         dbRef = FirebaseDatabase.getInstance().getReference();
         this.mediaIdList = new ArrayList<>();
+        this.messageList = new ArrayList<>();
+        this.lastMessagePaginationId = "";
+        this.newestMessageId = "";
+        this.totalMessageCurrentPage = 0;
+        this.isLoadingMore = false;
     }
 
     @Override
     public void removeListener() {
-        if (messageDb != null && childEventListener != null) {
-            messageDb.removeEventListener(childEventListener);
-        }
     }
 
     @Override
     public void removeMessageListener() {
-        if (messageDb != null && childEventListener != null) {
-            messageDb.removeEventListener(childEventListener);
+        if (loadMessageDb != null && loadMessageChildEventListener != null) {
+            loadMessageDb.removeEventListener(loadMessageChildEventListener);
+        }
+        if (newMessageQuery != null && newMessageChildEventListener != null) {
+            newMessageQuery.removeEventListener(newMessageChildEventListener);
+        }
+        if (loadMoreMessageQuery != null && loadMoreMessageChildEventListener != null) {
+            loadMoreMessageQuery.removeEventListener(loadMoreMessageChildEventListener);
         }
     }
 
     @Override
     public void addMessageListener() {
-        if (messageDb != null && childEventListener != null) {
-            messageDb.addChildEventListener(childEventListener);
+        if (loadMessageDb != null && loadMessageChildEventListener != null) {
+            loadMessageDb.addChildEventListener(loadMessageChildEventListener);
+        }
+        if (newMessageQuery != null && newMessageChildEventListener != null) {
+            newMessageQuery.addChildEventListener(newMessageChildEventListener);
         }
     }
 
     @Override
+    public void getChatMessageFirstPage(String chatId, final GetChatMessageFirstPageCallback callBack) {
+        messageList.clear();
+        lastMessagePaginationId = "";
+        newestMessageId = "";
+        totalMessageCurrentPage = 0;
+        loadMessageDb = dbRef.child("message").child(chatId);
+        final Query queryFirstPage = loadMessageDb.orderByKey().limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
+        loadMessageChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                if (dataSnapshot.exists()) {
+                    Message message = dataSnapshot.getValue(Message.class);
+                    messageList.add(message);
+                    if (messageList.size() == Config.NUMBER_PAGINATION_MESSAGE) {
+                        newestMessageId = messageList.get(messageList.size() - 1).getId();
+                        lastMessagePaginationId = messageList.get(0).getId();
+                        messageList.remove(0);
+                        callBack.loadSuccess(messageList, newestMessageId);
+                        return;
+                    }
+                    if (messageList.size() == totalMessageCurrentPage) {
+                        newestMessageId = messageList.get(messageList.size() - 1).getId();
+                        lastMessagePaginationId = messageList.get(0).getId();
+                        messageList.remove(0);
+                        callBack.loadSuccessDone(messageList, newestMessageId);
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+
+
+        loadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    callBack.loadSuccessEmptyData();
+                } else {
+                    queryFirstPage.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                totalMessageCurrentPage = dataSnapshot.getChildrenCount();
+                                queryFirstPage.addChildEventListener(loadMessageChildEventListener);
+                            } else {
+                                callBack.loadSuccessEmptyData();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    @Override
+    public void getChatMessageLoadMore(String chatId, final GetChatMessageLoadMoreCallback callBack) {
+        if (!isLoadingMore) {
+            isLoadingMore = true;
+            messageList.clear();
+            loadMessageDb = dbRef.child("message").child(chatId);
+            loadMoreMessageQuery = loadMessageDb.orderByKey().endAt(lastMessagePaginationId).limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
+            loadMoreMessageChildEventListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    if (dataSnapshot.exists()) {
+                        Message message = dataSnapshot.getValue(Message.class);
+                        messageList.add(message);
+                        if (messageList.size() == Config.NUMBER_PAGINATION_MESSAGE) {
+                            lastMessagePaginationId = messageList.get(0).getId();
+                            messageList.remove(0);
+                            callBack.loadSuccess(messageList);
+                            isLoadingMore = false;
+                            return;
+                        }
+                        if (messageList.size() == totalMessageCurrentPage) {
+                            lastMessagePaginationId = messageList.get(0).getId();
+                            messageList.remove(0);
+                            isLoadingMore = false;
+                            callBack.loadSuccessDone(messageList);
+                        }
+                    }
+                }
+
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            };
+
+            loadMoreMessageQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        totalMessageCurrentPage = dataSnapshot.getChildrenCount();
+                        loadMoreMessageQuery.addChildEventListener(loadMoreMessageChildEventListener);
+                    } else {
+                        isLoadingMore = false;
+                        callBack.loadSuccessEmptyData();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+
+    @Override
+    public void getNewMessage(String chatId, final GetNewMessageCallback callback) {
+        removeMessageListener();
+//        DatabaseReference message = dbRef.child("message").child(chatId);
+        if (newestMessageId.isEmpty()) {
+            //chat doesn't have any message
+            newMessageQuery = dbRef.child("message").child(chatId);
+        } else {
+            //start listening for new message from newest message
+            newMessageQuery = dbRef.child("message").child(chatId).orderByKey().startAt(newestMessageId);
+        }
+        newMessageChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                if (dataSnapshot.exists()) {
+                    Message message = dataSnapshot.getValue(Message.class);
+                    if (message.getId().equals(newestMessageId))
+                        return;
+                    newestMessageId = message.getId();
+                    callback.getSuccess(message);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                if (dataSnapshot.exists()) {
+                    Message message = dataSnapshot.getValue(Message.class);
+//                    message.setId(dataSnapshot.getKey());
+//                    callBack.updateMessageStatus(message);
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        newMessageQuery.addChildEventListener(newMessageChildEventListener);
+//        loadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                newMessageQuery.addChildEventListener(loadMessageChildEventListener);
+//                if (!dataSnapshot.exists()) {
+//                    callback.getSuccessEmptyData();
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+    }
+
+    /*@Override
     public void getChatMessageData(String chatId, final GetChatMessageCallBack callBack) {
         removeListener();
-        messageDb = dbRef.child("message").child(chatId);
-        childEventListener = new ChildEventListener() {
+        loadMessageDb = dbRef.child("message").child(chatId);
+        loadMessageChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
@@ -103,10 +347,10 @@ public class MessageRepository implements MessageInterface {
             }
         };
 
-        messageDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        loadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                messageDb.addChildEventListener(childEventListener);
+                loadMessageDb.addChildEventListener(loadMessageChildEventListener);
                 if (!dataSnapshot.exists()) {
                     callBack.loadSuccessEmptyData();
                 }
@@ -117,18 +361,18 @@ public class MessageRepository implements MessageInterface {
 
             }
         });
-    }
+    }*/
 
     @Override
     public void getNewMessageId(String chatId, SendMessageCallBack callBack) {
-        messageDb = dbRef.child("message").child(chatId).push();
-        callBack.getNewMessageIdSuccess(messageDb.getKey());
+        loadMessageDb = dbRef.child("message").child(chatId).push();
+        callBack.getNewMessageIdSuccess(loadMessageDb.getKey());
     }
 
     @Override
     public void sendMessage(final Chat chat, final String messageId, String text,
                             final List<String> uriList, final SendMessageCallBack callBack) {
-        messageDb = dbRef.child("message").child(chat.getId()).child(messageId);
+        loadMessageDb = dbRef.child("message").child(chat.getId()).child(messageId);
 
         final Message message = new Message();
         message.setId(messageId);
@@ -153,7 +397,7 @@ public class MessageRepository implements MessageInterface {
             message.setType(Message.TYPE_MEDIA);
             /*ArrayList<UploadTask> tasks = new ArrayList<>();
             for (String mediaUri : uriList) {
-                final String mediaId = messageDb.child("media").push().getKey();
+                final String mediaId = loadMessageDb.child("media").push().getKey();
                 final StorageReference filePath = FirebaseStorage.getInstance().getReference()
                         .child("message").child(chat.getId()).child(messageId).child(mediaId);
                 UploadTask uploadTask = filePath.putFile(Uri.parse(mediaUri));
@@ -172,7 +416,7 @@ public class MessageRepository implements MessageInterface {
                 @Override
                 public void onComplete(@NonNull Task<List<Object>> task) {
                     message.setMedia(mediaMap);
-                    updateDatabaseWithNewMessage(chat, messageDb, message, callBack);
+                    updateDatabaseWithNewMessage(chat, loadMessageDb, message, callBack);
                 }
             });*/
             UploadMediaAsyncTask uploadMediaAsyncTask = new UploadMediaAsyncTask(chat.getId(),
@@ -180,17 +424,17 @@ public class MessageRepository implements MessageInterface {
                 @Override
                 public void uploadSuccess(Map<String, String> mediaMap) {
                     message.setMedia(mediaMap);
-                    updateDatabaseWithNewMessage(chat, messageDb, message, callBack);
+                    updateDatabaseWithNewMessage(chat, loadMessageDb, message, callBack);
                 }
 
                 @Override
                 public void uploadFail() {
-                    updateDatabaseWithNewMessage(chat, messageDb, message, callBack);
+                    updateDatabaseWithNewMessage(chat, loadMessageDb, message, callBack);
                 }
             });
             uploadMediaAsyncTask.execute(uriList);
         } else {
-            updateDatabaseWithNewMessage(chat, messageDb, message, callBack);
+            updateDatabaseWithNewMessage(chat, loadMessageDb, message, callBack);
         }
     }
 
@@ -309,7 +553,7 @@ public class MessageRepository implements MessageInterface {
             final ArrayList<UploadTask> tasks = new ArrayList<>();
 
             for (final String mediaUri : uri[0]) {
-                final String mediaId = messageDb.child("media").push().getKey();
+                final String mediaId = loadMessageDb.child("media").push().getKey();
                 if (mediaId != null) {
                     final StorageReference filePath = mStorageRef
                             .child("message").child(chatId).child(messageId).child(mediaId);

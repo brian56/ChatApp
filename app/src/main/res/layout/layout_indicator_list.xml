@@ -6,18 +6,20 @@
     android:foreground="?android:attr/selectableItemBackground"
     android:gravity="center">
 
-    <com.agrawalsuneet.dotsloader.loaders.TashieLoader
+    <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
         android:id="@+id/loader"
+        android:layout_gravity="center"
+        android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:tashieloader_animDelay="50"
-        app:tashieloader_animDur="1000"
-        app:tashieloader_dotsColor="@color/loading_indicator"
-        app:tashieloader_dotsDist="6dp"
-        app:tashieloader_dotsRadius="4dp"
-        app:tashieloader_interpolator="@android:anim/accelerate_interpolator"
-        app:tashieloader_noOfDots="3" />
+        app:loader_animDur="100"
+        app:loader_bigCircleRadius="12dp"
+        app:loader_circleRadius="3dp"
+        app:loader_defaultColor="@color/white"
+        app:loader_firstShadowColor="@color/colorAccent_2"
+        app:loader_secondShadowColor="@color/colorAccent_1"
+        app:loader_selectedColor="@color/colorAccent"
+        app:loader_showRunningShadow="true" />
 
     <LinearLayout
         android:id="@+id/ll_empty_data"
@@ -50,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:visibility="visible"
+        android:visibility="gone"
         android:orientation="vertical">
 
         <ImageView

@@ -182,7 +182,7 @@ public class NewMessageService extends Service {
                 .setSmallIcon(R.drawable.ic_notification_new)
                 .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
                 .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
-                        R.mipmap.ic_launcher_new))
+                        R.mipmap.ic_launcher_round))
                 .setContentIntent(contentIntent)
                 .setContentTitle(title)
                 .setContentText(message)
@@ -283,7 +283,7 @@ public class NewMessageService extends Service {
 
             } else {
                 Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                        R.mipmap.ic_launcher_new);
+                        R.mipmap.ic_launcher);
 
                 simpleContentView.setImageViewBitmap(R.id.img_avatar, icon);
                 notificationManager.notify(ID_NOTIFICATION, notification.build());

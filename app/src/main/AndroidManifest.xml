@@ -15,13 +15,13 @@
         android:name=".utils.MyApp"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:icon="@mipmap/ic_launcher_new"
+        tools:replace="android:allowBackup"
+        android:icon="@mipmap/ic_launcher"
+        android:logo="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:logo="@mipmap/ic_launcher_new"
-        android:roundIcon="@mipmap/ic_launcher_new"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        tools:replace="android:allowBackup">
+        android:theme="@style/AppTheme">
         <activity android:name=".login.view.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,18 +30,24 @@
         </activity>
         <activity
             android:name=".home.HomeActivity"
-            android:launchMode="singleTop" />
-        <activity android:name=".contact.FindUserActivity" />
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".contact.FindUserActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".chat.view.ChatActivity"
             android:parentActivityName=".home.HomeActivity"
-            android:windowSoftInputMode="stateUnchanged|adjustResize">
+            android:windowSoftInputMode="stateUnchanged|adjustResize"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.HomeActivity" />
         </activity>
 
-        <activity android:name=".group.view.CreateGroupActivity" />
+        <activity
+            android:name=".group.view.CreateGroupActivity"
+            android:screenOrientation="portrait" />
 
         <service android:name=".services.NewMessageService" />
         <receiver

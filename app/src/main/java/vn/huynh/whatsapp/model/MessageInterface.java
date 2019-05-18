@@ -10,7 +10,13 @@ import vn.huynh.whatsapp.base.BaseModelInterface;
 
 public interface MessageInterface extends BaseModelInterface {
 
-    void getChatMessageData(String chatId, GetChatMessageCallBack callBack);
+    void getChatMessageFirstPage(String chatId, GetChatMessageFirstPageCallback callBack);
+
+    void getChatMessageLoadMore(String chatId, GetChatMessageLoadMoreCallback callBack);
+
+    void getNewMessage(String chatId, GetNewMessageCallback callback);
+
+//    void getChatMessageData(String chatId, GetChatMessageCallBack callBack);
 
     void sendMessage(Chat chat, String messageId, String text, List<String> mediaUriList, SendMessageCallBack callBack);
 
@@ -20,7 +26,7 @@ public interface MessageInterface extends BaseModelInterface {
 
     void addMessageListener();
 
-    interface GetChatMessageCallBack {
+    /*interface GetChatMessageCallBack {
         void loadSuccess(Message message);
 
         void loadSuccessEmptyData();
@@ -28,7 +34,7 @@ public interface MessageInterface extends BaseModelInterface {
         void loadFail(String error);
 
 //        void updateMessageStatus(Message message);
-    }
+    }*/
 
     interface SendMessageCallBack {
         void getNewMessageIdSuccess(String messageId);
@@ -36,5 +42,31 @@ public interface MessageInterface extends BaseModelInterface {
         void sendSuccess();
 
         void sendFail(String error);
+    }
+
+    interface GetChatMessageFirstPageCallback {
+        void loadSuccess(List<Message> messages, String newestMessageId);
+
+        void loadSuccessDone(List<Message> messages, String newestMessageId);
+
+        void loadSuccessEmptyData();
+
+        void loadFail(String error);
+    }
+
+    interface GetChatMessageLoadMoreCallback {
+        void loadSuccess(List<Message> messages);
+
+        void loadSuccessDone(List<Message> messages);
+
+        void loadSuccessEmptyData();
+
+        void loadFail(String error);
+    }
+
+    interface GetNewMessageCallback {
+        void getSuccess(Message message);
+
+        void getFail(String error);
     }
 }

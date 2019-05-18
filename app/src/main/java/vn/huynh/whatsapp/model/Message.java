@@ -31,6 +31,7 @@ public class Message implements Parcelable {
     public static final int TYPE_MEDIA = 2;
     public static final int TYPE_LINK = 3;
     public static final int TYPE_VIDEO = 3;
+    public static final int TYPE_LAST_MESSAGE = -1;
 
     protected Message(Parcel in) {
         id = in.readString();

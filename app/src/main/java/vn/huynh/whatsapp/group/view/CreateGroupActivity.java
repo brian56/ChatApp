@@ -14,7 +14,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
+import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 
 import java.util.ArrayList;
 
@@ -47,7 +47,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     @BindView(R.id.ll_indicator)
     LinearLayout llIndicator;
     @BindView(R.id.loader)
-    TashieLoader loader;
+    CircularDotsLoader loader;
     @BindView(R.id.ll_empty_data)
     LinearLayout llEmptyData;
     @BindView(R.id.ll_error)

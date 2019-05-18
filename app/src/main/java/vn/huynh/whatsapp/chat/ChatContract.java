@@ -1,6 +1,7 @@
 package vn.huynh.whatsapp.chat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import vn.huynh.whatsapp.base.BasePresenter;
 import vn.huynh.whatsapp.base.BaseView;
@@ -16,7 +17,11 @@ public interface ChatContract {
 
         void showChatDetail(Chat chatObject);
 
-        void showMessageList(Message messageObject);
+        void showMessage(Message messageObject);
+
+        void showMessageList(List<Message> messages, boolean isDone);
+
+        void showMessageListLoadMore(List<Message> messages, boolean isDone);
 
         void addSendingMessageToList(Message messageObject);
 
@@ -33,9 +38,13 @@ public interface ChatContract {
 
         void loadChatDetail(String chatId);
 
-        void loadChatMessage(String chatId);
+        void loadMessage(String chatId);
 
-        void sendMessage(Chat chat, String message, ArrayList<String> mediaUri);
+        void loadMessageMore(String chatId);
+
+        void listenToNewMessage(String chatId);
+
+        void sendMessage(Chat chat, String text, ArrayList<String> mediaUri);
 
         void removeChatDetailListener();
 

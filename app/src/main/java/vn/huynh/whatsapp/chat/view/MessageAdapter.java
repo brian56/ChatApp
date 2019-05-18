@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
@@ -37,6 +38,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private Chat chatObject;
     private static final int MY_MESSAGE = 0;
     private static final int THEIR_MESSAGE = 1;
+    private static final int LOADING_MESSAGE = -1;
+    private static final int LAST_MESSAGE = -2;
     private Context context;
     private int maxColumn = 3;
 
@@ -53,6 +56,18 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
+            case LAST_MESSAGE:
+                View layoutView4 = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_last_message, null, false);
+                RecyclerView.LayoutParams lp4 = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layoutView4.setLayoutParams(lp4);
+                return new LastMessageViewHolder(layoutView4);
+
+            case LOADING_MESSAGE:
+                View layoutView3 = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_loading_more_message, null, false);
+                RecyclerView.LayoutParams lp3 = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layoutView3.setLayoutParams(lp3);
+                return new LoadingMessageViewHolder(layoutView3);
+
             case THEIR_MESSAGE:
                 View layoutView2 = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_their_message, null, false);
                 RecyclerView.LayoutParams lp2 = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -68,6 +83,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
+        if (messageList.get(position) == null)
+            return LOADING_MESSAGE;
+
+        if (messageList.get(position).getType() == Message.TYPE_LAST_MESSAGE)
+            return LAST_MESSAGE;
+
         if (messageList.get(position).getCreator().equals(ChatUtils.getCurrentUserId()))
             return MY_MESSAGE;
         else
@@ -77,13 +98,26 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         switch (holder.getItemViewType()) {
+            case LAST_MESSAGE:
+                break;
+
+            case LOADING_MESSAGE:
+                break;
+
             case MY_MESSAGE:
                 if (holder.getAdapterPosition() > 0) {
-                    if (messageList.get(holder.getAdapterPosition()).getCreator().
-                            equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
-                        ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
+                    //check previous item is not loading progress bar
+                    if (messageList.get(holder.getAdapterPosition() - 1) != null
+                            || (messageList.get(holder.getAdapterPosition() - 1) != null
+                            && messageList.get(holder.getAdapterPosition() - 1).getType() != Message.TYPE_LAST_MESSAGE)) {
+                        if (messageList.get(holder.getAdapterPosition()).getCreator().
+                                equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
+                            ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
+                        } else {
+                            ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                        }
                     } else {
-                        ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                        ((MyMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
                     }
                 }
                 if (messageList.get(holder.getAdapterPosition()).getStatus() == Message.STATUS_SENDING) {
@@ -126,11 +160,20 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         ((TheirMessageViewHolder) holder).getUser().getName());
 
                 if (holder.getAdapterPosition() > 0) {
-                    if (messageList.get(holder.getAdapterPosition()).getCreator().
-                            equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
-                        ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.GONE);
-                        ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
-                        ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.INVISIBLE);
+                    //check previous item is not loading progress bar
+                    if (messageList.get(holder.getAdapterPosition() - 1) != null
+                            || (messageList.get(holder.getAdapterPosition() - 1) != null
+                            && messageList.get(holder.getAdapterPosition() - 1).getType() == Message.TYPE_LAST_MESSAGE)) {
+                        if (messageList.get(holder.getAdapterPosition()).getCreator().
+                                equals(messageList.get(holder.getAdapterPosition() - 1).getCreator())) {
+                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.GONE);
+                            ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
+                            ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.INVISIBLE);
+                        } else {
+                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+                            ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
+                            ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
+                        }
                     } else {
                         ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
                         ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
@@ -203,6 +246,25 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return maxColumn;
     }
 
+    public class LoadingMessageViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.pb_loading)
+        ProgressBar progressBar;
+
+        public LoadingMessageViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+    }
+
+    public class LastMessageViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.tv_last_message)
+        TextView tvLastMessage;
+
+        public LastMessageViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+    }
 
     public class MyMessageViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.tv_message)

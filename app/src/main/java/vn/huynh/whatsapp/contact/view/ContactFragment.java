@@ -13,7 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.agrawalsuneet.dotsloader.loaders.TashieLoader;
+import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 
 import java.util.ArrayList;
 
@@ -40,7 +40,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @BindView(R.id.ll_indicator)
     LinearLayout llIndicator;
     @BindView(R.id.loader)
-    TashieLoader loader;
+    CircularDotsLoader loader;
     @BindView(R.id.ll_empty_data)
     LinearLayout llEmptyData;
     @BindView(R.id.ll_error)
