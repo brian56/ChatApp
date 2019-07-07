@@ -23,7 +23,7 @@ public class AppKilledBroadcast extends BroadcastReceiver {
         public void onServiceConnected(ComponentName name, IBinder service) {
             NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
             newMessageService = binder.getService();
-            newMessageService.setShowNotification(true);
+            newMessageService.setShowMessageNotification(true);
         }
 
         @Override

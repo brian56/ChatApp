@@ -28,15 +28,18 @@ import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseFragment;
 import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
-import vn.huynh.whatsapp.contact.view.ContactFragment;
+import vn.huynh.whatsapp.contact_friend.friend.presenter.FriendPresenter;
+import vn.huynh.whatsapp.contact_friend.view.ContactAndFriendFragment;
 import vn.huynh.whatsapp.custom_views.BadgedBottomNavigationBar;
 import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.setting.SettingFragment;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.ServiceUtils;
 
-public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener, BaseFragment.NewNotificationCallback {
+public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener,
+        BaseFragment.NewNotificationCallback {
 
     @BindView(R.id.frame_container)
     FrameLayout frameLayout;
@@ -50,12 +53,12 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     final FragmentManager fm = getSupportFragmentManager();
     private Fragment chatListFragment = new ChatListFragment();
-    private Fragment contactFragment = new ContactFragment();
+    private Fragment contactAndFriendFragment = new ContactAndFriendFragment();
     private Fragment groupFragment = new GroupFragment();
     private Fragment settingFragment = new SettingFragment();
 
     private static final int CHAT_LIST_FRAGMENT_INDEX = 0;
-    private static final int CONTACT_FRAGMENT_INDEX = 1;
+    private static final int CONTACT_AND_FRIEND_FRAGMENT_INDEX = 1;
     private static final int GROUP_FRAGMENT_INDEX = 2;
     private static final int SETTING_FRAGMENT_INDEX = 3;
 
@@ -66,6 +69,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     private NewMessageService newMessageService;
     private boolean isBound = false;
     private Intent intentNewMessageService;
+
+    private FriendPresenter friendPresenter;
 
     public static int NUMBER_NOTIFICATION_ALL = 0;
     public static int NUMBER_NOTIFICATION_GROUP = 0;
@@ -84,13 +89,38 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         setupOneSignal();
 
         getPermission();
-
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(getResources().getString(R.string.menu_chat));
         setupBottomNavigation(bottomNavigationView);
         initFragments(savedInstanceState);
         setEvent();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            if (intent.getStringExtra(Constant.EXTRA_FRIEND_ID) != null) {
+                goToContactAndFriendList();
+            }
+
+        }
         Log.d(HomeActivity.class.getSimpleName(), "On Create");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+//        setIntent(intent);
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                if (bundle.getString(Constant.EXTRA_FRIEND_ID) != null) {
+                    goToContactAndFriendList();
+                }
+            }
+        }
+    }
+
+    private void goToContactAndFriendList() {
+        bottomNavigationView.setSelectedItemId(R.id.navigation_contact);
     }
 
     @Override
@@ -98,8 +128,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         super.onSaveInstanceState(outState);
         if (chatListFragment.isAdded())
             getSupportFragmentManager().putFragment(outState, ChatListFragment.TAG, chatListFragment);
-        if (contactFragment.isAdded())
-            getSupportFragmentManager().putFragment(outState, ContactFragment.TAG, contactFragment);
+        if (contactAndFriendFragment.isAdded())
+            getSupportFragmentManager().putFragment(outState, ContactAndFriendFragment.TAG, contactAndFriendFragment);
         if (groupFragment.isAdded())
             getSupportFragmentManager().putFragment(outState, GroupFragment.TAG, groupFragment);
         if (settingFragment.isAdded())
@@ -110,7 +140,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     private void initFragments(Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             chatListFragment = new ChatListFragment();
-            contactFragment = new ContactFragment();
+            contactAndFriendFragment = new ContactAndFriendFragment();
             groupFragment = new GroupFragment();
             settingFragment = new SettingFragment();
 
@@ -120,8 +150,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
             if (getSupportFragmentManager().getFragment(savedInstanceState, ChatListFragment.TAG) != null) {
                 chatListFragment = getSupportFragmentManager().getFragment(savedInstanceState, ChatListFragment.TAG);
             }
-            if (getSupportFragmentManager().getFragment(savedInstanceState, ContactFragment.TAG) != null) {
-                contactFragment = getSupportFragmentManager().getFragment(savedInstanceState, ContactFragment.TAG);
+            if (getSupportFragmentManager().getFragment(savedInstanceState, ContactAndFriendFragment.TAG) != null) {
+                contactAndFriendFragment = getSupportFragmentManager().getFragment(savedInstanceState, ContactAndFriendFragment.TAG);
             }
             if (getSupportFragmentManager().getFragment(savedInstanceState, GroupFragment.TAG) != null) {
                 groupFragment = getSupportFragmentManager().getFragment(savedInstanceState, GroupFragment.TAG);
@@ -138,8 +168,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
                 case ChatListFragment.TAG:
                     loadFragment(chatListFragment, ChatListFragment.TAG);
                     break;
-                case ContactFragment.TAG:
-                    loadFragment(contactFragment, ContactFragment.TAG);
+                case ContactAndFriendFragment.TAG:
+                    loadFragment(contactAndFriendFragment, ContactAndFriendFragment.TAG);
                     break;
                 case GroupFragment.TAG:
                     loadFragment(groupFragment, GroupFragment.TAG);
@@ -168,10 +198,10 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
                         loadFragment(chatListFragment, ChatListFragment.TAG);
                         return true;
                     case R.id.navigation_contact:
-                        toolbar.setTitle(getResources().getString(R.string.menu_contact));
-//                        removeBadgeNumber(CONTACT_FRAGMENT_INDEX);
-                        currentFragmentTAG = ContactFragment.TAG;
-                        loadFragment(contactFragment, ContactFragment.TAG);
+                        toolbar.setTitle(getResources().getString(R.string.menu_contact_and_friend));
+//                        removeBadgeNumber(CONTACT_AND_FRIEND_FRAGMENT_INDEX);
+                        currentFragmentTAG = ContactAndFriendFragment.TAG;
+                        loadFragment(contactAndFriendFragment, ContactAndFriendFragment.TAG);
                         return true;
                     case R.id.navigation_group:
                         toolbar.setTitle(getResources().getString(R.string.menu_group));
@@ -209,10 +239,10 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         } else {
             transaction.show(chatListFragment);
         }
-        if (!ContactFragment.TAG.equals(TAG)) {
-            transaction.hide(contactFragment);
+        if (!ContactAndFriendFragment.TAG.equals(TAG)) {
+            transaction.hide(contactAndFriendFragment);
         } else {
-            transaction.show(contactFragment);
+            transaction.show(contactAndFriendFragment);
         }
         if (!GroupFragment.TAG.equals(TAG)) {
             transaction.hide(groupFragment);
@@ -230,6 +260,12 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     private void setupBottomNavigation(BadgedBottomNavigationBar badgedBottomNavigationBar) {
         badgedBottomNavigationBar.removeTextAndShiftMode();//disable BottomNavigationView shift mode
         badgedBottomNavigationBar.changeIconSize(24);
+    }
+
+    private void initPresenter() {
+        friendPresenter = new FriendPresenter();
+        friendPresenter.attachView(this);
+        friendPresenter.listenerFriendNotification();
     }
 
     @Override
@@ -254,12 +290,12 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     @Override
     public void newContactNotificationDot() {
-        bottomNavigationView.showBadge(CONTACT_FRAGMENT_INDEX);
+        bottomNavigationView.showBadge(CONTACT_AND_FRIEND_FRAGMENT_INDEX);
     }
 
     @Override
     public void removeContactNotificationDot() {
-        bottomNavigationView.removeBadge(CONTACT_FRAGMENT_INDEX);
+        bottomNavigationView.removeBadge(CONTACT_AND_FRIEND_FRAGMENT_INDEX);
     }
 
     @Override
@@ -283,9 +319,25 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     }
 
     @Override
-    public void showNotification(boolean show) {
+    public void showMessageNotification(boolean show) {
         if (newMessageService != null) {
-            newMessageService.setShowNotification(show);
+            newMessageService.setShowMessageNotification(show);
+        }
+    }
+
+    @Override
+    public void showFriendNotification(boolean show) {
+        if (newMessageService != null) {
+            newMessageService.setShowFriendNotification(show);
+        }
+    }
+
+    @Override
+    public void showHideFriendDot(int showNotify) {
+        if (showNotify == 0) {
+            removeContactNotificationDot();
+        } else {
+            newContactNotificationDot();
         }
     }
 
@@ -298,8 +350,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         public void onServiceConnected(ComponentName name, IBinder service) {
             NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
             newMessageService = binder.getService();
-            Log.d("Noti_MainActivity", "setShowNotification()");
-            newMessageService.setShowNotification(false);
+            Log.d("Noti_MainActivity", "setShowMessageNotification()");
+            newMessageService.setShowMessageNotification(false);
         }
 
         @Override
@@ -311,6 +363,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(HomeActivity.class.getSimpleName(), "On Start");
+
         if (!isBound) {
             intentNewMessageService = new Intent(this, NewMessageService.class);
             if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), this)) {
@@ -320,11 +374,11 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
             isBound = true;
         }
         if (newMessageService != null) {
-            Log.d("Home onStop()", "setShowNotification()");
-            newMessageService.setShowNotification(false);
+            Log.d("Home onStop()", "setShowMessageNotification()");
+            newMessageService.setShowMessageNotification(false);
         }
         isVisible = true;
-        Log.d(HomeActivity.class.getSimpleName(), "On Start");
+        initPresenter();
     }
 
     @Override
@@ -347,8 +401,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         super.onStop();
         isVisible = false;
         if (newMessageService != null) {
-            Log.d("Home onStop()", "setShowNotification()");
-            newMessageService.setShowNotification(true);
+            Log.d("Home onStop()", "setShowMessageNotification()");
+            newMessageService.setShowMessageNotification(true);
         }
         Log.d(HomeActivity.class.getSimpleName(), "On Stop");
     }
@@ -358,7 +412,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         super.onDestroy();
         if (isBound) {
             if (newMessageService != null)
-                newMessageService.setShowNotification(true);
+                newMessageService.setShowMessageNotification(true);
             unbindService(serviceConnection);
             isBound = false;
             Log.d(HomeActivity.class.getSimpleName(), "unbind service");
@@ -377,7 +431,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         OneSignal.idsAvailable(new OneSignal.IdsAvailableHandler() {
             @Override
             public void idsAvailable(String userId, String registrationId) {
-                FirebaseDatabase.getInstance().getReference().child("user").child(ChatUtils.getCurrentUserId()).child("notificationKey").setValue(userId);
+                FirebaseDatabase.getInstance().getReference().child("user").child(ChatUtils.getUser().getId()).child("notificationKey").setValue(userId);
 
             }
         });

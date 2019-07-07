@@ -17,14 +17,16 @@ import android.widget.Toast;
 import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseActivity;
-import vn.huynh.whatsapp.contact.ContactContract;
-import vn.huynh.whatsapp.contact.presenter.ContactPresenter;
-import vn.huynh.whatsapp.contact.view.ContactListAdapter;
+import vn.huynh.whatsapp.contact_friend.contact.ContactContract;
+import vn.huynh.whatsapp.contact_friend.contact.presenter.ContactPresenter;
+import vn.huynh.whatsapp.contact_friend.contact.view.ContactListAdapter;
 import vn.huynh.whatsapp.group.GroupContract;
 import vn.huynh.whatsapp.group.presenter.GroupPresenter;
 import vn.huynh.whatsapp.model.Chat;
@@ -107,7 +109,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
                     }
                 }
                 if (isSelected) {
-                    User currentUser = new User(ChatUtils.getCurrentUserId());
+                    User currentUser = new User(ChatUtils.getUser().getId());
                     selectedUserList.add(0, currentUser);
                     groupPresenter.createGroupChat(edtGroupName.getText().toString().trim(), selectedUserList);
                 } else {
@@ -202,9 +204,19 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
 
     @Override
     public void showListContact(User userObject) {
-        showHideListIndicator(llIndicator, false);
-        if(userObject != null) {
+        if (userObject != null && userObject.getRegisteredUser()) {
             userList.add(userObject);
+            Collections.sort(userList, new Comparator<User>() {
+                @Override
+                public int compare(User o1, User o2) {
+                    if (o1.getRegisteredUser() && !o2.getRegisteredUser())
+                        return -1;
+                    if (!o1.getRegisteredUser() && o2.getRegisteredUser())
+                        return 1;
+                    return o1.getName().compareToIgnoreCase(o2.getName());
+                }
+            });
+            hideLoadingIndicator();
             userListAdapter.notifyDataSetChanged();
         }
     }
@@ -220,91 +232,5 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     protected void onStop() {
         super.onStop();
     }
-
-    /* private void createChat() {
-        groupName = edtGroupName.getText().toString().trim();
-        final String key = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
-
-        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("user");
-        DatabaseReference chatInfoDb = FirebaseDatabase.getInstance().getReference().child("chat").child(key).child("info");
-
-        HashMap newChatMap = new HashMap();
-        newChatMap.put("id", key);
-        newChatMap.put("group", true);
-        if (!TextUtils.isEmpty(groupName)) {
-            newChatMap.put("name", groupName);
-        }
-        newChatMap.put("users/" + FirebaseAuth.getInstance().getUid(), true);
-        boolean valid = false;
-        for (UserObject user : userList) {
-            if (user.getSelected()) {
-                valid = true;
-                newChatMap.put("users/" + user.getUid(), true);
-                userDb.child(user.getUid()).child("chat").child(key).setValue(true);
-            }
-        }
-        if (valid) {
-            chatInfoDb.updateChildren(newChatMap, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                    userDb.child(FirebaseAuth.getInstance().getUid()).child("chat").child(key).setValue(true);
-                    Intent returnIntent = new Intent();
-                    returnIntent.putExtra("chatGroupId", key);
-                    setResult(Activity.RESULT_OK, returnIntent);
-                    finish();
-                }
-            });
-        }
-    }*/
-
-    /*private void getContactList() {
-        Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-        while (phones.moveToNext()) {
-            String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-            String phone = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.NUMBER)));
-            phone = ChatUtils.formatPhone(phone, getApplicationContext());
-            UserObject contact = new UserObject("", name, phone);
-            contactList.add(contact);
-            getUserDetail(contact);
-        }
-    }
-
-    private void getUserDetail(UserObject contact) {
-        DatabaseReference userDB = FirebaseDatabase.getInstance().getReference().child("user");
-        Query query = userDB.orderByChild("phone").equalTo(contact.getPhone());
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    String phone = "";
-                    String name = "";
-                    for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                        if (childSnapshot.child("phone").getValue() != null) {
-                            phone = childSnapshot.child("phone").getValue().toString();
-                        }
-                        if (childSnapshot.child("name").getValue() != null) {
-                            name = childSnapshot.child("name").getValue().toString();
-                        }
-
-                        UserObject user = new UserObject(childSnapshot.getKey(), name, phone);
-                        if (name.equalsIgnoreCase(phone)) {
-                            for (UserObject contact : contactList) {
-                                if (ChatUtils.formatPhone(contact.getPhone(), getApplicationContext()).equalsIgnoreCase(user.getPhone())) {
-                                    user.setName(contact.getName());
-                                }
-                            }
-                        }
-                        userList.add(user);
-                        userListAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }*/
 
 }

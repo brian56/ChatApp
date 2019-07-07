@@ -13,5 +13,5 @@ public interface BaseView {
 
     void showErrorIndicator();
 
-    void showErrorMessage(String message);
+    void showErrorMessage(String error);
 }

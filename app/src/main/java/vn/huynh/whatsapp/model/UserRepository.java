@@ -3,7 +3,6 @@ package vn.huynh.whatsapp.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
@@ -18,11 +17,13 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.Constant;
 
 /**
  * Created by duong on 4/15/2019.
@@ -32,8 +33,14 @@ public class UserRepository implements UserInterface {
     private static final String TAG = UserRepository.class.getSimpleName();
     private DatabaseReference dbRef;
     private DatabaseReference userDb;
+
     private ValueEventListener userValueEventListener;
     private Query query;
+
+    private DatabaseReference userFriendDb;
+    private DatabaseReference userChatDb;
+    private ValueEventListener userFriendValueListener;
+    private ValueEventListener chatValueListener;
 
     public UserRepository() {
         dbRef = FirebaseDatabase.getInstance().getReference();
@@ -41,25 +48,37 @@ public class UserRepository implements UserInterface {
 
     @Override
     public void removeListener() {
-        if(userDb != null && userValueEventListener != null)
+        if (userDb != null && userValueEventListener != null)
             userDb.removeEventListener(userValueEventListener);
-        if(query != null && userValueEventListener != null)
+        if (query != null && userValueEventListener != null)
             query.removeEventListener(userValueEventListener);
+
+        if (userFriendDb != null && userFriendValueListener != null) {
+            userFriendDb.removeEventListener(userFriendValueListener);
+        }
+        if (userChatDb != null && chatValueListener != null) {
+            userChatDb.removeEventListener(chatValueListener);
+        }
     }
 
     @Override
     public void isLoggedIn(final CheckLoginCallBack callBack) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null && !TextUtils.isEmpty(ChatUtils.getCurrentUserId())) {
-            userDb = dbRef.child("user").child(ChatUtils.getCurrentUserId());
+        if (firebaseUser != null && ChatUtils.getUser() != null) {
+            userDb = dbRef.child("user").child(ChatUtils.getUser().getId());
             userDb.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists()) {
+                    if (dataSnapshot.exists()) {
+                        final User user = dataSnapshot.getValue(User.class);
                         Map<String, Object> map = new HashMap<>();
                         map.put("lastOnline", ServerValue.TIMESTAMP);
-                        userDb.updateChildren(map);
-                        callBack.alreadyLoggedIn();
+                        userDb.updateChildren(map, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                callBack.alreadyLoggedIn(user);
+                            }
+                        });
                     } else {
                         ChatUtils.clearUser();
                         callBack.noLoggedIn();
@@ -75,14 +94,6 @@ public class UserRepository implements UserInterface {
             callBack.noLoggedIn();
         }
     }
-
-    @Override
-    public void loadContact(Context context, List<User> contacts, LoadContactCallBack callBack) {
-        for (int i = 0; i < contacts.size(); i++) {
-            getContactData(contacts.get(i), callBack);
-        }
-    }
-
     @Override
     public Task getUserData(final String userId) {
         final TaskCompletionSource<DataSnapshot> dbSource = new TaskCompletionSource<>();
@@ -201,6 +212,13 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
+    public void loadContact(Context context, List<User> contacts, final LoadContactCallBack callBack) {
+        for (int i = 0; i < contacts.size(); i++) {
+            getContactData(contacts.get(i), callBack);
+        }
+    }
+
+    @Override
     public void getContactData(final User contact, final LoadContactCallBack callBack) {
         DatabaseReference userDb = dbRef.child("user");
         Query query = userDb.orderByChild("phoneNumber").equalTo(contact.getPhoneNumber());
@@ -210,21 +228,41 @@ public class UserRepository implements UserInterface {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                         User user = childSnapshot.getValue(User.class);
-                        user.setId(childSnapshot.getKey());
+                        user.setRegisteredUser(true);
+                        if (user.getId().equals(ChatUtils.getUser().getId())) {
+                            callBack.loadSuccess(null);
+                        } else {
+                            if (user.getName().equalsIgnoreCase(user.getPhoneNumber())) {
+                                user.setName(contact.getName());
+                            }
+                            contact.cloneUser(user);
+                            //get the friend status
+                            DatabaseReference friendDb = dbRef.child("friend").child(ChatUtils.getUser().getId()).child(user.getId());
+                            friendDb.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        contact.setFriendStatus(dataSnapshot.child("status").getValue(Integer.class));
+                                    }
+                                    callBack.loadSuccess(contact);
+                                }
 
-                        if (user.getName().equalsIgnoreCase(user.getPhoneNumber())) {
-                            user.setName(contact.getName());
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    callBack.loadFail(databaseError.getMessage());
+                                }
+                            });
                         }
-                        callBack.loadSuccess(user);
                     }
                 } else {
-                    callBack.loadSuccess(null);
+                    contact.setRegisteredUser(false);
+                    callBack.loadSuccess(contact);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                callBack.loadFail(databaseError.getMessage());
             }
         };
         query.addListenerForSingleValueEvent(userValueEventListener);
@@ -246,7 +284,7 @@ public class UserRepository implements UserInterface {
                 userDb.updateChildren(userMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                        if(databaseError == null) {
+                        if (databaseError == null) {
                             databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -279,5 +317,53 @@ public class UserRepository implements UserInterface {
     @Override
     public void updateUser(String userId, String phoneNumber, String name) {
 
+    }
+
+    @Override
+    public void searchFriend(String phoneNumber, final SearchFriendCallback callback) {
+        final ArrayList<User> result = new ArrayList<>();
+        DatabaseReference userDb = dbRef.child("user");
+        Query query = userDb.orderByChild("phoneNumber").startAt(phoneNumber)
+                .endAt(phoneNumber + "\uf8ff");
+        ValueEventListener userValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                        User user = childSnapshot.getValue(User.class);
+                        user.setId(childSnapshot.getKey());
+                        result.add(user);
+                    }
+                    callback.onSearchSuccess(result);
+                } else {
+                    callback.onSearchSuccess(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onSearchFail(databaseError.getMessage());
+            }
+        };
+        query.addListenerForSingleValueEvent(userValueEventListener);
+    }
+
+    @Override
+    public void listenerForUserFriend(final FriendCallback callback) {
+        userFriendDb = dbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId())
+                .child(Constant.FB_KEY_FRIEND_NOTIFICATION);
+        userFriendValueListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists())
+                    callback.onFriendNotification(dataSnapshot.getValue(Integer.class));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        userFriendDb.addValueEventListener(userFriendValueListener);
     }
 }

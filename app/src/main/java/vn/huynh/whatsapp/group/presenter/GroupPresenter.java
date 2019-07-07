@@ -24,7 +24,7 @@ public class GroupPresenter extends ChatListPresenter implements GroupContract.P
 //    }
 //
 //    @Override
-//    public void detachView() {
+//    public void detachViewFriend() {
 //        this.view = null;
 //    }
 

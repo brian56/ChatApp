@@ -17,9 +17,14 @@
             "chatID2": 11222222,
             "chatID3": 155554566
           },
-          "friendList": {
-              "friendListID1": 2,
-              "friendListID2": 3
+          "friend": {
+            "userID2": 1,
+            "userID3": 0,
+            "userID4": 2
+          },
+          "friendGroup": {
+            "friendGroupID1": 2,
+            "friendGroupID2": 3
           }
 		},
 		"key2": {
@@ -39,9 +44,14 @@
 				"chatID2": 1244444,
 				"chatID3": 1141153
 			},
-			"friendList": {
-              "friendListID1": 5,
-              "friendListID2": 3
+          "friend": {
+            "userID1": 1,
+            "userID3": 0,
+            "userID4": 2
+          },
+          "friendGroup": {
+            "friendGroupID1": 5,
+            "friendGroupID2": 3
 			}
 		}
 	},
@@ -61,10 +71,6 @@
             "text": "asdasdasdadsas",
             "status": 0,
             "createDate": 1423132144,
-            "seenUsers": {
-              "userID1": 1453454353,
-              "userID2": 14214335335
-            },
             "media": {
               "mediaId1": "https://adsdsdsad.com/sdadad",
               "mediaId2": "https://adsdsdsad.com/sdadad"
@@ -101,10 +107,6 @@
             "text": "asdasdasdadsas",
             "status": 0,
             "createDate": 1423132144,
-            "seenUsers": {
-              "userID1": 1453454353,
-              "userID2": 14214335335
-            },
             "media": {
               "mediaId1": "https://adsdsdsad.com/sdadad",
               "mediaId2": "https://adsdsdsad.com/sdadad"
@@ -145,22 +147,26 @@
 				"status": 0,
 				"createDate": 1423132144,
 				"seenUsers": {
-                  "userID1": 123414241,
-                  "userID2": 124424445
+                  "userID1": 1,
+                  "userID2": 0
 				}
 			}
 		}
 	},
-  "friendList": {
+  "friendGroup": {
 		"userID1": {
-			"friendListID1": {
+          "friendGroupID1": {
+            "id": "friendGroupID1",
+            "createDate": 124124344341,
 				"name": "asdasdsad",
 				"member": {
                   "userID2": 1324233525,
                   "userID3": 114324324342
 				}
 			},
-			"friendListID2": {
+          "friendGroupID2": {
+            "id": "friendGroupID2",
+            "createDate": 124124344341,
 				"name": "Adsasd",
 				"member": {
                   "userID4": 13414412421,
@@ -169,7 +175,9 @@
 			}
 		},
 		"userID2": {
-			"friendListID1": {
+          "friendGroupID3": {
+            "id": "friendGroupID3",
+            "createDate": 124124344341,
 				"name": "asdsadasddddd",
 				"member": {
                   "userID2": 143134114,
@@ -177,5 +185,47 @@
 				}
 			}
 		}
+  },
+  "friend": {
+    "userID1": {
+      "userID2": {
+        "userId": "userID2",
+        "createDate": 124124344341,
+        "status": 1,
+        "name": "",
+        "avatar": "sdadasdasa",
+        "message": "sdasas",
+        "phoneNumber": "1231114"
+      },
+      "userID3": {
+        "userId": "userID3",
+        "createDate": 124124344341,
+        "status": 2,
+        "name": "",
+        "avatar": "sdadasdasa",
+        "message": "sdasas",
+        "phoneNumber": "1231114"
+      }
+    },
+    "userID2": {
+      "userID1": {
+        "userId": "userID1",
+        "createDate": 124124344341,
+        "status": 1,
+        "name": "",
+        "avatar": "sdadasdasa",
+        "message": "sdasas",
+        "phoneNumber": "1231114"
+      },
+      "userID3": {
+        "userId": "userID3",
+        "createDate": 124124344341,
+        "status": 1,
+        "name": "",
+        "avatar": "sdadasdasa",
+        "message": "sdasas",
+        "phoneNumber": "1231114"
+      }
+    }
 	}
 }

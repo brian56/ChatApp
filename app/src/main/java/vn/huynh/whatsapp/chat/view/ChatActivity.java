@@ -127,21 +127,24 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Bundle bundle = intent.getExtras();
-
-        chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
-        chatName = bundle.getString(Constant.EXTRA_CHAT_NAME);
-        if (!TextUtils.isEmpty(chatName)) {
-            getSupportActionBar().setTitle(chatName);
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                chatId = bundle.getString(Constant.EXTRA_CHAT_ID);
+                chatName = bundle.getString(Constant.EXTRA_CHAT_NAME);
+                if (!TextUtils.isEmpty(chatName)) {
+                    getSupportActionBar().setTitle(chatName);
+                }
+                if (!TextUtils.isEmpty(ChatUtils.getCurrentChatId()) && !chatId.equals(ChatUtils.getCurrentChatId())) {
+                    chatObject = null;
+                    ChatUtils.setCurrentChatId(chatId);
+                    setupPresenter(this, chatObject, chatId);
+                } else {
+                    ChatUtils.setCurrentChatId(chatId);
+                }
+                Log.d("ChatActivity", chatId);
+            }
         }
-        if (!TextUtils.isEmpty(ChatUtils.getCurrentChatId()) && !chatId.equals(ChatUtils.getCurrentChatId())) {
-            chatObject = null;
-            ChatUtils.setCurrentChatId(chatId);
-            setupPresenter(this, chatObject, chatId);
-        } else {
-            ChatUtils.setCurrentChatId(chatId);
-        }
-        Log.d("ChatActivity", chatId);
     }
 
     @Override
@@ -458,7 +461,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         chatPresenter.resetNumberUnread(chatId);
         if (messageObject != null) {
             showHideListIndicator(llIndicator, false);
-            if (messageObject.getCreator().equals(ChatUtils.getCurrentUserId())) {
+            if (messageObject.getCreator().equals(ChatUtils.getUser().getId())) {
                 //my message
                 for (int i = messageList.size() - 1; i >= 0; i--) {
                     if (messageList.get(i) != null && messageList.get(i).getType() != Message.TYPE_LAST_MESSAGE) {
@@ -568,9 +571,11 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     public void resetUI() {
         edtMessage.setText(null);
-        mediaUriList.clear();
-        mediaAdapter.notifyDataSetChanged();
-        if (messageList.size() > 0)
+        if (mediaUriList != null)
+            mediaUriList.clear();
+        if (mediaAdapter != null)
+            mediaAdapter.notifyDataSetChanged();
+        if (messageList != null && messageList.size() > 0)
             messageLayoutManager.scrollToPositionWithOffset(messageList.size() - 1, 0);
     }
 

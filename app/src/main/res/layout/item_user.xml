@@ -36,8 +36,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:textColor="@color/default_text_color"
                 android:maxLines="1"
+                android:textColor="@color/default_text_color"
                 android:textSize="18sp" />
 
             <TextView
@@ -51,13 +51,36 @@
 
         </LinearLayout>
 
-
-        <CheckBox
-            android:id="@+id/cb_add"
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:layout_gravity="center" />
+            android:gravity="center">
+
+            <CheckBox
+                android:id="@+id/cb_add"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true" />
+
+            <ImageView
+                android:id="@+id/iv_invite"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_drafts_black_24dp" />
+
+            <ImageView
+                android:id="@+id/iv_add_friend"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_person_add_black_24dp" />
+        </RelativeLayout>
 
     </LinearLayout>
 

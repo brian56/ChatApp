@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,7 +37,9 @@ import java.util.Map;
 
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
+import vn.huynh.whatsapp.home.HomeActivity;
 import vn.huynh.whatsapp.model.Chat;
+import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
@@ -53,7 +56,8 @@ public class NewMessageService extends Service {
     public static String TAG = NewMessageService.class.getSimpleName();
     private NotificationCompat.Builder notification;
     public static int ID_NOTIFICATION = 9;
-    boolean showNotification = true;
+    boolean showMessageNotification = true;
+    boolean showFriendNotification = true;
     private static String NOTIFICATION_CHANNEL = "WHATSAPP_CHANNEL_ID";
 
     NotificationManager notificationManager;
@@ -61,8 +65,10 @@ public class NewMessageService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
     private DatabaseReference mDF = FirebaseDatabase.getInstance().getReference();
-    private DatabaseReference mDatabase;
-    private ValueEventListener valueEventListener;
+    private DatabaseReference mDatabaseMessage;
+    private ValueEventListener mValueEventListenerMessage;
+    private DatabaseReference mDatabaseFriend;
+    private ChildEventListener mChildEventListenerFriend;
 
     @Nullable
     @Override
@@ -71,11 +77,11 @@ public class NewMessageService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, final int flags, int startId) {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String userId = ChatUtils.getCurrentUserId();
-        mDatabase = mDF.child("user").child(userId).child("lastChatId");
-        valueEventListener = new ValueEventListener() {
+        String userId = ChatUtils.getUser().getId();
+        mDatabaseMessage = mDF.child("user").child(userId).child("lastChatId");
+        mValueEventListenerMessage = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -88,7 +94,7 @@ public class NewMessageService extends Service {
                             if (dataSnapshot.exists()) {
                                 final Chat chat = dataSnapshot.getValue(Chat.class);
                                 if (chat.getLastMessageSent() != null) {
-                                    if (chat.getLastMessageSent().getCreator().equals(ChatUtils.getCurrentUserId())) {
+                                    if (chat.getLastMessageSent().getCreator().equals(ChatUtils.getUser().getId())) {
                                         return;
                                     }
                                 } else {
@@ -105,8 +111,8 @@ public class NewMessageService extends Service {
                                             if (chatId.equals(ChatUtils.getCurrentChatId()) && AppUtils.isAppVisible()) {
                                                 return;
                                             } else {
-                                                if (showNotification)
-                                                    createNotification(sender, chat);
+                                                if (showMessageNotification)
+                                                    createNotification(sender, chat, null);
                                             }
                                         }
                                     }
@@ -132,106 +138,185 @@ public class NewMessageService extends Service {
 
             }
         };
-        mDatabase.addValueEventListener(valueEventListener);
+        mDatabaseMessage.addValueEventListener(mValueEventListenerMessage);
+
+        //friend notification
+        mDatabaseFriend = mDF.child("friend").child(userId);
+        mChildEventListenerFriend = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                if (dataSnapshot.exists()) {
+                    Friend friend = dataSnapshot.getValue(Friend.class);
+                    if (showFriendNotification)
+                        createNotification(null, null, friend);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Friend friend = dataSnapshot.getValue(Friend.class);
+                if (showFriendNotification)
+                    createNotification(null, null, friend);
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        mDatabaseFriend.addChildEventListener(mChildEventListenerFriend);
         return START_STICKY;
     }
 
     @SuppressLint("NewApi")
-    public void createNotification(User sender, Chat chat) {
-        String lastMessageId = chat.getLastMessageSent().getId();
-        if (!lastMessageId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, String.class))) {
-            SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, chat.getLastMessageSent().getId());
-        } else {
-            return;
-        }
-
-        Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
-        intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
-        intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
-        Log.d(TAG, "show notification: " + chat.getId());
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(intent);
-        // Get the PendingIntent containing the entire back stack
-        PendingIntent contentIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        String title = "", message = "";
-        if (chat.isGroup()) {
-            title = chat.getChatName();
-        } else {
-            title = sender.getName();
-        }
-        notification = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
-            notificationManager.createNotificationChannel(notificationChannel);
-            notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
-        } else {
-            notification = new NotificationCompat.Builder(getApplicationContext());
-        }
-
-        message = chat.getLastMessageSent().getText();
-        if (TextUtils.isEmpty(message)) {
-            if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
-                message = MyApp.resources.getString(R.string.message_sent_media);
+    public void createNotification(User sender, Chat chat, Friend friend) {
+        if (chat != null) {
+            String lastMessageId = chat.getLastMessageSent().getId();
+            if (!lastMessageId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, String.class))) {
+                SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, chat.getLastMessageSent().getId());
+            } else {
+                return;
             }
-        }
-        notification = notification
-                .setSmallIcon(R.drawable.ic_notification_new)
-                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
-                .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
-                        R.mipmap.ic_launcher_round))
-                .setContentIntent(contentIntent)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setPriority(Notification.PRIORITY_HIGH)
-                .setAutoCancel(true);
 
-        /*
-        simpleContentView = new RemoteViews(getApplicationContext().getPackageName(),
-                R.layout.notification_new_message);
-        notification.setContent(simpleContentView);
+            Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
+            intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
+            intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
+            Log.d(TAG, "show notification: " + chat.getId());
 
-        new GetBitmapFromUrl().execute(sender.getAvatar());
-        simpleContentView.setTextViewText(R.id.txt_chat_name, title);
-        message = chat.getLastMessageSent().getText();
-        if (TextUtils.isEmpty(message)) {
-            if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
-                message = MyApp.resources.getString(R.string.message_sent_media);
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addNextIntentWithParentStack(intent);
+            // Get the PendingIntent containing the entire back stack
+            PendingIntent contentIntent =
+                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            String title = "", message = "";
+            if (chat.isGroup()) {
+                title = chat.getChatName();
+            } else {
+                title = sender.getName();
             }
-        }
-        simpleContentView.setTextViewText(R.id.txt_message, message);
-        String time = DateUtils.formatTimeWithMarker(chat.getLastMessageSent().getCreateDateInLong());
-        simpleContentView.setTextViewText(R.id.tv_time, time);
-        if (chat.getLastMessageSent().getType() == Message.TYPE_TEXT) {
-            //sent text
-            simpleContentView.setTextViewCompoundDrawables(R.id.txt_message, 0, 0, 0, 0);
-        } else {
-            //sent media
-            simpleContentView.setTextViewCompoundDrawables(R.id.txt_message, 0, 0, R.drawable.ic_photo_size_select_actual_black_24dp, 0);
-        }
-        if (chat.isGroup()) {
-            simpleContentView.setTextViewText(R.id.tv_creator, chat.getLastMessageSent().getCreatorName() + ": ");
-        } else {
-            simpleContentView.setTextViewText(R.id.tv_creator, "");
-        }*/
+            notification = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
+                notificationManager.createNotificationChannel(notificationChannel);
+                notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+            } else {
+                notification = new NotificationCompat.Builder(getApplicationContext());
+            }
 
-        notificationManager.notify(ID_NOTIFICATION, notification.build());
+            message = chat.getLastMessageSent().getText();
+            if (TextUtils.isEmpty(message)) {
+                if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
+                    message = MyApp.resources.getString(R.string.message_sent_media);
+                }
+            }
+            notification = notification
+                    .setSmallIcon(R.drawable.ic_notification_new)
+                    .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
+                    .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
+                            R.mipmap.ic_launcher_round))
+                    .setContentIntent(contentIntent)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setAutoCancel(true);
 
+            notificationManager.notify(ID_NOTIFICATION, notification.build());
+        }
+        if (friend != null) {
+            String lastFriendId = friend.getUserId();
+            int lastFriendStatus = friend.getStatus();
+            if ((!lastFriendId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
+                    && lastFriendStatus != SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))
+                    || (lastFriendId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
+                    && lastFriendStatus != SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))) {
+                SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, lastFriendId);
+                SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, lastFriendStatus);
+            } else {
+                return;
+            }
+
+            Intent intent = new Intent(NewMessageService.this, HomeActivity.class);
+            intent.putExtra(Constant.EXTRA_FRIEND_ID, friend.getUserId());
+            intent.putExtra(Constant.EXTRA_FRIEND_STATUS, friend.getStatus());
+            Log.d(TAG, "show notification friend: " + friend.getUserId());
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addNextIntentWithParentStack(intent);
+            // Get the PendingIntent containing the entire back stack
+//            PendingIntent contentIntent =
+//                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
+
+            String title = "", message = "";
+
+            switch (friend.getStatus()) {
+                case Friend.STATUS_WAS_REQUESTED:
+                    title = MyApp.resources.getString(R.string.notification_new_friend_request_from, friend.getName());
+                    break;
+                case Friend.STATUS_WAS_ACCEPTED:
+                    title = MyApp.resources.getString(R.string.notification_accept_friend_request, friend.getName());
+                    message = MyApp.resources.getString(R.string.notification_you_two_are_friend, friend.getName());
+                    break;
+                case Friend.STATUS_WAS_REJECTED:
+                    title = MyApp.resources.getString(R.string.notification_rejected_your_friend_request, friend.getName());
+                    break;
+                case Friend.STATUS_WAS_BLOCKED:
+                    title = MyApp.resources.getString(R.string.notification_block, friend.getName());
+                    break;
+                default:
+                    return;
+            }
+            notification = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
+                notificationManager.createNotificationChannel(notificationChannel);
+                notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+            } else {
+                notification = new NotificationCompat.Builder(getApplicationContext());
+            }
+
+            notification = notification
+                    .setSmallIcon(R.drawable.ic_notification_new)
+                    .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
+                    .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
+                            R.mipmap.ic_launcher_round))
+                    .setContentIntent(contentIntent)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setAutoCancel(true);
+
+            notificationManager.notify(ID_NOTIFICATION, notification.build());
+        }
     }
 
     private void updateMsgStatus(final String chatId, final String messageId) {
         DatabaseReference df = mDF.child("message").child(chatId).
-                child(messageId).child("seenUsers").child(ChatUtils.getCurrentUserId());
+                child(messageId).child("seenUsers").child(ChatUtils.getUser().getId());
         df.setValue(1);
     }
 
     public void removeListener() {
-        if (mDatabase != null) {
-            mDatabase.removeEventListener(valueEventListener);
+        if (mDatabaseMessage != null) {
+            mDatabaseMessage.removeEventListener(mValueEventListenerMessage);
+        }
+        if (mDatabaseFriend != null) {
+            mDatabaseFriend.removeEventListener(mChildEventListenerFriend);
         }
     }
 
@@ -251,9 +336,14 @@ public class NewMessageService extends Service {
         sendBroadcast(intent);
     }
 
-    public void setShowNotification(boolean isShowNoti) {
-        Log.d("Noti_NOTIFICATION", " showNotification " + this.showNotification + "=> " + isShowNoti);
-        this.showNotification = isShowNoti;
+    public void setShowMessageNotification(boolean isShowNoti) {
+        Log.d("Noti_NOTIFICATION", " showMessageNotification " + this.showMessageNotification + "=> " + isShowNoti);
+        this.showMessageNotification = isShowNoti;
+    }
+
+    public void setShowFriendNotification(boolean isShowNoti) {
+        Log.d("Noti_NOTIFICATION", " showMessageNotification " + this.showFriendNotification + "=> " + isShowNoti);
+        this.showFriendNotification = isShowNoti;
     }
 
     class GetBitmapFromUrl extends AsyncTask<String, Void, Bitmap> {

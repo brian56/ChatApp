@@ -99,7 +99,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             @Override
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
-                parentActivityListener.showNotification(true);
+                parentActivityListener.showMessageNotification(true);
 
                 ChatListFragment.unreadChatIdMap.remove(chat.getId());
                 GroupFragment.unreadChatIdMap.remove(chat.getId());
@@ -129,7 +129,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         unreadChatIdMap.clear();
         totalChat = 0;
         chatCount = 0;
-        newNotificationCallback.removeGroupNotificationDot();
+//        newNotificationCallback.removeGroupNotificationDot();
     }
 
     private void setEvents() {
@@ -232,7 +232,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }*/
-            if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+            if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
                 if (unreadChatIdMap.isEmpty()) {
                     newNotificationCallback.newGroupNotificationDot();
                 }
@@ -261,7 +261,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             /*if (chatList.size() > 0) {
                 int i = chatList.indexOf(chatObject);
                 if (i > 0) {
-                    chatList.remove(chatObject);
+                    chatList.removeFriends(chatObject);
                     chatListAdapter.notifyItemRemoved(i);
                     chatList.add(0, chatObject);
                     chatListAdapter.notifyItemInserted(0);
@@ -274,7 +274,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                 int i = chatList.indexOf(chat);
                 if (i >= 0) {
                     if (hasNewMessage) {
-                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
                             unreadChatIdMap.put(chat.getId(), 1L);
                             newNotificationCallback.newGroupNotificationDot();
                         }
@@ -289,7 +289,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                         }
                     } else {
                         chatListAdapter.notifyItemChanged(i);
-                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) == 0) {
+                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
                             unreadChatIdMap.remove(chat.getId());
                             if (unreadChatIdMap.isEmpty())
                                 newNotificationCallback.removeGroupNotificationDot();

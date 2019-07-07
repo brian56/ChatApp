@@ -17,52 +17,24 @@ import vn.huynh.whatsapp.model.User;
 public class ChatUtils {
     private static final String TAG = ChatUtils.class.getSimpleName();
 
-    public static String currentChatId = "";
-    public static User user;
-
-    public static String getCurrentUserId() {
-        return SharedPrefsUtil.getInstance().get(Constant.SP_USER_ID, String.class);
-    }
-
-    public static String getCurrentUserName() {
-        return SharedPrefsUtil.getInstance().get(Constant.SP_USER_NAME, String.class);
-    }
-
     public static User getUser() {
-        return user;
+        return SharedPrefsUtil.getInstance().get(Constant.SP_USER_OBJECT, User.class);
     }
 
     public static void setUser(User userObject) {
-        user = new User();
-        user.setId(userObject.getId());
-        user.setAvatar(userObject.getAvatar());
-        user.setChat(userObject.getChat());
-        user.setCreateDate(userObject.getCreateDateInLong());
-        user.setName(userObject.getName());
-        user.setEmail(userObject.getEmail());
-        user.setPassword(userObject.getPassword());
-        user.setPhoneNumber(userObject.getPhoneNumber());
-        user.setFriendList(userObject.getFriendList());
-        user.setLastOnline(userObject.getLastOnline());
-        user.setNotificationKey(userObject.getNotificationKey());
-        user.setStatus(userObject.getStatus());
-        user.setSelected(userObject.getSelected());
-        SharedPrefsUtil.getInstance().put(Constant.SP_USER_ID, user.getId());
-        SharedPrefsUtil.getInstance().put(Constant.SP_USER_NAME, user.getName());
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_OBJECT, userObject);
     }
 
     public static void clearUser() {
-        SharedPrefsUtil.getInstance().put(Constant.SP_USER_ID, "");
-        SharedPrefsUtil.getInstance().put(Constant.SP_USER_NAME, "");
-        user = null;
+        SharedPrefsUtil.getInstance().put(Constant.SP_USER_OBJECT, "");
     }
 
     public static void setCurrentChatId(String chatId) {
-        currentChatId = chatId;
+        SharedPrefsUtil.getInstance().put(Constant.SP_CURRENT_CHAT_ID, chatId);
     }
 
     public static String getCurrentChatId() {
-        return currentChatId;
+        return SharedPrefsUtil.getInstance().get(Constant.SP_CURRENT_CHAT_ID, String.class);
     }
 
     private static String getPhoneFromCountryISO(Context context) {

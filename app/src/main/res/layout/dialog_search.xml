@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.rilixtech.CountryCodePicker
+            android:id="@+id/ccp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:ccp_hideNameCode="true"
+            app:ccp_textColor="@color/default_text_color"
+            app:ccp_textSize="18sp" />
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="-10dp"
+            android:layout_marginTop="-4dp"
+            app:counterEnabled="true"
+            app:counterMaxLength="10">
+
+            <EditText
+                android:id="@+id/edt_phone_number"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="-8dp"
+                android:digits="0123456789"
+                android:hint="@string/hint_phone_number"
+                android:inputType="phone"
+                android:textSize="18sp"
+                android:maxLength="10"
+                android:singleLine="true" />
+        </android.support.design.widget.TextInputLayout>
+
+        <ImageView
+            android:id="@+id/iv_search"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:src="@drawable/ic_arrow_forward_black_24dp" />
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_search_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="80dp" />
+
+        <include layout="@layout/layout_indicator_list_search" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/btn_add_friend"
+            style="@style/button_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/button_add_friend" />
+
+        <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
+            android:id="@+id/loader_add_friend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:loader_animDur="100"
+            app:loader_bigCircleRadius="12dp"
+            app:loader_circleRadius="3dp"
+            app:loader_defaultColor="@color/white"
+            app:loader_firstShadowColor="@color/colorAccent_2"
+            app:loader_secondShadowColor="@color/colorAccent_1"
+            app:loader_selectedColor="@color/colorAccent"
+            app:loader_showRunningShadow="true" />
+    </FrameLayout>
+</LinearLayout>

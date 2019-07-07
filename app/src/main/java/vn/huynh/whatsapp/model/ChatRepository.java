@@ -2,6 +2,7 @@ package vn.huynh.whatsapp.model;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -30,6 +31,7 @@ public class ChatRepository implements ChatInterface {
     private DatabaseReference dbRef;
     private ChildEventListener childEventListener;
     private DatabaseReference chatDb;
+    private Query chatQuery;
 
     private DatabaseReference chatDetailDb;
     private ValueEventListener valueEventListener;
@@ -49,6 +51,9 @@ public class ChatRepository implements ChatInterface {
     public void removeListener() {
         if (chatDb != null && childEventListener != null) {
             chatDb.removeEventListener(childEventListener);
+        }
+        if (chatQuery != null && childEventListener != null) {
+            chatQuery.removeEventListener(childEventListener);
         }
         if (chatDetailDb != null && valueEventListener != null) {
             chatDetailDb.removeEventListener(valueEventListener);
@@ -113,7 +118,7 @@ public class ChatRepository implements ChatInterface {
     public void getChatList(final boolean onlyGroup, final ChatListCallback callBack) {
         removeListener();
         mValueListenerMap.clear();
-        chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
+        chatQuery = dbRef.child("user").child(ChatUtils.getUser().getId()).child("chat").orderByValue();
         childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -126,7 +131,7 @@ public class ChatRepository implements ChatInterface {
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
+                Log.d("afsffas", "child chagned");
             }
 
             @Override
@@ -145,7 +150,7 @@ public class ChatRepository implements ChatInterface {
             }
         };
 
-        chatDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        chatQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
@@ -153,7 +158,7 @@ public class ChatRepository implements ChatInterface {
                 } else {
                     callBack.getChatCount(dataSnapshot.getChildrenCount());
                 }
-                chatDb.addChildEventListener(childEventListener);
+                chatQuery.addChildEventListener(childEventListener);
             }
 
             @Override
@@ -162,58 +167,6 @@ public class ChatRepository implements ChatInterface {
             }
         });
     }
-
-    /*@Override
-    public void getGroupList(final boolean onlyGroup, final ChatListCallback callBack) {
-        removeListener();
-        mValueListenerMap.clear();
-        chatDb = dbRef.child("user").child(ChatUtils.getCurrentUserId()).child("chat");
-        childEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (dataSnapshot.exists()) {
-                    String chatId = dataSnapshot.getKey();
-                    Chat chat = new Chat(chatId);
-                    getChatDetail(onlyGroup, chat, callBack);
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-
-        chatDb.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                chatDb.addChildEventListener(childEventListener);
-                if (!dataSnapshot.exists()) {
-                    callBack.loadSuccessEmptyData();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }*/
 
     @Override
     public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatListCallback callBack) {
@@ -328,7 +281,7 @@ public class ChatRepository implements ChatInterface {
     @Override
     public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallback callBack) {
         removeListener();
-        chatDb = dbRef.child("chat").push();
+        DatabaseReference chatDb = dbRef.child("chat").push();
         final String chatId = chatDb.getKey();
 
         if (chatId == null) {
@@ -346,7 +299,7 @@ public class ChatRepository implements ChatInterface {
         chat.setId(chatId);
         chat.setName(name);
         chat.setGroup(isGroup);
-        chat.setCreatorId(ChatUtils.getCurrentUserId());
+        chat.setCreatorId(ChatUtils.getUser().getId());
         chat.setStatus(Chat.STATUS_ENABLE);
         chat.setCreateDate(ServerValue.TIMESTAMP);
         chat.setLastMessageDate(ServerValue.TIMESTAMP);
@@ -399,7 +352,7 @@ public class ChatRepository implements ChatInterface {
 
     @Override
     public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallback callBack) {
-        chatDb = dbRef.child("chat");
+        DatabaseReference chatDb = dbRef.child("chat");
 //        chatDb.keepSynced(true);
         query = chatDb.orderByChild("singleChatId").equalTo(singleChatId);
         valueEventListener = new ValueEventListener() {
@@ -431,7 +384,7 @@ public class ChatRepository implements ChatInterface {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-                        if (dataSnapshot1.getKey().equals(ChatUtils.getCurrentUserId())) {
+                        if (dataSnapshot1.getKey().equals(ChatUtils.getUser().getId())) {
                             DatabaseReference df = dbRefChat.child(dataSnapshot1.getKey());
                             df.setValue(0, new DatabaseReference.CompletionListener() {
                                 @Override

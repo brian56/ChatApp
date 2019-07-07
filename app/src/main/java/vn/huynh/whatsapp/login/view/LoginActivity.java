@@ -79,8 +79,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         AppUtils.hideKeyBoard(getApplicationContext(), edtPhoneNumber);
         countDownTimer = new CountDownTimer(Constant.TIMEOUT_VERIFY_SMS * 1000, 1000) {
             public void onTick(long millisUntilFinished) {
-                if (updateVerifyButton)
-                    btnVerify.setText(getResources().getString(R.string.label_verify) + " (" + millisUntilFinished / 1000 + ")");
+                if (updateVerifyButton) {
+                    long second = millisUntilFinished / 1000;
+                    btnVerify.setText(getResources().getString(R.string.label_verify, second));
+                }
             }
 
             public void onFinish() {
@@ -199,7 +201,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     btnVerify.setText("");
                     btnVerify.setEnabled(false);
                     circularDotsLoader.setVisibility(View.VISIBLE);
-                    presenter.doLogin(LoginActivity.this, phoneNumber, code);
+                    if (isLogin) {
+                        presenter.doLogin(LoginActivity.this, phoneNumber, code);
+                    } else {
+                        presenter.doRegister(LoginActivity.this, name, phoneNumber, code);
+                    }
                 } else {
                     edtCode.setEnabled(true);
                     edtCode.requestFocus();

@@ -1,4 +1,4 @@
-package vn.huynh.whatsapp.contact;
+package vn.huynh.whatsapp.contact_friend.contact;
 
 import android.content.Context;
 
@@ -18,6 +18,9 @@ public interface ContactContract {
 
         void openChat(String chatId);
 
+        void showSearchResult(List<User> userList);
+
+        void showMessage(String message);
     }
 
     interface Presenter extends BasePresenter {
@@ -30,5 +33,6 @@ public interface ContactContract {
 
         void checkSingleChatExist(boolean isGroup, String name, List<User> users);
 
+        void searchFriend(String phoneNumber);
     }
 }

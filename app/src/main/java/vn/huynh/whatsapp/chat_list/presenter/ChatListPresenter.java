@@ -50,35 +50,7 @@ public class ChatListPresenter implements ChatListContract.Presenter {
             public void loadSuccess(Chat chatObject) {
                 if (view != null) {
                     if (chatObject != null) {
-////                        removeExistChat(list, chatObject);
                         int addPosition = 0;
-                        if (list.size() > 0) {
-                            if (list.size() == 1) {
-                                if (list.get(0).getLastMessageDateInLong() < chatObject.getLastMessageDateInLong()) {
-//                                    list.add(0, chatObject);
-                                    addPosition = 0;
-                                } else {
-//                                    list.add(chatObject);
-                                    addPosition = list.size();
-                                }
-                            } else {
-                                for (int i = 0; i < list.size(); i++) {
-                                    if (list.get(i).getLastMessageDateInLong() < chatObject.getLastMessageDateInLong()) {
-//                                        list.add(i, chatObject);
-                                        addPosition = i;
-                                        break;
-                                    } else if (i == (list.size() - 1)) {
-//                                        list.add(chatObject);
-                                        addPosition = list.size();
-                                        break;
-                                    }
-                                }
-                            }
-                        } else {
-//                            list.add(chatObject);
-                            addPosition = list.size();
-                        }
-//                        list.add(0, chatObject);
                         view.showChatList(chatObject, addPosition);
                     } else {
                         //not a group chat, check empty list

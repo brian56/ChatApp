@@ -215,10 +215,10 @@ public class ChatPresenter implements ChatContract.Presenter {
             public void getNewMessageIdSuccess(String messageId) {
                 Message message = new Message(messageId);
                 message.setStatus(Message.STATUS_SENDING);
-                message.setCreator(ChatUtils.getCurrentUserId());
+                message.setCreator(ChatUtils.getUser().getId());
                 message.setText(text);
                 Map<String, Long> seenUsers = new HashMap<>();
-                seenUsers.put(ChatUtils.getCurrentUserId(), (long) 1);
+                seenUsers.put(ChatUtils.getUser().getId(), (long) 1);
                 message.setSeenUsers(seenUsers);
 
                 if(mediaUri.size() > 0) {

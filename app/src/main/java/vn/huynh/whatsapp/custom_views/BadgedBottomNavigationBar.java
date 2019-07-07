@@ -52,9 +52,11 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
         View view = bottomNavigationView.getChildAt(menuItemIndex);
         if (view instanceof ViewGroup) {
             //NUMBER_OF_MENU_ITEM_VIEW_CHILDREN_WITHOUT_BADGE
-            if (((ViewGroup) view).getChildCount() > 2) {
+            if (((ViewGroup) view).getChildCount() > 2)
                 return;
-            }
+//            while (((ViewGroup) view).getChildCount() > 2) {
+//                ((ViewGroup) view).removeViewAt(((ViewGroup) view).getChildCount() - 1);
+//            }
         }
         android.support.design.internal.BottomNavigationItemView bottomNavigationItemView =
                 (android.support.design.internal.BottomNavigationItemView) view;
@@ -65,7 +67,7 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
     }
 
     /**
-     * this method to remove dot [badge view] if it's already inflated on the menu item.
+     * this method to removeFriends dot [badge view] if it's already inflated on the menu item.
      *
      * @param menuItemIndex the menu item index
      */
@@ -82,8 +84,10 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
             if (childCount < 3) return;
         }
         android.support.design.internal.BottomNavigationItemView itemView = (android.support.design.internal.BottomNavigationItemView) v;
-        // remove the last child [badge view]
+        // removeFriends the last child [badge view]
         itemView.removeViewAt(itemView.getChildCount() - 1);
+        int chld = itemView.getChildCount();
+        int i = 0;
     }
 
     public void changeIconSize(int size) {

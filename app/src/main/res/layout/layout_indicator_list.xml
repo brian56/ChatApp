@@ -8,10 +8,10 @@
 
     <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
         android:id="@+id/loader"
-        android:layout_gravity="center"
-        android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="visible"
         app:loader_animDur="100"
         app:loader_bigCircleRadius="12dp"
         app:loader_circleRadius="3dp"

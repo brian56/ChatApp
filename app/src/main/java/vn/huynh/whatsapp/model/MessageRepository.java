@@ -107,14 +107,14 @@ public class MessageRepository implements MessageInterface {
                     if (messageList.size() == Config.NUMBER_PAGINATION_MESSAGE) {
                         newestMessageId = messageList.get(messageList.size() - 1).getId();
                         lastMessagePaginationId = messageList.get(0).getId();
-                        messageList.remove(0);
+//                        messageList.remove(0);
                         callBack.loadSuccess(messageList, newestMessageId);
                         return;
                     }
                     if (messageList.size() == totalMessageCurrentPage) {
                         newestMessageId = messageList.get(messageList.size() - 1).getId();
                         lastMessagePaginationId = messageList.get(0).getId();
-                        messageList.remove(0);
+//                        messageList.remove(0);
                         callBack.loadSuccessDone(messageList, newestMessageId);
                     }
                 }
@@ -377,14 +377,14 @@ public class MessageRepository implements MessageInterface {
         final Message message = new Message();
         message.setId(messageId);
         message.setText(text);
-        message.setCreator(ChatUtils.getCurrentUserId());
-        message.setCreatorName(ChatUtils.getCurrentUserName());
+        message.setCreator(ChatUtils.getUser().getId());
+        message.setCreatorName(ChatUtils.getUser().getName());
         message.setStatus(Message.STATUS_DELIVERED);
         message.setType(Message.TYPE_TEXT);
         message.setCreateDate(ServerValue.TIMESTAMP);
         Map<String, Long> seenUsersMap = new HashMap<>();
         for (Map.Entry<String, String> entry : chat.getUserIds().entrySet()) {
-            if (entry.getValue().equals(ChatUtils.getCurrentUserId()))
+            if (entry.getValue().equals(ChatUtils.getUser().getId()))
                 seenUsersMap.put(entry.getValue(), (long) 1);
             else
                 seenUsersMap.put(entry.getValue(), (long) 0);
@@ -448,8 +448,8 @@ public class MessageRepository implements MessageInterface {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-                        Long num = 0l;
-                        if (!dataSnapshot1.getKey().equals(ChatUtils.getCurrentUserId())) {
+                        Long num = 0L;
+                        if (!dataSnapshot1.getKey().equals(ChatUtils.getUser().getId())) {
                             num = (long) dataSnapshot1.getValue();
                             num++;
                         }
@@ -504,7 +504,7 @@ public class MessageRepository implements MessageInterface {
                     .child(userId).child("chat").child(chat.getId());
             userRef.setValue(message.getCreateDateInLong());
             //update user object
-            if (!userId.equals(ChatUtils.getCurrentUserId())) {
+            if (!userId.equals(ChatUtils.getUser().getId())) {
                 userRef = dbRef.child("user")
                         .child(userId).child("lastChatId");
                 userRef.setValue(chat.getId() + "=" + message.getCreateDateInLong() + "=" + ChatUtils.generateRandomInteger());

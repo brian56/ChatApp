@@ -45,7 +45,7 @@ public class PlayMusicService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        Log.d(PlayMusicService.class.getSimpleName(), "on remove");
+        Log.d(PlayMusicService.class.getSimpleName(), "on removeFriends");
         Intent in = new Intent(this, RestartServiceReceiver.class);
         in.setAction("StartKilledService");
         sendBroadcast(in);

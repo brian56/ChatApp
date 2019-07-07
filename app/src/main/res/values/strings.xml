@@ -8,7 +8,7 @@
     <string name="message_sent_media">Sent media</string>
 
     <!--login activity-->
-    <string name="label_verify">Verify</string>
+    <string name="label_verify">Verify (%d)</string>
     <string name="label_register_account">Register</string>
     <string name="label_log_in">Log in</string>
     <string name="hint_phone_number">Phone number</string>
@@ -34,6 +34,7 @@
     <!--home activity-->
     <string name="menu_chat">Chat</string>
     <string name="menu_contact">Contact</string>
+    <string name="menu_contact_and_friend">Contact - friend</string>
     <string name="menu_group">Group</string>
     <string name="menu_setting">Setting</string>
 
@@ -51,9 +52,42 @@
     <string name="label_indicator_no_data">No data. Tap to reload.</string>
     <string name="label_indicator_error">Error! Tap to reload.</string>
 
+    <string name="label_indicator_search_no_result">No result.</string>
+
     <!--chat list-->
     <string name="label_number_unread_message_max">99+</string>
 
+    <!--contact and friend-->
+    <string name="label_friend">Friend</string>
+    <string name="label_contact">Contact</string>
+    <string name="label_friend_group">Friend Group</string>
+    <string name="label_invite">Invite</string>
+    <string name="title_invite_friend">Invite friend</string>
+    <string name="hint_invite_message">Hi %1$s, let\'s try this Simple chat application</string>
+
+    <string name="menu_reject">Reject</string>
+    <string name="menu_accept">Accept</string>
+    <string name="menu_block">Block</string>
+    <string name="menu_unblock">Unblock</string>
+    <string name="menu_unfriend">Unfriend</string>
+    <string name="menu_cancel">Cancel request</string>
+
+    <string name="header_friend">My friend</string>
+    <string name="header_friend_request">Friend request</string>
+    <string name="header_friend_block">Block</string>
+    <string name="header_friend_my_request">My request</string>
+
+    <string name="notification_new_friend_request_from">New friend request from %1$s</string>
+    <string name="notification_accept_friend_request">%1$s accepted your friend request.</string>
+    <string name="notification_you_two_are_friend">You and %1$s are friend</string>
+    <string name="notification_rejected_your_friend_request">%1$s rejected your friend request</string>
+    <string name="notification_unfriend">%1$s has removed you from friend list</string>
+    <string name="notification_block">You were blocked by %1$s</string>
+
+    <string name="button_add_friend">Add friend</string>
+    <string name="title_search_friend">Search friend</string>
+    <string name="error_invalid_phone_number">Please provide an valid phone number</string>
+    <string name="error_please_select_one_user">Please select one user</string>
 
     <!--date time-->
     <string name="time_now">now</string>
@@ -67,4 +101,5 @@
     <string name="time_last_month">last month</string>
     <string name="time_year">years</string>
     <string name="time_last_year">last year</string>
+
 </resources>

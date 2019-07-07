@@ -57,13 +57,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         Log.d("Chat group", chatList.get(holder.getAdapterPosition()).getChatName());
         holder.tvTitle.setText(chatList.get(holder.getAdapterPosition()).getChatName());
         if (chatList.get(holder.getAdapterPosition()).getNumberUnread() != null
-                && chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
-            Long num = chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getCurrentUserId());
+                && chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
+            Long num = chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getUser().getId());
             holder.tvUnread.setVisibility(View.VISIBLE);
             if (num > 99)
                 holder.tvUnread.setText(MyApp.resources.getString(R.string.label_number_unread_message_max));
             else
-                holder.tvUnread.setText(num.toString());
+                holder.tvUnread.setText(String.valueOf(num));
         } else {
             holder.tvUnread.setVisibility(View.GONE);
         }

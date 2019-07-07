@@ -30,6 +30,10 @@ public interface UserInterface extends BaseModelInterface {
 
     void updateUser(String userId, String phoneNumber, String name);
 
+    void searchFriend(String phoneNumber, SearchFriendCallback callback);
+
+    void listenerForUserFriend(FriendCallback callback);
+
     interface LoadContactCallBack {
         void loadSuccess(User user);
 
@@ -43,7 +47,7 @@ public interface UserInterface extends BaseModelInterface {
     }
 
     interface CheckLoginCallBack {
-        void alreadyLoggedIn();
+        void alreadyLoggedIn(User user);
 
         void noLoggedIn();
     }
@@ -52,5 +56,15 @@ public interface UserInterface extends BaseModelInterface {
         void exist();
 
         void notExist();
+    }
+
+    interface SearchFriendCallback {
+        void onSearchSuccess(List<User> userList);
+
+        void onSearchFail(String error);
+    }
+
+    interface FriendCallback {
+        void onFriendNotification(int showNotify);
     }
 }

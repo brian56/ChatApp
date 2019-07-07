@@ -23,10 +23,14 @@ public class User implements Parcelable {
     private Object createDate;
     private String avatar;
     private String lastChatId;
+    private int friendNotification;
     private int status = STATUS_ONLINE;
     private Map<String, Long> chat;
-    private Map<String, Long> friendList;
+    private Map<String, Integer> friend;
+    private Map<String, Long> friendGroup;
     private Boolean selected = false;
+    private Boolean isRegisteredUser = true;
+    private int friendStatus = Friend.STATUS_DEFAULT;
 
     public static final int STATUS_OFFLINE = 0;
     public static final int STATUS_ONLINE = 1;
@@ -42,35 +46,28 @@ public class User implements Parcelable {
         password = in.readString();
         avatar = in.readString();
         lastChatId = in.readString();
+        friendNotification = in.readInt();
         notificationKey = in.readString();
         lastOnline = in.readLong();
         status = in.readInt();
+        friendStatus = in.readInt();
         createDate = in.readLong();
 
         byte tmpSelected = in.readByte();
         selected = tmpSelected == 0 ? null : tmpSelected == 1;
 
+        byte tmpUser = in.readByte();
+        isRegisteredUser = tmpUser == 0 ? null : tmpUser == 1;
+
         chat = new HashMap<>();
         in.readMap(chat, Long.class.getClassLoader());
 
-        friendList = new HashMap<>();
-        in.readMap(friendList, Long.class.getClassLoader());
+        friend = new HashMap<>();
+        in.readMap(chat, Integer.class.getClassLoader());
 
-        /*int chatSize = in.readInt();
-        this.chat = new HashMap<>(chatSize);
-        for (int i = 0; i < chatSize; i++) {
-            String key = in.readString();
-            Long value = in.readLong();
-            this.chat.put(key, value);
-        }
+        friendGroup = new HashMap<>();
+        in.readMap(friendGroup, Long.class.getClassLoader());
 
-        int friendListSize = in.readInt();
-        this.friendList = new HashMap<>(friendListSize);
-        for (int i = 0; i < friendListSize; i++) {
-            String key = in.readString();
-            Long value = in.readLong();
-            this.friendList.put(key, value);
-        }*/
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -100,11 +97,14 @@ public class User implements Parcelable {
         dest.writeString(password);
         dest.writeString(avatar);
         dest.writeString(lastChatId);
+        dest.writeInt(friendNotification);
         dest.writeString(notificationKey);
         dest.writeLong((long) lastOnline);
         dest.writeInt(status);
+        dest.writeInt(friendStatus);
         dest.writeLong((long) createDate);
         dest.writeByte((byte) (selected ? 1 : 0));
+        dest.writeByte((byte) (isRegisteredUser ? 1 : 0));
 
         if (chat != null) {
             dest.writeMap(chat);
@@ -112,28 +112,20 @@ public class User implements Parcelable {
             chat = new HashMap<>();
             dest.writeMap(chat);
         }
-        if (friendList != null) {
-            dest.writeMap(friendList);
+
+        if (friend != null) {
+            dest.writeMap(friend);
         } else {
-            friendList = new HashMap<>();
-            dest.writeMap(friendList);
-        }
-        /*if(this.friendList != null) {
-            dest.writeInt(this.chat.size());
-            for (Map.Entry<String, Long> entry : this.chat.entrySet()) {
-                dest.writeString(entry.getKey());
-                dest.writeLong(entry.getValue());
-            }
+            friend = new HashMap<>();
+            dest.writeMap(friend);
         }
 
-        if(this.friendList != null) {
-            dest.writeInt(this.friendList.size());
-            for (Map.Entry<String, Long> entry : this.friendList.entrySet()) {
-                dest.writeString(entry.getKey());
-                dest.writeLong(entry.getValue());
-            }
-        }*/
-
+        if (friendGroup != null) {
+            dest.writeMap(friendGroup);
+        } else {
+            friendGroup = new HashMap<>();
+            dest.writeMap(friendGroup);
+        }
     }
 
     public User() {
@@ -241,12 +233,30 @@ public class User implements Parcelable {
         this.lastChatId = lastChatId;
     }
 
+    public int getFriendNotification() {
+        return friendNotification;
+    }
+
+    public void setFriendNotification(int friendNotification) {
+        this.friendNotification = friendNotification;
+    }
+
     public int getStatus() {
         return status;
     }
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    @Exclude
+    public int getFriendStatus() {
+        return friendStatus;
+    }
+
+    @Exclude
+    public void setFriendStatus(int friendStatus) {
+        this.friendStatus = friendStatus;
     }
 
     public Map<String, Long> getChat() {
@@ -257,12 +267,20 @@ public class User implements Parcelable {
         this.chat = chat;
     }
 
-    public Map<String, Long> getFriendList() {
-        return friendList;
+    public Map<String, Integer> getFriend() {
+        return friend;
     }
 
-    public void setFriendList(Map<String, Long> friendList) {
-        this.friendList = friendList;
+    public void setFriend(Map<String, Integer> friend) {
+        this.friend = friend;
+    }
+
+    public Map<String, Long> getFriendGroup() {
+        return friendGroup;
+    }
+
+    public void setFriendGroup(Map<String, Long> friendGroup) {
+        this.friendGroup = friendGroup;
     }
 
     @Exclude
@@ -273,5 +291,37 @@ public class User implements Parcelable {
     @Exclude
     public void setSelected(Boolean selected) {
         this.selected = selected;
+    }
+
+    @Exclude
+    public Boolean getRegisteredUser() {
+        return isRegisteredUser;
+    }
+
+    @Exclude
+    public void setRegisteredUser(Boolean registeredUser) {
+        isRegisteredUser = registeredUser;
+    }
+
+    @Exclude
+    public void cloneUser(User user) {
+        this.id = user.getId();
+        this.name = user.getName();
+        this.phoneNumber = user.getPhoneNumber();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.createDate = user.getCreateDateInLong();
+        this.avatar = user.getAvatar();
+        this.notificationKey = user.getNotificationKey();
+        this.lastOnline = user.getLastOnline();
+        this.lastChatId = user.getLastChatId();
+        this.friendNotification = user.getFriendNotification();
+        this.status = user.getStatus();
+        this.friendStatus = user.getFriendStatus();
+        this.chat = user.getChat();
+        this.friend = user.getFriend();
+        this.friendGroup = user.getFriendGroup();
+        this.selected = user.getSelected();
+        this.isRegisteredUser = user.getRegisteredUser();
     }
 }

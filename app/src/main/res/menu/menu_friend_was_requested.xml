@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_accept"
+        android:title="@string/menu_accept" />
+    <item
+        android:id="@+id/menu_reject"
+        android:title="@string/menu_reject" />
+    <item
+        android:id="@+id/menu_block"
+        android:title="@string/menu_block" />
+</menu>

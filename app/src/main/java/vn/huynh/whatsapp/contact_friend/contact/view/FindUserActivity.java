@@ -1,4 +1,4 @@
-package vn.huynh.whatsapp.contact;
+package vn.huynh.whatsapp.contact_friend.contact.view;
 
 import android.support.v7.app.AppCompatActivity;
 

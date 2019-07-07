@@ -1,0 +1,71 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_indicator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="80dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:gravity="center">
+
+    <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
+        android:id="@+id/loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="visible"
+        app:loader_animDur="100"
+        app:loader_bigCircleRadius="12dp"
+        app:loader_circleRadius="3dp"
+        app:loader_defaultColor="@color/white"
+        app:loader_firstShadowColor="@color/colorAccent_2"
+        app:loader_secondShadowColor="@color/colorAccent_1"
+        app:loader_selectedColor="@color/colorAccent"
+        app:loader_showRunningShadow="true" />
+
+    <LinearLayout
+        android:id="@+id/ll_empty_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_indicator_search_no_result"
+            android:textColor="@color/sub_text_color"
+            android:gravity="center"
+            android:drawablePadding="4dp"
+            android:textStyle="italic" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_error_black_48dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/label_indicator_error"
+            android:drawableStart="@drawable/ic_refresh_black_24dp"
+            android:drawablePadding="4dp"
+            android:textColor="@color/sub_text_color"
+            android:textStyle="italic" />
+
+    </LinearLayout>
+
+</LinearLayout>

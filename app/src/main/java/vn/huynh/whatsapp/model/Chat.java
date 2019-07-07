@@ -304,7 +304,7 @@ public class Chat implements Parcelable {
             } else {
                 if (this.users != null) {
                     for (int i = 0; i < this.users.size(); i++) {
-                        if (!this.users.get(i).getId().equals(ChatUtils.getCurrentUserId())) {
+                        if (!this.users.get(i).getId().equals(ChatUtils.getUser().getId())) {
                             return this.users.get(i).getName();
                         }
                     }
@@ -321,7 +321,7 @@ public class Chat implements Parcelable {
     public String getSingleChatAvatar() {
         if (this.users != null && this.users.size() > 0) {
             for (int i = 0; i < this.users.size(); i++) {
-                if (!this.users.get(i).getId().equals(ChatUtils.getCurrentUserId())) {
+                if (!this.users.get(i).getId().equals(ChatUtils.getUser().getId())) {
                     return this.users.get(i).getAvatar();
                 }
             }

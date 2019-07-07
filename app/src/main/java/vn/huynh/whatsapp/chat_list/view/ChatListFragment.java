@@ -132,7 +132,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             @Override
             public void onClick(Chat chat) {
                 parentActivityListener.setReturnFromChildActivity(true);
-                parentActivityListener.showNotification(true);
+                parentActivityListener.showMessageNotification(true);
                 ChatListFragment.unreadChatIdMap.remove(chat.getId());
                 GroupFragment.unreadChatIdMap.remove(chat.getId());
                 if (ChatListFragment.unreadChatIdMap.isEmpty()) {
@@ -156,8 +156,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         chatListAdapter.notifyDataSetChanged();
         unreadChatIdMap.clear();
         GroupFragment.unreadChatIdMap.clear();
-        newNotificationCallback.removeChatNotificationDot();
-        newNotificationCallback.removeGroupNotificationDot();
+//        newNotificationCallback.removeChatNotificationDot();
+//        newNotificationCallback.removeGroupNotificationDot();
         totalChat = 0;
         chatCount = 0;
     }
@@ -215,9 +215,9 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onStop() {
         super.onStop();
-        //TODO: remove the listener for chat list items
+        //TODO: removeFriends the listener for chat list items
         firstStart = false;
-        if (!parentActivityListener.returnFromChildActivity()) {
+        if (parentActivityListener != null && !parentActivityListener.returnFromChildActivity()) {
             presenter.removeChatListListener();
         }
     }
@@ -254,7 +254,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public void showChatList(Chat chat, int position) {
         if (chat != null) {
             chatCount++;
-            if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+            if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
                 if (unreadChatIdMap.isEmpty()) {
                     newNotificationCallback.newChatNotificationDot();
                 }
@@ -287,7 +287,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 int i = chatList.indexOf(chat);
                 if (i >= 0) {
                     if (hasNewMessage) {
-                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) > 0) {
+                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
                             unreadChatIdMap.put(chat.getId(), 1L);
                             newNotificationCallback.newChatNotificationDot();
                             if (chat.isGroup()) {
@@ -306,7 +306,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                         }
                     } else {
                         chatListAdapter.notifyItemChanged(i);
-                        if (chat.getNumberUnread().get(ChatUtils.getCurrentUserId()) == 0) {
+                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
                             unreadChatIdMap.remove(chat.getId());
                             if (unreadChatIdMap.isEmpty())
                                 newNotificationCallback.removeChatNotificationDot();

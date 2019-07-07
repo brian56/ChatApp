@@ -1,4 +1,4 @@
-package vn.huynh.whatsapp.contact.presenter;
+package vn.huynh.whatsapp.contact_friend.contact.presenter;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import vn.huynh.whatsapp.base.BaseView;
-import vn.huynh.whatsapp.contact.ContactContract;
+import vn.huynh.whatsapp.contact_friend.contact.ContactContract;
 import vn.huynh.whatsapp.group.GroupContract;
 import vn.huynh.whatsapp.model.ChatInterface;
 import vn.huynh.whatsapp.model.ChatRepository;
@@ -67,8 +67,6 @@ public class ContactPresenter implements ContactContract.Presenter {
     public void loadListContactForGroup(Context context) {
         if (viewGroup != null)
             viewGroup.showLoadingIndicator();
-//        loadContactAsyncTask = new LoadContactAsyncTask(context);
-//        loadContactAsyncTask.execute();
         if (loadContactAsyncTask == null) {
             loadContactAsyncTask = new LoadContactAsyncTask(context);
             loadContactAsyncTask.execute();
@@ -136,7 +134,7 @@ public class ContactPresenter implements ContactContract.Presenter {
                 return null;
             }
             List<User> contacts = new ArrayList<>();
-            Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+            Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, "UPPER(" + ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + ") ASC");
             try {
                 while (phones.moveToNext()) {
                     String name = phones.getString(phones.getColumnIndex((ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
@@ -164,7 +162,6 @@ public class ContactPresenter implements ContactContract.Presenter {
                     }
                     if (viewGroup != null) {
                         viewGroup.showListContact(userObject);
-                        viewGroup.hideLoadingIndicator();
                     }
                 }
 
@@ -183,5 +180,27 @@ public class ContactPresenter implements ContactContract.Presenter {
                 }
             });
         }
+    }
+
+    @Override
+    public void searchFriend(String phoneNumber) {
+        if (viewContact != null) {
+            viewContact.showLoadingIndicator();
+        }
+        userRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
+            @Override
+            public void onSearchSuccess(List<User> userList) {
+                if (viewContact != null) {
+                    viewContact.showSearchResult(userList);
+                }
+            }
+
+            @Override
+            public void onSearchFail(String error) {
+                if (viewContact != null) {
+                    viewContact.showErrorMessage(error);
+                }
+            }
+        });
     }
 }

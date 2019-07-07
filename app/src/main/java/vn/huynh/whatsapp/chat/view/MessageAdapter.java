@@ -89,7 +89,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (messageList.get(position).getType() == Message.TYPE_LAST_MESSAGE)
             return LAST_MESSAGE;
 
-        if (messageList.get(position).getCreator().equals(ChatUtils.getCurrentUserId()))
+        if (messageList.get(position).getCreator().equals(ChatUtils.getUser().getId()))
             return MY_MESSAGE;
         else
             return THEIR_MESSAGE;

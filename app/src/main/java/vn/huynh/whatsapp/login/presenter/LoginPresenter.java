@@ -32,14 +32,14 @@ public class LoginPresenter implements LoginContract.Presenter {
     private static final String TAG = LoginPresenter.class.getSimpleName();
 
     private LoginContract.View view;
-    private UserInterface userInterface;
+    private UserRepository userRepo;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     private String verificationId;
     private PhoneAuthProvider.ForceResendingToken resendingToken;
     private boolean isLogin = false;
 
     public LoginPresenter() {
-        userInterface = new UserRepository();
+        userRepo = new UserRepository();
     }
 
     public void setLogin(boolean login) {
@@ -54,14 +54,17 @@ public class LoginPresenter implements LoginContract.Presenter {
     @Override
     public void detachView() {
         this.view = null;
-        this.userInterface.removeListener();
+        this.userRepo.removeListener();
     }
 
     @Override
     public void checkLogin() {
-        userInterface.isLoggedIn(new UserInterface.CheckLoginCallBack() {
+        userRepo.isLoggedIn(new UserInterface.CheckLoginCallBack() {
             @Override
-            public void alreadyLoggedIn() {
+            public void alreadyLoggedIn(User user) {
+                if (user != null) {
+                    ChatUtils.setUser(user);
+                }
                 if (view != null) {
                     view.loggedInMoveToHome();
                 }
@@ -81,7 +84,7 @@ public class LoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void sendVerificationCode(final Activity activity, final String phoneNumber, final String name) {
-        userInterface.checkPhoneNumberExist(phoneNumber, new UserInterface.CheckPhoneNumberExistCallBack() {
+        userRepo.checkPhoneNumberExist(phoneNumber, new UserInterface.CheckPhoneNumberExistCallBack() {
             @Override
             public void exist() {
                 if (isLogin) {
@@ -201,14 +204,14 @@ public class LoginPresenter implements LoginContract.Presenter {
                 if (task.isSuccessful()) {
                     final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                     if (firebaseUser != null) {
-                        userInterface.getCurrentUserData(firebaseUser.getUid(), new UserInterface.LoadContactCallBack() {
+                        userRepo.getCurrentUserData(firebaseUser.getUid(), new UserInterface.LoadContactCallBack() {
                             @Override
                             public void loadSuccess(User user) {
                                 if (user != null) {
                                     ChatUtils.setUser(user);
                                     checkLogin();
                                 } else {
-                                    userInterface.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                    userRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                                         @Override
                                         public void createSuccess() {
                                             checkLogin();
@@ -226,7 +229,7 @@ public class LoginPresenter implements LoginContract.Presenter {
 
                             @Override
                             public void loadFail(String message) {
-                                userInterface.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                userRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                                     @Override
                                     public void createSuccess() {
                                         checkLogin();
@@ -241,7 +244,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                                 });
                             }
                         });
-                        /*userInterface.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                        /*userRepo.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                             @Override
                             public void createSuccess() {
                                 checkLogin();

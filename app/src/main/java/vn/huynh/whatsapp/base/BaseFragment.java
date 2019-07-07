@@ -11,8 +11,8 @@ import android.widget.Toast;
  */
 
 public class BaseFragment extends Fragment {
-    protected ParentActivityListener parentActivityListener;
-    public NewNotificationCallback newNotificationCallback;
+    protected static ParentActivityListener parentActivityListener;
+    protected static NewNotificationCallback newNotificationCallback;
 
     protected void showLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
         if(swipeRefreshLayout != null)
@@ -25,7 +25,7 @@ public class BaseFragment extends Fragment {
     }
 
     protected void showErrorMessage(String message, Context context) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
     }
 
     protected void showHideListIndicator(View container, boolean show) {
@@ -86,7 +86,9 @@ public class BaseFragment extends Fragment {
 
         void setReturnFromChildActivity(boolean returnFromChildActivity);
 
-        void showNotification(boolean show);
+        void showMessageNotification(boolean show);
+
+        void showFriendNotification(boolean show);
     }
 
     public interface NewNotificationCallback {
@@ -105,5 +107,7 @@ public class BaseFragment extends Fragment {
         void newSettingNotificationDot();
 
         void removeSettingNotification();
+
+        void showHideFriendDot(int friendNotification);
     }
 }

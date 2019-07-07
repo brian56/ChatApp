@@ -26,16 +26,6 @@ public interface MessageInterface extends BaseModelInterface {
 
     void addMessageListener();
 
-    /*interface GetChatMessageCallBack {
-        void loadSuccess(Message message);
-
-        void loadSuccessEmptyData();
-
-        void loadFail(String error);
-
-//        void updateMessageStatus(Message message);
-    }*/
-
     interface SendMessageCallBack {
         void getNewMessageIdSuccess(String messageId);
 
