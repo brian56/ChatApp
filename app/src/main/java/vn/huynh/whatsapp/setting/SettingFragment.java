@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +21,7 @@ import vn.huynh.whatsapp.chat_list.view.ChatListFragment;
 import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.login.view.LoginActivity;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.PlayMusicService;
 
 /**
@@ -85,8 +85,8 @@ public class SettingFragment extends BaseFragment {
                 FirebaseAuth.getInstance().signOut();
                 OneSignal.setSubscription(false);
                 ChatUtils.clearUser();
-                ChatListFragment.unreadChatIdMap.clear();
-                GroupFragment.unreadChatIdMap.clear();
+                ChatListFragment.sUnreadChatIdMap.clear();
+                GroupFragment.sUnreadChatIdMap.clear();
                 newNotificationCallback.removeChatNotificationDot();
                 newNotificationCallback.removeContactNotificationDot();
                 newNotificationCallback.removeGroupNotificationDot();
@@ -124,7 +124,7 @@ public class SettingFragment extends BaseFragment {
     @Override
     public void onDestroy() {
 
-        Log.d(SettingFragment.class.getSimpleName(), "setting fragment on destroy");
+        LogManagerUtils.d(SettingFragment.class.getSimpleName(), "setting fragment on destroy");
         try {
             getActivity().stopService(playMusicIntent);
         } catch (NullPointerException e) {

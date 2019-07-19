@@ -14,81 +14,88 @@ import vn.huynh.whatsapp.model.ChatRepository;
 
 public class ChatListPresenter implements ChatListContract.Presenter {
     private static final String TAG = ChatListPresenter.class.getSimpleName();
-    protected ChatListContract.View view;
-    protected ChatInterface chatRepo;
+    protected ChatListContract.View mChatListview;
+    protected ChatInterface mChatRepo;
 
     public ChatListPresenter() {
-        chatRepo = new ChatRepository();
+        mChatRepo = new ChatRepository();
     }
 
     @Override
     public void attachView(BaseView view) {
-        this.view = (ChatListContract.View) view;
+        this.mChatListview = (ChatListContract.View) view;
     }
 
     @Override
     public void detachView() {
-        this.view = null;
+        this.mChatListview = null;
     }
 
     @Override
     public void removeChatListListener() {
-        this.chatRepo.removeChatListListener();
+        this.mChatRepo.removeChatListListener();
     }
 
     @Override
     public void addChatListListener() {
-        this.chatRepo.addChatListListener();
+        this.mChatRepo.addChatListListener();
     }
 
     @Override
     public void loadChatList(boolean isGroup, final List<Chat> list) {
-        if (view != null)
-            view.showLoadingIndicator();
-        chatRepo.getChatList(isGroup, new ChatInterface.ChatListCallback() {
+        if (mChatListview != null)
+            mChatListview.showLoadingIndicator();
+        mChatRepo.getChatList(isGroup, new ChatInterface.ChatListCallback() {
             @Override
             public void loadSuccess(Chat chatObject) {
-                if (view != null) {
+                if (mChatListview != null) {
                     if (chatObject != null) {
                         int addPosition = 0;
-                        view.showChatList(chatObject, addPosition);
+                        if (list != null && list.size() > 0) {
+                            for (int i = 0; i < list.size(); i++) {
+                                if (chatObject.getLastMessageDateInLong() < list.get(i).getLastMessageDateInLong()) {
+                                    addPosition = i + 1;
+                                }
+                            }
+                        }
+                        mChatListview.showChatList(chatObject, addPosition);
                     } else {
                         //not a group chat, check empty list
-                        view.showChatList(null, -1);
+                        mChatListview.showChatList(null, -1);
                     }
                 }
             }
 
             @Override
             public void updateChatStatus(Chat chatObject, boolean hasNewMessage) {
-                if (view != null) {
+                if (mChatListview != null) {
                     if (chatObject != null) {
-                        view.updateChatStatus(chatObject, hasNewMessage);
+                        mChatListview.updateChatStatus(chatObject, hasNewMessage);
                     }
                 }
             }
 
             @Override
             public void loadSuccessEmptyData() {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showEmptyDataIndicator();
+                if (mChatListview != null) {
+                    mChatListview.hideLoadingIndicator();
+                    mChatListview.showEmptyDataIndicator();
                 }
             }
 
             @Override
             public void loadFail(String message) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showErrorIndicator();
-                    view.showErrorMessage(message);
+                if (mChatListview != null) {
+                    mChatListview.hideLoadingIndicator();
+                    mChatListview.showErrorIndicator();
+                    mChatListview.showErrorMessage(message);
                 }
             }
 
             @Override
             public void getChatCount(long count) {
-                if (view != null) {
-                    view.setChatCount(count);
+                if (mChatListview != null) {
+                    mChatListview.setChatCount(count);
                 }
             }
 

@@ -15,12 +15,12 @@ public class BaseFragment extends Fragment {
     protected static NewNotificationCallback newNotificationCallback;
 
     protected void showLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
-        if(swipeRefreshLayout != null)
+        if (swipeRefreshLayout != null)
             swipeRefreshLayout.setRefreshing(true);
     }
 
     protected void hideLoadingSwipeLayout(SwipeRefreshLayout swipeRefreshLayout) {
-        if(swipeRefreshLayout != null)
+        if (swipeRefreshLayout != null)
             swipeRefreshLayout.setRefreshing(false);
     }
 

@@ -53,26 +53,25 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @BindView(R.id.floating_action_button)
     FloatingActionButton fabAddFriend;
 
-    DialogSearchFriend dialogSearchFriend;
+    DialogSearchFriend mDialogSearchFriend;
 
-    private FriendListAdapter friendListAdapter;
-    private RecyclerView.LayoutManager friendListLayoutManager;
+    private FriendListAdapter mFriendListAdapter;
+    private RecyclerView.LayoutManager mFriendListLayoutManager;
 
-    private FriendListAdapter.HeaderDataImpl headerWasRequested;
-    private FriendListAdapter.HeaderDataImpl headerAccept;
-    private FriendListAdapter.HeaderDataImpl headerRequest;
-    private FriendListAdapter.HeaderDataImpl headerBlock;
-    private FriendListAdapter.HeaderDataImpl headerWasRejected;
+    private FriendListAdapter.HeaderDataImpl mHeaderWasRequested;
+    private FriendListAdapter.HeaderDataImpl mHeaderAccept;
+    private FriendListAdapter.HeaderDataImpl mHeaderRequest;
+    private FriendListAdapter.HeaderDataImpl mHeaderBlock;
+    private FriendListAdapter.HeaderDataImpl mHeaderWasRejected;
 
     private boolean firstStart = true;
-    private FriendContract.Presenter presenter;
-    private long totalFriend = 0;
-//    private Map<String, Integer> friendRequestMap = new HashMap<>();
+    private FriendContract.Presenter mFriendPresenter;
+    private long mTotalFriend = 0;
     /**
      * because the update friend event fired twice, so we using this flag to know when to update the
      * friend object correctly
      */
-    private static boolean doUpdate = false;
+    private static boolean sDoUpdate = false;
 
 
     public FriendFragment() {
@@ -121,13 +120,13 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @Override
     public void onStart() {
         super.onStart();
-        doUpdate = false;
+        sDoUpdate = false;
         SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, "");
         SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, 0);
         resetDataBeforeReload();
         setupPresenter();
-        presenter.loadListFriend(-1);
-//        presenter.listenerFriendNotification();
+        mFriendPresenter.loadListFriend(-1);
+//        mFriendPresenter.listenerFriendNotification();
     }
 
     @Override
@@ -143,12 +142,12 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        presenter.detachViewFriend();
+        mFriendPresenter.detachViewFriend();
     }
 
     private void setupPresenter() {
-        presenter = new FriendPresenter();
-        presenter.attachView(this);
+        mFriendPresenter = new FriendPresenter();
+        mFriendPresenter.attachView(this);
     }
 
     private void setEvents() {
@@ -156,28 +155,28 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
             @Override
             public void onRefresh() {
                 resetDataBeforeReload();
-                friendListAdapter.notifyDataSetChanged();
-                presenter.loadListFriend(-1);
+                mFriendListAdapter.notifyDataSetChanged();
+                mFriendPresenter.loadListFriend(-1);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 resetDataBeforeReload();
-                friendListAdapter.notifyDataSetChanged();
-                presenter.loadListFriend(-1);
+                mFriendListAdapter.notifyDataSetChanged();
+                mFriendPresenter.loadListFriend(-1);
             }
         });
         fabAddFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogSearchFriend = new DialogSearchFriend(getContext());
-                dialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
+                mDialogSearchFriend = new DialogSearchFriend(getContext());
+                mDialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
                     @Override
                     public void onAddedFriendListener(ArrayList<User> selectedUsers) {
                         //TODO: add friend request to list
 //                        for (User user : selectedUsers) {
-//                            presenter.createFriendRequest(user);
+//                            mFriendPresenter.createFriendRequest(user);
 //                        }
                     }
                 });
@@ -186,18 +185,18 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     }
 
     private void initHeadersAndData() {
-        headerAccept = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_ACCEPT);
-        headerWasRequested = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_WAS_REQUESTED);
-        headerRequest = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_REQUEST);
-        headerBlock = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_BLOCK);
-        headerWasRejected = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_WAS_REJECTED);
+        mHeaderAccept = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_ACCEPT);
+        mHeaderWasRequested = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_WAS_REQUESTED);
+        mHeaderRequest = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_REQUEST);
+        mHeaderBlock = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_BLOCK);
+        mHeaderWasRejected = new FriendListAdapter.HeaderDataImpl(Friend.STATUS_WAS_REJECTED);
     }
 
     private void initializeRecyclerView() {
         rvFriendList.setNestedScrollingEnabled(false);
         rvFriendList.setHasFixedSize(false);
-        friendListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
-        rvFriendList.setLayoutManager(friendListLayoutManager);
+        mFriendListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
+        rvFriendList.setLayoutManager(mFriendListLayoutManager);
         rvFriendList.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -209,46 +208,46 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                 }
             }
         });
-        friendListAdapter = new FriendListAdapter(getContext(),
+        mFriendListAdapter = new FriendListAdapter(getContext(),
                 new FriendListAdapter.ItemFriendMenuClickListener() {
                     @Override
                     public void onAccept(Friend friend) {
-                        presenter.acceptFriendRequest(friend);
+                        mFriendPresenter.acceptFriendRequest(friend);
                     }
 
                     @Override
                     public void onReject(Friend friend) {
-                        presenter.rejectFriendRequest(friend);
+                        mFriendPresenter.rejectFriendRequest(friend);
                     }
 
                     @Override
                     public void onBlock(Friend friend) {
-                        presenter.blockFriendRequest(friend);
+                        mFriendPresenter.blockFriendRequest(friend);
                     }
 
                     @Override
                     public void onCancel(Friend friend) {
-                        presenter.cancelFriendRequest(friend);
+                        mFriendPresenter.cancelFriendRequest(friend);
                     }
 
                     @Override
                     public void onUnfriend(Friend friend) {
-                        presenter.removeFriend(friend);
+                        mFriendPresenter.removeFriend(friend);
                     }
 
                     @Override
                     public void onUnblock(Friend friend) {
-                        presenter.unBlockFriendRequest(friend);
+                        mFriendPresenter.unBlockFriendRequest(friend);
                     }
                 });
-        rvFriendList.setAdapter(friendListAdapter);
-        rvFriendList.addItemDecoration(new StickHeaderItemDecoration(friendListAdapter));
+        rvFriendList.setAdapter(mFriendListAdapter);
+        rvFriendList.addItemDecoration(new StickHeaderItemDecoration(mFriendListAdapter));
         initHeadersAndData();
     }
 
     private void resetDataBeforeReload() {
 //        friendRequestMap = new HashMap<>();
-        friendListAdapter.clearData();
+        mFriendListAdapter.clearData();
         initHeadersAndData();
     }
 
@@ -304,7 +303,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
 
     @Override
     public void setTotalFriend(long totalFriend) {
-        this.totalFriend = totalFriend;
+        this.mTotalFriend = totalFriend;
     }
 
     @Override
@@ -316,20 +315,20 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
             switch (friend.getStatus()) {
                 case Friend.STATUS_WAS_REQUESTED:
 //                    friendRequestMap.put(friend.getUserId(), friend.getStatus());
-                    friendListAdapter.setHeaderAndData(friend, headerWasRequested);
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRequested);
                     break;
                 case Friend.STATUS_ACCEPT:
                 case Friend.STATUS_WAS_ACCEPTED:
-                    friendListAdapter.setHeaderAndData(friend, headerAccept);
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
                     break;
                 case Friend.STATUS_REQUEST:
-                    friendListAdapter.setHeaderAndData(friend, headerRequest);
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderRequest);
                     break;
                 case Friend.STATUS_BLOCK:
-                    friendListAdapter.setHeaderAndData(friend, headerBlock);
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderBlock);
                     break;
                 case Friend.STATUS_WAS_REJECTED:
-                    friendListAdapter.setHeaderAndData(friend, headerWasRejected);
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRejected);
                     break;
                 /*case Friend.STATUS_REJECT:
 //                    rejectList.add(friend);
@@ -341,12 +340,12 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
 //                    inviteList.add(friend);
                     break;*/
             }
-            if ((friendListAdapter.getItemCount() - friendListAdapter.getNumberHeader()) == totalFriend) {
+            if ((mFriendListAdapter.getItemCount() - mFriendListAdapter.getNumberHeader()) == mTotalFriend) {
                 //load done
-//                friendListAdapter.notifyDataSetChanged();
+//                mFriendListAdapter.notifyDataSetChanged();
                 hideLoadingIndicator();
             }
-            if (friendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
+            if (mFriendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
                 if (newNotificationCallback != null)
                     newNotificationCallback.removeContactNotificationDot();
             } else {
@@ -358,31 +357,31 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
 
     @Override
     public void updateFriendStatus(Friend friend) {
-        if (doUpdate) {
+        if (sDoUpdate) {
             if (friend != null) {
-                friendListAdapter.removeData(friend);
+                mFriendListAdapter.removeData(friend);
                 switch (friend.getStatus()) {
                     case Friend.STATUS_WAS_REQUESTED:
 //                        friendRequestMap.put(friend.getUserId(), friend.getStatus());
-                        friendListAdapter.setHeaderAndData(friend, headerWasRequested);
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRequested);
                         break;
                     case Friend.STATUS_ACCEPT:
 //                        friendRequestMap.remove(friend.getUserId());
-                        friendListAdapter.setHeaderAndData(friend, headerAccept);
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
                         break;
                     case Friend.STATUS_REQUEST:
-                        friendListAdapter.setHeaderAndData(friend, headerRequest);
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderRequest);
                         break;
                     case Friend.STATUS_BLOCK:
-                        friendListAdapter.setHeaderAndData(friend, headerBlock);
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderBlock);
                         break;
                     case Friend.STATUS_WAS_REJECTED:
-                        friendListAdapter.setHeaderAndData(friend, headerWasRejected);
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRejected);
                         break;
                 }
             }
-            doUpdate = false;
-            if (friendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
+            sDoUpdate = false;
+            if (mFriendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
                 if (newNotificationCallback != null)
                     newNotificationCallback.removeContactNotificationDot();
             } else {
@@ -390,19 +389,19 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                     newNotificationCallback.newContactNotificationDot();
             }
         } else {
-            doUpdate = true;
+            sDoUpdate = true;
         }
     }
 
     @Override
     public void removeFriend(Friend friend) {
         if (friend != null) {
-            friendListAdapter.removeData(friend);
-            if (friendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
+            mFriendListAdapter.removeData(friend);
+            if (mFriendListAdapter.countItemByStatus(Friend.STATUS_WAS_REQUESTED) == 0) {
                 if (newNotificationCallback != null)
                     newNotificationCallback.removeContactNotificationDot();
             }
-            if (friendListAdapter.getItemCount() == 0) {
+            if (mFriendListAdapter.getItemCount() == 0) {
                 showHideListEmptyIndicator(llIndicator, llEmptyData, true);
             }
         }

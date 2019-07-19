@@ -7,7 +7,7 @@
         android:layout_gravity="top|center_horizontal"
         android:layout_marginLeft="22dp"
         android:layout_marginStart="22dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/bg_badge_number_circle"
         android:gravity="center"
         android:elevation="3dp"

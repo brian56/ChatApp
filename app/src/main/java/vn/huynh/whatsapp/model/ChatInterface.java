@@ -15,6 +15,8 @@ public interface ChatInterface extends BaseModelInterface {
 
     void getChatDetail(boolean onlyGroup, Chat chat, ChatListCallback callBack);
 
+    void getChatDetailToUpdate(boolean onlyGroup, Chat chat, ChatListCallback callBack);
+
     void createChat(boolean isGroup, String name, List<User> users, CreateChatCallback callBack);
 
     void checkSingleChatExist(String singleChatId, CheckSingleChatCallback callBack);

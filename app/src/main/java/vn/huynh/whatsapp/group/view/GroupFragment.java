@@ -52,17 +52,17 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     LinearLayout llError;
 
     private static final int CREATE_GROUP_INTENT = 2;
-    private ChatListAdapter chatListAdapter;
-    private LinearLayoutManager chatListLayoutManager;
-    private ArrayList<Chat> chatList;
+    private ChatListAdapter mChatListAdapter;
+    private LinearLayoutManager mChatListLayoutManager;
+    private ArrayList<Chat> mChatList;
 
     public static final String TAG = "GroupFragment";
 
-    private GroupPresenter presenter;
-    private boolean firstStart = true;
-    private long totalChat = 0;
-    private long chatCount = 0;
-    public static Map<String, Long> unreadChatIdMap = new HashMap<>();
+    private GroupPresenter mGroupPresenter;
+    private boolean mFirstStart = true;
+    private long mTotalChat = 0;
+    private long mChatCount = 0;
+    public static Map<String, Long> sUnreadChatIdMap = new HashMap<>();
 
     public GroupFragment() {
     }
@@ -86,27 +86,29 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         setupPresenter();
         setEvents();
         resetDataBeforeReload();
-        presenter.loadChatList(true, chatList);
+        mGroupPresenter.loadChatList(true, mChatList);
     }
 
     private void initializeRecyclerView() {
-        chatList = new ArrayList<>();
+        mChatList = new ArrayList<>();
         rvChatList.setNestedScrollingEnabled(false);
         rvChatList.setHasFixedSize(false);
-        chatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
-        rvChatList.setLayoutManager(chatListLayoutManager);
-        chatListAdapter = new ChatListAdapter(chatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
+        mChatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
+        rvChatList.setLayoutManager(mChatListLayoutManager);
+        mChatListAdapter = new ChatListAdapter(mChatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
             @Override
-            public void onClick(Chat chat) {
+            public void onClick(int position, Chat chat) {
+                chat.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
+                mChatListAdapter.notifyItemChanged(position);
                 parentActivityListener.setReturnFromChildActivity(true);
                 parentActivityListener.showMessageNotification(true);
 
-                ChatListFragment.unreadChatIdMap.remove(chat.getId());
-                GroupFragment.unreadChatIdMap.remove(chat.getId());
-                if (ChatListFragment.unreadChatIdMap.isEmpty()) {
+                ChatListFragment.sUnreadChatIdMap.remove(chat.getId());
+                GroupFragment.sUnreadChatIdMap.remove(chat.getId());
+                if (ChatListFragment.sUnreadChatIdMap.isEmpty()) {
                     newNotificationCallback.removeChatNotificationDot();
                 }
-                if (GroupFragment.unreadChatIdMap.isEmpty()) {
+                if (GroupFragment.sUnreadChatIdMap.isEmpty()) {
                     newNotificationCallback.removeGroupNotificationDot();
                 }
 
@@ -114,21 +116,32 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                 intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
                 startActivity(intent);
             }
+        }, new ChatListAdapter.ChatAdapterListener() {
+            @Override
+            public void onFilter(boolean isEmptyResult) {
+                if (isEmptyResult) {
+                    rvChatList.setVisibility(View.GONE);
+                    showHideListEmptyIndicator(llIndicator, llEmptyData, true);
+                } else {
+                    rvChatList.setVisibility(View.VISIBLE);
+                    showHideListEmptyIndicator(llIndicator, llEmptyData, false);
+                }
+            }
         });
-        rvChatList.setAdapter(chatListAdapter);
+        rvChatList.setAdapter(mChatListAdapter);
     }
 
     private void setupPresenter() {
-        presenter = new GroupPresenter();
-        presenter.attachView(this);
+        mGroupPresenter = new GroupPresenter();
+        mGroupPresenter.attachView(this);
     }
 
     private void resetDataBeforeReload() {
-        chatList.clear();
-        chatListAdapter.notifyDataSetChanged();
-        unreadChatIdMap.clear();
-        totalChat = 0;
-        chatCount = 0;
+        mChatList.clear();
+        mChatListAdapter.notifyDataSetChanged();
+        sUnreadChatIdMap.clear();
+        mTotalChat = 0;
+        mChatCount = 0;
 //        newNotificationCallback.removeGroupNotificationDot();
     }
 
@@ -145,14 +158,14 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             @Override
             public void onRefresh() {
                 resetDataBeforeReload();
-                presenter.loadChatList(true, chatList);
+                mGroupPresenter.loadChatList(true, mChatList);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 resetDataBeforeReload();
-                presenter.loadChatList(true, chatList);
+                mGroupPresenter.loadChatList(true, mChatList);
             }
         });
     }
@@ -217,39 +230,37 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
 
     @Override
     public void setChatCount(long count) {
-        totalChat = count;
+        mTotalChat = count;
     }
 
     @Override
     public void showChatList(Chat chat, int position) {
-        chatCount++;
+        mChatCount++;
         if (chat != null) {
             /*showHideListIndicator(llIndicator, false);
-            chatList.add(position, chat);
+            mChatList.add(position, chat);
             try {
-                chatListAdapter.notifyItemInserted(position);
-                chatListLayoutManager.scrollToPositionWithOffset(0, 0);
+                mChatListAdapter.notifyItemInserted(position);
+                mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }*/
             if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                if (unreadChatIdMap.isEmpty()) {
+                if (sUnreadChatIdMap.isEmpty()) {
                     newNotificationCallback.newGroupNotificationDot();
                 }
-                unreadChatIdMap.put(chat.getId(), 1L);
+                sUnreadChatIdMap.put(chat.getId(), 1L);
             }
             showHideListIndicator(llIndicator, false);
-            chatList.add(position, chat);
-            try {
-                chatListAdapter.notifyItemInserted(position);
-                chatListLayoutManager.scrollToPositionWithOffset(0, 0);
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
+            mChatList.add(position, chat);
+            mChatListAdapter.notifyItemInserted(position);
+            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
         }
-        if (chatCount == totalChat) {
+        if (mChatCount == mTotalChat) {
             hideLoadingIndicator();
-            if (chatList.size() == 0 && !swipeRefreshLayout.isRefreshing()) {
+//            mChatListAdapter.notifyDataSetChanged();
+            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
+            if (mChatList.size() == 0 && !swipeRefreshLayout.isRefreshing()) {
                 showHideListEmptyIndicator(llIndicator, llEmptyData, true);
             }
         }
@@ -258,48 +269,83 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void updateChatStatus(Chat chat, boolean hasNewMessage) {
         try {
-            /*if (chatList.size() > 0) {
-                int i = chatList.indexOf(chatObject);
-                if (i > 0) {
-                    chatList.removeFriends(chatObject);
-                    chatListAdapter.notifyItemRemoved(i);
-                    chatList.add(0, chatObject);
-                    chatListAdapter.notifyItemInserted(0);
-                } else if (i == 0) {
-                    chatListAdapter.notifyDataSetChanged();
-                }
-                chatListLayoutManager.scrollToPositionWithOffset(0, 0);
-            }*/
-            if (chatList.size() > 0) {
-                int i = chatList.indexOf(chat);
+
+            /*if (mChatList.size() > 0) {
+                int i = mChatList.indexOf(chat);
                 if (i >= 0) {
                     if (hasNewMessage) {
                         if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                            unreadChatIdMap.put(chat.getId(), 1L);
+                            sUnreadChatIdMap.put(chat.getId(), 1L);
                             newNotificationCallback.newGroupNotificationDot();
                         }
                         if (i == 0) {
-                            chatListAdapter.notifyItemChanged(i);
+                            mChatListAdapter.notifyItemChanged(i);
                         } else {
-                            chatList.remove(chat);
-                            chatListAdapter.notifyItemRemoved(i);
-                            chatList.add(0, chat);
-                            chatListAdapter.notifyItemInserted(0);
-                            chatListLayoutManager.scrollToPositionWithOffset(0, 0);
+                            mChatList.remove(chat);
+                            mChatListAdapter.notifyItemRemoved(i);
+                            mChatList.add(0, chat);
+                            mChatListAdapter.notifyItemInserted(0);
+                            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
                         }
                     } else {
-                        chatListAdapter.notifyItemChanged(i);
+                        mChatListAdapter.notifyItemChanged(i);
                         if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
-                            unreadChatIdMap.remove(chat.getId());
-                            if (unreadChatIdMap.isEmpty())
+                            sUnreadChatIdMap.remove(chat.getId());
+                            if (sUnreadChatIdMap.isEmpty())
                                 newNotificationCallback.removeGroupNotificationDot();
                         }
                     }
+                }*/
+            int index = -1;
+            for (int i = 0; i < mChatList.size(); i++) {
+                if (chat.getId().equals(mChatList.get(i).getId())) {
+                    index = i;
+                    if (chat.getLastMessageDateInLong() - mChatList.get(i).getLastMessageDateInLong() > 50)
+                        hasNewMessage = true;
+                    mChatList.get(i).cloneChat(chat);
+                    break;
                 }
             }
-        } catch (IndexOutOfBoundsException e) {
+
+            if (index >= 0) {
+                if (hasNewMessage) {
+                    if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
+                        sUnreadChatIdMap.put(chat.getId(), 1L);
+                        newNotificationCallback.newGroupNotificationDot();
+
+                        ChatListFragment.sUnreadChatIdMap.put(chat.getId(), 1L);
+                        newNotificationCallback.newChatNotificationDot();
+                    }
+                    if (index == 0) {
+                        mChatListAdapter.notifyItemChanged(index);
+                    } else {
+                        mChatListAdapter.notifyItemChanged(index);
+                        Chat temp = mChatList.get(index);
+                        mChatList.remove(index);
+                        mChatList.add(0, temp);
+                        mChatListAdapter.notifyItemMoved(index, 0);
+                        mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
+                    }
+                } else {
+                    mChatListAdapter.notifyItemChanged(index);
+                    if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
+                        sUnreadChatIdMap.remove(chat.getId());
+                        if (sUnreadChatIdMap.isEmpty())
+                            newNotificationCallback.removeGroupNotificationDot();
+
+                        ChatListFragment.sUnreadChatIdMap.remove(chat.getId());
+                        if (ChatListFragment.sUnreadChatIdMap.isEmpty())
+                            newNotificationCallback.removeChatNotificationDot();
+                    }
+                }
+            }
+        } catch (
+                IndexOutOfBoundsException e)
+
+        {
             e.printStackTrace();
         }
+
     }
 
     @Override
@@ -318,18 +364,18 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void onStart() {
         super.onStart();
-        if (!firstStart && !parentActivityListener.returnFromChildActivity()) {
+        if (!mFirstStart && !parentActivityListener.returnFromChildActivity()) {
             resetDataBeforeReload();
-            presenter.loadChatList(true, chatList);
+            mGroupPresenter.loadChatList(true, mChatList);
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        firstStart = false;
+        mFirstStart = false;
         if (!parentActivityListener.returnFromChildActivity()) {
-            presenter.removeChatListListener();
+            mGroupPresenter.removeChatListListener();
         }
     }
 
@@ -352,7 +398,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        presenter.detachView();
-        presenter.removeChatListListener();
+        mGroupPresenter.detachView();
+        mGroupPresenter.removeChatListListener();
     }
 }

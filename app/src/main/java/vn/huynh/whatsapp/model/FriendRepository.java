@@ -23,25 +23,25 @@ import vn.huynh.whatsapp.utils.Constant;
  */
 
 public class FriendRepository implements FriendInterface {
-    private DatabaseReference dbRef;
+    private DatabaseReference mDbRef;
 
-    private DatabaseReference requestDb;
-    private DatabaseReference requestListenerDb;
+    private DatabaseReference mFriendRequestDb;
+    private DatabaseReference mFriendRequestListenerDb;
 
-    private Query friendQuery;
-    private ChildEventListener requestChildEventListener;
+    private Query mFriendQuery;
+    private ChildEventListener mRequestChildEventListener;
 
     public FriendRepository() {
-        this.dbRef = FirebaseDatabase.getInstance().getReference();
+        this.mDbRef = FirebaseDatabase.getInstance().getReference();
     }
 
     @Override
     public void removeListener() {
-        if (requestDb != null && requestChildEventListener != null) {
-            requestDb.removeEventListener(requestChildEventListener);
+        if (mFriendRequestDb != null && mRequestChildEventListener != null) {
+            mFriendRequestDb.removeEventListener(mRequestChildEventListener);
         }
-        if (friendQuery != null && requestChildEventListener != null) {
-            friendQuery.removeEventListener(requestChildEventListener);
+        if (mFriendQuery != null && mRequestChildEventListener != null) {
+            mFriendQuery.removeEventListener(mRequestChildEventListener);
         }
     }
 
@@ -54,14 +54,14 @@ public class FriendRepository implements FriendInterface {
     public void getAllFriend(int friendStatus, final GetFriendCallback callback) {
         removeListener();
         updateFriendNotification(ChatUtils.getUser().getId(), -1, false);
-        requestListenerDb = dbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId());
+        mFriendRequestListenerDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId());
         if (friendStatus >= 0) {
-            friendQuery = requestListenerDb.orderByChild(Constant.FB_KEY_STATUS).equalTo(friendStatus);
+            mFriendQuery = mFriendRequestListenerDb.orderByChild(Constant.FB_KEY_STATUS).equalTo(friendStatus);
         } else {
             //get all
-            friendQuery = requestListenerDb.orderByChild(Constant.FB_KEY_CREATE_DATE);
+            mFriendQuery = mFriendRequestListenerDb.orderByChild(Constant.FB_KEY_CREATE_DATE);
         }
-        requestChildEventListener = new ChildEventListener() {
+        mRequestChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
@@ -96,7 +96,7 @@ public class FriendRepository implements FriendInterface {
 
             }
         };
-        friendQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFriendQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
@@ -104,7 +104,7 @@ public class FriendRepository implements FriendInterface {
                 } else {
                     callback.onGetFriendCount(dataSnapshot.getChildrenCount());
                 }
-                friendQuery.addChildEventListener(requestChildEventListener);
+                mFriendQuery.addChildEventListener(mRequestChildEventListener);
             }
 
             @Override
@@ -116,8 +116,8 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void createRequest(final User userFriend, final CreateRequestCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(userFriend.getId()).child(ChatUtils.getUser().getId());
-        requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(userFriend.getId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = new HashMap<>();
@@ -127,14 +127,14 @@ public class FriendRepository implements FriendInterface {
                 friendMap.put(Constant.FB_KEY_AVATAR, ChatUtils.getUser().getAvatar());
                 friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_WAS_REQUESTED);
                 friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if (databaseError == null) {
                             updateFriendNotification(userFriend.getId(), Friend.STATUS_WAS_REQUESTED, true);
 
-                            requestDb = dbRef.child("friend").child(ChatUtils.getUser().getId()).child(userFriend.getId());
-                            requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+                            mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(userFriend.getId());
+                            mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     final Map<String, Object> friendMap = new HashMap<>();
@@ -144,7 +144,7 @@ public class FriendRepository implements FriendInterface {
                                     friendMap.put(Constant.FB_KEY_AVATAR, userFriend.getAvatar());
                                     friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_REQUEST);
                                     friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                                    requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                                    mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                                         @Override
                                         public void onComplete(@Nullable final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                             if (databaseError == null) {
@@ -192,14 +192,14 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void cancelRequest(final Friend friend, final CancelRequestCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
-        requestDb.removeValue(new DatabaseReference.CompletionListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.removeValue(new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
                     updateFriendNotification(friend.getUserId(), Friend.STATUS_WAS_CANCELED, false);
-                    requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
-                    requestDb.removeValue(new DatabaseReference.CompletionListener() {
+                    mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
+                    mFriendRequestDb.removeValue(new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                             if (databaseError == null) {
@@ -218,21 +218,21 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void acceptRequest(final Friend friend, final AcceptRequestCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
-        requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = new HashMap<>();
                 friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_WAS_ACCEPTED);
                 friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if (databaseError == null) {
                             updateFriendNotification(friend.getUserId(), Friend.STATUS_WAS_ACCEPTED, true);
 
-                            requestDb = dbRef.child("friend").child(ChatUtils.getUser().getId()).child(friend.getUserId());
-                            requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+                            mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
+                            mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     Map<String, Object> friendMap = new HashMap<>();
@@ -240,7 +240,7 @@ public class FriendRepository implements FriendInterface {
                                     //if we update using ServerValue.TIMESTAMP, the onChildChanged event will fired twice
                                     //so in the fragment, we have to ignore the first event, and process the second event
                                     friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                                    requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                                    mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                                         @Override
                                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                             if (databaseError == null) {
@@ -276,21 +276,21 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void rejectRequest(final Friend friend, final RejectRequestCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
-        requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = new HashMap<>();
                 friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_WAS_REJECTED);
                 friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if (databaseError == null) {
                             updateFriendNotification(friend.getUserId(), Friend.STATUS_WAS_REJECTED, true);
 
-                            requestDb = dbRef.child("friend").child(ChatUtils.getUser().getId()).child(friend.getUserId());
-                            requestDb.removeValue(new DatabaseReference.CompletionListener() {
+                            mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
+                            mFriendRequestDb.removeValue(new DatabaseReference.CompletionListener() {
                                 @Override
                                 public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                     updateFriendNotification(ChatUtils.getUser().getId(), Friend.STATUS_REJECT, false);
@@ -313,25 +313,25 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void blockRequest(final Friend friend, final BlockRequestCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
-        requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = new HashMap<>();
                 friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_WAS_BLOCKED);
                 friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if (databaseError == null) {
-                            requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
-                            requestDb.addListenerForSingleValueEvent(new ValueEventListener() {
+                            mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
+                            mFriendRequestDb.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     Map<String, Object> friendMap = new HashMap<>();
                                     friendMap.put(Constant.FB_KEY_STATUS, Friend.STATUS_BLOCK);
                                     friendMap.put(Constant.FB_KEY_CREATE_DATE, ServerValue.TIMESTAMP);
-                                    requestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
+                                    mFriendRequestDb.updateChildren(friendMap, new DatabaseReference.CompletionListener() {
                                         @Override
                                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                             if (databaseError == null) {
@@ -365,14 +365,14 @@ public class FriendRepository implements FriendInterface {
 
     @Override
     public void removeFriend(final Friend friend, final RemoveFriendCallback callback) {
-        requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
-        requestDb.removeValue(new DatabaseReference.CompletionListener() {
+        mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(friend.getUserId()).child(ChatUtils.getUser().getId());
+        mFriendRequestDb.removeValue(new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
                     updateFriendNotification(friend.getUserId(), Friend.STATUS_WAS_UNFRIEND, true);
-                    requestDb = dbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
-                    requestDb.removeValue(new DatabaseReference.CompletionListener() {
+                    mFriendRequestDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(friend.getUserId());
+                    mFriendRequestDb.removeValue(new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                             if (databaseError == null) {
@@ -387,35 +387,17 @@ public class FriendRepository implements FriendInterface {
         });
     }
 
-/*@Override
-    public void getFriendNotification(final GetFriendNotificationCallback callback) {
-        DatabaseReference userDR = dbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
-        userDR.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()) {
-                    callback.onGetSuccess(dataSnapshot.getValue(Integer.class));
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onGetFail(databaseError.getMessage());
-            }
-        });
-    }*/
-
     @Override
     public void updateFriendNotification(final String userId, int friendStatus, boolean showNotify) {
         if (showNotify) {
-            DatabaseReference userDB = dbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
+            DatabaseReference userDB = mDbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
             userDB.setValue(1);
         } else {
-            Query query = dbRef.child("friend").child(userId).orderByChild(Constant.FB_KEY_STATUS).equalTo(Friend.STATUS_WAS_REQUESTED);
+            Query query = mDbRef.child(Constant.FB_KEY_FRIEND).child(userId).orderByChild(Constant.FB_KEY_STATUS).equalTo(Friend.STATUS_WAS_REQUESTED);
             query.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    DatabaseReference userDB = dbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
+                    DatabaseReference userDB = mDbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
                     if (dataSnapshot.exists()) {
                         if (dataSnapshot.getChildrenCount() > 0) {
                             userDB.setValue(1);
@@ -434,74 +416,4 @@ public class FriendRepository implements FriendInterface {
             });
         }
     }
-
-//    @Override
-//    public void updateFriendNotification(String friendId, final int friendNotification, final UpdateFriendNotificationCallback callback) {
-//        if(!TextUtils.isEmpty(friendId)) {
-//            DatabaseReference friendDR = dbRef.child(Constant.FB_KEY_USER).child(friendId).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
-//            friendDR.setValue(friendNotification, new DatabaseReference.CompletionListener() {
-//                @Override
-//                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-//                    DatabaseReference userDR = dbRef.child("user").child(ChatUtils.getUser().getId()).child("friendNotification");
-//                    userDR.setValue(friendNotification, new DatabaseReference.CompletionListener() {
-//                        @Override
-//                        public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-//                            if(callback != null)
-//                                callback.onUpdateSuccess(friendNotification);
-//                        }
-//                    });
-//                }
-//            });
-//        } else {
-//            DatabaseReference userDR = dbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).child(Constant.FB_KEY_FRIEND_NOTIFICATION);
-//            userDR.setValue(friendNotification, new DatabaseReference.CompletionListener() {
-//                @Override
-//                public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-//                    if(callback != null)
-//                        callback.onUpdateSuccess(friendNotification);
-//                }
-//            });
-//        }
-//    }
-
-    /*@Override
-    public void listenToNewRequest(String userId, final FriendCallback callback) {
-        requestListenerDb = dbRef.child("friend").child(userId);
-        requestChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(dataSnapshot.exists()) {
-                    Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onNewFriendRequest(friend);
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(dataSnapshot.exists()) {
-                    Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onUpdateFriendRequest(friend);
-                }
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()) {
-                    Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onRemoveFriendSuccess(friend);
-                }
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-        requestListenerDb.addChildEventListener(requestChildEventListener);
-    }*/
 }

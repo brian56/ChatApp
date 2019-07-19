@@ -19,7 +19,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.google.firebase.database.ChildEventListener;
@@ -45,6 +44,7 @@ import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.ImageUtils;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.MyApp;
 import vn.huynh.whatsapp.utils.SharedPrefsUtil;
 
@@ -54,14 +54,14 @@ import vn.huynh.whatsapp.utils.SharedPrefsUtil;
 
 public class NewMessageService extends Service {
     public static String TAG = NewMessageService.class.getSimpleName();
-    private NotificationCompat.Builder notification;
+    private NotificationCompat.Builder mNotification;
     public static int ID_NOTIFICATION = 9;
-    boolean showMessageNotification = true;
-    boolean showFriendNotification = true;
-    private static String NOTIFICATION_CHANNEL = "WHATSAPP_CHANNEL_ID";
+    private boolean mIsShowMessageNotification = true;
+    private boolean mIsShowFriendNotification = true;
+    private static final String NOTIFICATION_CHANNEL = "WHATSAPP_CHANNEL_ID";
 
-    NotificationManager notificationManager;
-    RemoteViews simpleContentView;
+    private NotificationManager mNotificationManager;
+    private RemoteViews mSimpleContentView;
 
     private final IBinder mBinder = new LocalBinder();
     private DatabaseReference mDF = FirebaseDatabase.getInstance().getReference();
@@ -78,14 +78,17 @@ public class NewMessageService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, final int flags, int startId) {
-        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (ChatUtils.getUser() == null) {
+            return START_STICKY;
+        }
         String userId = ChatUtils.getUser().getId();
         mDatabaseMessage = mDF.child("user").child(userId).child("lastChatId");
         mValueEventListenerMessage = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    Log.d(TAG, "onStartCommand: " + dataSnapshot.getKey());
+                    LogManagerUtils.d(TAG, "onStartCommand: " + dataSnapshot.getKey());
                     final String chatId = dataSnapshot.getValue().toString().split("=")[0];
                     DatabaseReference dbRef = mDF.child("chat").child(chatId);
                     dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -93,7 +96,7 @@ public class NewMessageService extends Service {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 final Chat chat = dataSnapshot.getValue(Chat.class);
-                                if (chat.getLastMessageSent() != null) {
+                                if (chat.getLastMessageSent() != null && ChatUtils.getUser() != null) {
                                     if (chat.getLastMessageSent().getCreator().equals(ChatUtils.getUser().getId())) {
                                         return;
                                     }
@@ -111,7 +114,7 @@ public class NewMessageService extends Service {
                                             if (chatId.equals(ChatUtils.getCurrentChatId()) && AppUtils.isAppVisible()) {
                                                 return;
                                             } else {
-                                                if (showMessageNotification)
+                                                if (mIsShowMessageNotification)
                                                     createNotification(sender, chat, null);
                                             }
                                         }
@@ -140,14 +143,14 @@ public class NewMessageService extends Service {
         };
         mDatabaseMessage.addValueEventListener(mValueEventListenerMessage);
 
-        //friend notification
+        //friend mNotification
         mDatabaseFriend = mDF.child("friend").child(userId);
         mChildEventListenerFriend = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     Friend friend = dataSnapshot.getValue(Friend.class);
-                    if (showFriendNotification)
+                    if (mIsShowFriendNotification)
                         createNotification(null, null, friend);
                 }
             }
@@ -155,7 +158,7 @@ public class NewMessageService extends Service {
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 Friend friend = dataSnapshot.getValue(Friend.class);
-                if (showFriendNotification)
+                if (mIsShowFriendNotification)
                     createNotification(null, null, friend);
             }
 
@@ -191,7 +194,7 @@ public class NewMessageService extends Service {
             Intent intent = new Intent(NewMessageService.this, ChatActivity.class);
             intent.putExtra(Constant.EXTRA_CHAT_ID, chat.getId());
             intent.putExtra(Constant.EXTRA_CHAT_NAME, chat.getChatName());
-            Log.d(TAG, "show notification: " + chat.getId());
+            LogManagerUtils.d(TAG, "show mNotification: " + chat.getId());
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
             stackBuilder.addNextIntentWithParentStack(intent);
@@ -205,14 +208,14 @@ public class NewMessageService extends Service {
             } else {
                 title = sender.getName();
             }
-            notification = null;
+            mNotification = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 int importance = NotificationManager.IMPORTANCE_DEFAULT;
                 NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
-                notificationManager.createNotificationChannel(notificationChannel);
-                notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+                mNotificationManager.createNotificationChannel(notificationChannel);
+                mNotification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
             } else {
-                notification = new NotificationCompat.Builder(getApplicationContext());
+                mNotification = new NotificationCompat.Builder(getApplicationContext());
             }
 
             message = chat.getLastMessageSent().getText();
@@ -221,7 +224,7 @@ public class NewMessageService extends Service {
                     message = MyApp.resources.getString(R.string.message_sent_media);
                 }
             }
-            notification = notification
+            mNotification = mNotification
                     .setSmallIcon(R.drawable.ic_notification_new)
                     .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
                     .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
@@ -233,7 +236,7 @@ public class NewMessageService extends Service {
                     .setPriority(Notification.PRIORITY_HIGH)
                     .setAutoCancel(true);
 
-            notificationManager.notify(ID_NOTIFICATION, notification.build());
+            mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
         }
         if (friend != null) {
             String lastFriendId = friend.getUserId();
@@ -251,7 +254,7 @@ public class NewMessageService extends Service {
             Intent intent = new Intent(NewMessageService.this, HomeActivity.class);
             intent.putExtra(Constant.EXTRA_FRIEND_ID, friend.getUserId());
             intent.putExtra(Constant.EXTRA_FRIEND_STATUS, friend.getStatus());
-            Log.d(TAG, "show notification friend: " + friend.getUserId());
+            LogManagerUtils.d(TAG, "show mNotification friend: " + friend.getUserId());
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
             stackBuilder.addNextIntentWithParentStack(intent);
@@ -279,17 +282,17 @@ public class NewMessageService extends Service {
                 default:
                     return;
             }
-            notification = null;
+            mNotification = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 int importance = NotificationManager.IMPORTANCE_DEFAULT;
                 NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
-                notificationManager.createNotificationChannel(notificationChannel);
-                notification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+                mNotificationManager.createNotificationChannel(notificationChannel);
+                mNotification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
             } else {
-                notification = new NotificationCompat.Builder(getApplicationContext());
+                mNotification = new NotificationCompat.Builder(getApplicationContext());
             }
 
-            notification = notification
+            mNotification = mNotification
                     .setSmallIcon(R.drawable.ic_notification_new)
                     .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
                     .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
@@ -301,7 +304,7 @@ public class NewMessageService extends Service {
                     .setPriority(Notification.PRIORITY_HIGH)
                     .setAutoCancel(true);
 
-            notificationManager.notify(ID_NOTIFICATION, notification.build());
+            mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
         }
     }
 
@@ -328,7 +331,7 @@ public class NewMessageService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        Log.d(TAG, "onTaskRemove");
+        LogManagerUtils.d(TAG, "onTaskRemove");
         removeListener();
         stopSelf();
         Intent intent = new Intent(this, AppKilledBroadcast.class);
@@ -337,13 +340,13 @@ public class NewMessageService extends Service {
     }
 
     public void setShowMessageNotification(boolean isShowNoti) {
-        Log.d("Noti_NOTIFICATION", " showMessageNotification " + this.showMessageNotification + "=> " + isShowNoti);
-        this.showMessageNotification = isShowNoti;
+        LogManagerUtils.d(TAG, " mIsShowMessageNotification " + this.mIsShowMessageNotification + "=> " + isShowNoti);
+        this.mIsShowMessageNotification = isShowNoti;
     }
 
-    public void setShowFriendNotification(boolean isShowNoti) {
-        Log.d("Noti_NOTIFICATION", " showMessageNotification " + this.showFriendNotification + "=> " + isShowNoti);
-        this.showFriendNotification = isShowNoti;
+    public void setmIsShowFriendNotification(boolean isShowNoti) {
+        LogManagerUtils.d(TAG, " mIsShowMessageNotification " + this.mIsShowFriendNotification + "=> " + isShowNoti);
+        this.mIsShowFriendNotification = isShowNoti;
     }
 
     class GetBitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
@@ -368,15 +371,15 @@ public class NewMessageService extends Service {
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
                 bitmap = ImageUtils.getRoundedCornerBitmap(bitmap, 9);
-                simpleContentView.setImageViewBitmap(R.id.img_avatar, bitmap);
-                notificationManager.notify(ID_NOTIFICATION, notification.build());
+                mSimpleContentView.setImageViewBitmap(R.id.img_avatar, bitmap);
+                mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
 
             } else {
                 Bitmap icon = BitmapFactory.decodeResource(getResources(),
                         R.mipmap.ic_launcher);
 
-                simpleContentView.setImageViewBitmap(R.id.img_avatar, icon);
-                notificationManager.notify(ID_NOTIFICATION, notification.build());
+                mSimpleContentView.setImageViewBitmap(R.id.img_avatar, icon);
+                mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
 
             }
         }

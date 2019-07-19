@@ -56,13 +56,13 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     LinearLayout llError;
 
     private static final String TAG = CreateGroupActivity.class.getSimpleName();
-    private RecyclerView.Adapter userListAdapter;
-    private RecyclerView.LayoutManager userListLayoutManager;
-    private ArrayList<User> userList;
-    private ArrayList<User> selectedUserList;
+    private RecyclerView.Adapter mUserListAdapter;
+    private RecyclerView.LayoutManager mUserListLayoutManager;
+    private ArrayList<User> mUserList;
+    private ArrayList<User> mSelectedUserList;
 
-    private GroupContract.Presenter groupPresenter;
-    private ContactContract.Presenter contactPresenter;
+    private GroupContract.Presenter mGroupPresenter;
+    private ContactContract.Presenter mContactPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,15 +78,15 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
         setupPresenter();
         initializeRecyclerView();
         setEvents();
-        userList.clear();
-        contactPresenter.loadListContactForGroup(this);
+        mUserList.clear();
+        mContactPresenter.loadListContactForGroup(this);
     }
 
     private void setupPresenter() {
-        groupPresenter = new GroupPresenter();
-        groupPresenter.attachView(this);
-        contactPresenter = new ContactPresenter();
-        contactPresenter.attachView(this);
+        mGroupPresenter = new GroupPresenter();
+        mGroupPresenter.attachView(this);
+        mContactPresenter = new ContactPresenter();
+        mContactPresenter.attachView(this);
     }
 
     @Override
@@ -102,16 +102,16 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
             @Override
             public void onClick(View v) {
                 boolean isSelected = false;
-                for (User userObject : userList) {
+                for (User userObject : mUserList) {
                     if (userObject.getSelected()) {
-                        selectedUserList.add(userObject);
+                        mSelectedUserList.add(userObject);
                         isSelected = true;
                     }
                 }
                 if (isSelected) {
                     User currentUser = new User(ChatUtils.getUser().getId());
-                    selectedUserList.add(0, currentUser);
-                    groupPresenter.createGroupChat(edtGroupName.getText().toString().trim(), selectedUserList);
+                    mSelectedUserList.add(0, currentUser);
+                    mGroupPresenter.createGroupChat(edtGroupName.getText().toString().trim(), mSelectedUserList);
                 } else {
                     Toast.makeText(CreateGroupActivity.this, "Please select at least 1 user to create group", Toast.LENGTH_SHORT).show();
                 }
@@ -120,31 +120,31 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                userList.clear();
-                userListAdapter.notifyDataSetChanged();
-                contactPresenter.loadListContactForGroup(CreateGroupActivity.this);
+                mUserList.clear();
+                mUserListAdapter.notifyDataSetChanged();
+                mContactPresenter.loadListContactForGroup(CreateGroupActivity.this);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                userList.clear();
-                userListAdapter.notifyDataSetChanged();
-                contactPresenter.loadListContactForGroup(CreateGroupActivity.this);
+                mUserList.clear();
+                mUserListAdapter.notifyDataSetChanged();
+                mContactPresenter.loadListContactForGroup(CreateGroupActivity.this);
             }
         });
     }
 
     private void initializeRecyclerView() {
-        userList = new ArrayList<>();
-        selectedUserList = new ArrayList<>();
+        mUserList = new ArrayList<>();
+        mSelectedUserList = new ArrayList<>();
 
         rvUserList.setNestedScrollingEnabled(false);
         rvUserList.setHasFixedSize(false);
-        userListLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
-        rvUserList.setLayoutManager(userListLayoutManager);
-        userListAdapter = new ContactListAdapter(userList, false);
-        rvUserList.setAdapter(userListAdapter);
+        mUserListLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
+        rvUserList.setLayoutManager(mUserListLayoutManager);
+        mUserListAdapter = new ContactListAdapter(mUserList, false, true, false);
+        rvUserList.setAdapter(mUserListAdapter);
 
     }
 
@@ -195,7 +195,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
 
     @Override
     public void openChat(String key) {
-        selectedUserList.clear();
+        mSelectedUserList.clear();
         Intent returnIntent = new Intent();
         returnIntent.putExtra(Constant.EXTRA_CHAT_ID, key);
         setResult(Activity.RESULT_OK, returnIntent);
@@ -205,8 +205,8 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
     @Override
     public void showListContact(User userObject) {
         if (userObject != null && userObject.getRegisteredUser()) {
-            userList.add(userObject);
-            Collections.sort(userList, new Comparator<User>() {
+            mUserList.add(userObject);
+            Collections.sort(mUserList, new Comparator<User>() {
                 @Override
                 public int compare(User o1, User o2) {
                     if (o1.getRegisteredUser() && !o2.getRegisteredUser())
@@ -217,15 +217,15 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
                 }
             });
             hideLoadingIndicator();
-            userListAdapter.notifyDataSetChanged();
+            mUserListAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        groupPresenter.detachView();
-        contactPresenter.detachView();
+        mGroupPresenter.detachView();
+        mContactPresenter.detachView();
     }
 
     @Override

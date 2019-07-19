@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".contact_friend.contact.view.FindUserActivity">
+    tools:context=".group.view.CreateGroupActivity">
 
     <include layout="@layout/toolbar" />
 

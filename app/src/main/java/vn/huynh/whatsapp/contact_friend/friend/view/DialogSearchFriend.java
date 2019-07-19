@@ -33,7 +33,7 @@ import vn.huynh.whatsapp.utils.MyApp;
  */
 
 public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
-
+    private static final String TAG = DialogSearchFriend.class.getSimpleName();
     @BindView(R.id.ll_indicator)
     LinearLayout llIndicator;
     @BindView(R.id.loader)
@@ -56,21 +56,20 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
     @BindView(R.id.loader_add_friend)
     CircularDotsLoader addFriendLoader;
 
-    private Context context;
-    Dialog dialog;
-    private String phoneNumber;
-    private SearchFriendListener searchFriendListener;
-    private ContactListAdapter userListAdapter;
-    private LinearLayoutManager linearLayoutManager;
+    private Context mContext;
+    Dialog mDialog;
+    private String mPhoneNumber;
+    private SearchFriendListener mSearchFriendListener;
+    private ContactListAdapter mUserListAdapter;
+    private LinearLayoutManager mLinearLayoutManager;
 
-    private ArrayList<User> userArrayList;
-    private ArrayList<User> selectedUsers;
-    private User user;
+    private ArrayList<User> mUserArrayList;
+    private ArrayList<User> mSelectedUsers;
 
-    private FriendPresenter friendPresenter;
+    private FriendPresenter mFriendPresenter;
 
     public DialogSearchFriend(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     public interface SearchFriendListener {
@@ -78,68 +77,68 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
     }
 
     public boolean isShowing() {
-        return dialog.isShowing();
+        return mDialog.isShowing();
     }
 
     public void show(SearchFriendListener searchFriendListener) {
-        this.searchFriendListener = searchFriendListener;
+        this.mSearchFriendListener = searchFriendListener;
 
-        dialog = new Dialog(context, R.style.Dialog);
-        View view = View.inflate(context, R.layout.dialog_search, null);
-        dialog.setTitle(context.getResources().getString(R.string.title_search_friend));
-        dialog.setContentView(view);
+        mDialog = new Dialog(mContext, R.style.Dialog);
+        View view = View.inflate(mContext, R.layout.dialog_search, null);
+        mDialog.setTitle(mContext.getResources().getString(R.string.title_search_friend));
+        mDialog.setContentView(view);
         ButterKnife.bind(this, view);
-        dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        mDialog.setCancelable(true);
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         initData();
 
-        dialog.show();
+        mDialog.show();
         initPresenter();
         setupEvent();
     }
 
     private void initPresenter() {
-        friendPresenter = new FriendPresenter();
-        friendPresenter.attachView(this);
+        mFriendPresenter = new FriendPresenter();
+        mFriendPresenter.attachView(this);
     }
 
     private void initData() {
-        phoneNumber = "";
-        selectedUsers = new ArrayList<>();
-        userArrayList = new ArrayList<>();
+        mPhoneNumber = "";
+        mSelectedUsers = new ArrayList<>();
+        mUserArrayList = new ArrayList<>();
 
         rvSearchResult.setNestedScrollingEnabled(false);
         rvSearchResult.setHasFixedSize(false);
-        linearLayoutManager = new LinearLayoutManager(context, LinearLayout.VERTICAL, false);
-        rvSearchResult.setLayoutManager(linearLayoutManager);
+        mLinearLayoutManager = new LinearLayoutManager(mContext, LinearLayout.VERTICAL, false);
+        rvSearchResult.setLayoutManager(mLinearLayoutManager);
 
-        userListAdapter = new ContactListAdapter(userArrayList, false);
-        rvSearchResult.setAdapter(userListAdapter);
+        mUserListAdapter = new ContactListAdapter(mUserArrayList, false, true, true);
+        rvSearchResult.setAdapter(mUserListAdapter);
         hideLoadingIndicator();
 
         edtPhoneNumber.requestFocus();
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
 
     private void setupEvent() {
         btnAddFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dialog != null) {
-                    selectedUsers.clear();
-                    for (User user : userArrayList) {
+                if (mDialog != null) {
+                    mSelectedUsers.clear();
+                    for (User user : mUserArrayList) {
                         if (user.getSelected()) {
-                            selectedUsers.add(user);
+                            mSelectedUsers.add(user);
                         }
                     }
-                    if (!selectedUsers.isEmpty()) {
-                        friendPresenter.addFriends(selectedUsers);
+                    if (!mSelectedUsers.isEmpty()) {
+                        mFriendPresenter.addFriends(mSelectedUsers);
                         btnAddFriend.setVisibility(View.INVISIBLE);
                         addFriendLoader.setVisibility(View.VISIBLE);
                     } else {
-                        Toast.makeText(context, MyApp.resources.getString(R.string.error_please_select_one_user), Toast.LENGTH_LONG).show();
+                        Toast.makeText(mContext, MyApp.resources.getString(R.string.error_please_select_one_user), Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -147,16 +146,16 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
         ivSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                phoneNumber = edtPhoneNumber.getText().toString().trim();
-                if (TextUtils.isEmpty(phoneNumber)) {
-                    Toast.makeText(context, MyApp.resources.getString(R.string.error_invalid_phone_number), Toast.LENGTH_LONG).show();
+                mPhoneNumber = edtPhoneNumber.getText().toString().trim();
+                if (TextUtils.isEmpty(mPhoneNumber)) {
+                    Toast.makeText(mContext, MyApp.resources.getString(R.string.error_invalid_phone_number), Toast.LENGTH_LONG).show();
                 } else {
-                    formatPhoneNumber(phoneNumber);
-                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-                    phoneNumber = countryCodePicker.getSelectedCountryCodeWithPlus() + phoneNumber;
-                    userArrayList.clear();
-                    userListAdapter.notifyDataSetChanged();
-                    friendPresenter.searchFriendByPhoneNumber(phoneNumber);
+                    mPhoneNumber = formatPhoneNumber(mPhoneNumber);
+                    mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                    mPhoneNumber = countryCodePicker.getSelectedCountryCodeWithPlus() + mPhoneNumber;
+                    mUserArrayList.clear();
+                    mUserListAdapter.notifyDataSetChanged();
+                    mFriendPresenter.searchFriendByPhoneNumber(mPhoneNumber);
                 }
             }
         });
@@ -204,9 +203,12 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
         if (users != null && !users.isEmpty()) {
             hideLoadingIndicator();
             rvSearchResult.setVisibility(View.VISIBLE);
-            userArrayList.addAll(users);
-            userListAdapter.notifyDataSetChanged();
+            mUserArrayList.clear();
+            mUserArrayList.addAll(users);
+            mUserListAdapter.notifyDataSetChanged();
         } else {
+            mUserArrayList.clear();
+            mUserListAdapter.notifyDataSetChanged();
             rvSearchResult.setVisibility(View.GONE);
             showEmptyDataIndicator();
         }
@@ -214,23 +216,24 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
 
     @Override
     public void addFriendSuccess(String message) {
-        dialog.dismiss();
-        if (searchFriendListener != null) {
-            searchFriendListener.onAddedFriendListener(selectedUsers);
+        mDialog.dismiss();
+        if (mSearchFriendListener != null) {
+            mSearchFriendListener.onAddedFriendListener(mSelectedUsers);
         }
     }
 
     @Override
     public void addFriendFail(String message) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
         btnAddFriend.setVisibility(View.VISIBLE);
         addFriendLoader.setVisibility(View.GONE);
     }
 
-    private void formatPhoneNumber(String phoneNumber) {
+    private String formatPhoneNumber(String phoneNumber) {
         if (phoneNumber.charAt(0) == '0') {
             phoneNumber = phoneNumber.substring(1);
         }
+        return phoneNumber;
     }
 }
 

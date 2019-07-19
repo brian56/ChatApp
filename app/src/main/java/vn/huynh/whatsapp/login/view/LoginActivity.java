@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +24,7 @@ import vn.huynh.whatsapp.login.presenter.LoginPresenter;
 import vn.huynh.whatsapp.utils.AppUtils;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.ViewUtils;
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
@@ -52,14 +52,14 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     private static final String TAG = LoginActivity.class.getSimpleName();
 
-    private String name = "";
-    private String phoneNumber = "";
-    private String code = "";
-    private boolean isLogin = true;
+    private String mUserName = "";
+    private String mPhoneNumber = "";
+    private String mVerifyCode = "";
+    private boolean mIsLogin = true;
 
-    private LoginPresenter presenter;
-    private CountDownTimer countDownTimer;
-    private boolean updateVerifyButton = true;
+    private LoginPresenter mLoginPresenter;
+    private CountDownTimer mCountDownTimer;
+    private boolean mUpdateVerifyButton = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,14 +72,14 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     private void initialize() {
         FirebaseApp.initializeApp(this);
-        presenter = new LoginPresenter();
-        presenter.attachView(this);
-        presenter.setLogin(isLogin);
-        presenter.checkLogin();
+        mLoginPresenter = new LoginPresenter();
+        mLoginPresenter.attachView(this);
+        mLoginPresenter.setLogin(mIsLogin);
+        mLoginPresenter.checkLogin();
         AppUtils.hideKeyBoard(getApplicationContext(), edtPhoneNumber);
-        countDownTimer = new CountDownTimer(Constant.TIMEOUT_VERIFY_SMS * 1000, 1000) {
+        mCountDownTimer = new CountDownTimer(Constant.TIMEOUT_VERIFY_SMS * 1000, 1000) {
             public void onTick(long millisUntilFinished) {
-                if (updateVerifyButton) {
+                if (mUpdateVerifyButton) {
                     long second = millisUntilFinished / 1000;
                     btnVerify.setText(getResources().getString(R.string.label_verify, second));
                 }
@@ -98,27 +98,27 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             @Override
             public void onClick(View v) {
                 edtPhoneNumber.setError(null);
-                if (isLogin) {
+                if (mIsLogin) {
                     //login
-                    if (checkInput(false, isLogin)) {
+                    if (checkInput(false, mIsLogin)) {
                         btnVerify.setEnabled(false);
                         toggleInputViews(false);
                         btnVerify.setText("");
                         circularDotsLoader.setVisibility(View.VISIBLE);
-                        presenter.sendVerificationCode(LoginActivity.this, phoneNumber, "");
+                        mLoginPresenter.sendVerificationCode(LoginActivity.this, mPhoneNumber, "");
                     } else {
                         Toast.makeText(getApplicationContext(), "Please provide phone number", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     //register
-                    if (checkInput(false, isLogin)) {
+                    if (checkInput(false, mIsLogin)) {
                         btnVerify.setEnabled(false);
                         toggleInputViews(false);
                         btnVerify.setText("");
                         circularDotsLoader.setVisibility(View.VISIBLE);
-                        presenter.sendVerificationCode(LoginActivity.this, phoneNumber, name);
+                        mLoginPresenter.sendVerificationCode(LoginActivity.this, mPhoneNumber, mUserName);
                     } else {
-                        Toast.makeText(getApplicationContext(), "Please provide phone number and name", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Please provide phone number and mUserName", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -130,22 +130,22 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         tvLoginOrRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (countDownTimer != null) {
-                    countDownTimer.cancel();
+                if (mCountDownTimer != null) {
+                    mCountDownTimer.cancel();
                 }
                 ViewUtils.collapseWidth(edtCode);
                 setEventButtonVerify();
-                if (isLogin) {
+                if (mIsLogin) {
                     //switch to register
-                    isLogin = false;
-                    presenter.setLogin(isLogin);
+                    mIsLogin = false;
+                    mLoginPresenter.setLogin(mIsLogin);
                     tvTitle.setText(getResources().getString(R.string.label_register_account));
                     tvLoginOrRegister.setText(getResources().getString(R.string.label_tap_to_login));
                     ViewUtils.expand(edtName);
                 } else {
                     //switch to login
-                    isLogin = true;
-                    presenter.setLogin(isLogin);
+                    mIsLogin = true;
+                    mLoginPresenter.setLogin(mIsLogin);
                     tvTitle.setText(getResources().getString(R.string.label_log_in));
                     tvLoginOrRegister.setText(getResources().getString(R.string.label_tap_to_register));
                     ViewUtils.collapse(edtName);
@@ -183,8 +183,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void showVerifyButton() {
         btnVerify.setEnabled(true);
         btnVerify.setText(getResources().getString(R.string.label_verify));
-        if (countDownTimer != null)
-            countDownTimer.start();
+        if (mCountDownTimer != null)
+            mCountDownTimer.start();
 
         circularDotsLoader.setVisibility(View.GONE);
         ViewUtils.expandWidth(edtCode);
@@ -194,22 +194,22 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         btnVerify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkInput(true, isLogin)) {
+                if (checkInput(true, mIsLogin)) {
                     btnVerify.setEnabled(false);
                     toggleInputViews(false);
-                    updateVerifyButton = false;
+                    mUpdateVerifyButton = false;
                     btnVerify.setText("");
                     btnVerify.setEnabled(false);
                     circularDotsLoader.setVisibility(View.VISIBLE);
-                    if (isLogin) {
-                        presenter.doLogin(LoginActivity.this, phoneNumber, code);
+                    if (mIsLogin) {
+                        mLoginPresenter.doLogin(LoginActivity.this, mPhoneNumber, mVerifyCode);
                     } else {
-                        presenter.doRegister(LoginActivity.this, name, phoneNumber, code);
+                        mLoginPresenter.doRegister(LoginActivity.this, mUserName, mPhoneNumber, mVerifyCode);
                     }
                 } else {
                     edtCode.setEnabled(true);
                     edtCode.requestFocus();
-                    Toast.makeText(getApplicationContext(), "Please provide verify code", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Please provide verify mVerifyCode", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -237,18 +237,18 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void noLoggedInMoveToLogin() {
-        if (countDownTimer != null)
-            countDownTimer.cancel();
-        isLogin = false;
-        presenter.setLogin(isLogin);
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
+        mIsLogin = false;
+        mLoginPresenter.setLogin(mIsLogin);
         llLoading.setVisibility(View.GONE);
     }
 
     @Override
     public void loggedInMoveToHome() {
-        if (countDownTimer != null)
-            countDownTimer.cancel();
-        if (isLogin) {
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
+        if (mIsLogin) {
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_login_successful), Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_register_successful), Toast.LENGTH_LONG).show();
@@ -261,10 +261,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void timeOut(String message) {
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_timeout_please_try_again), Toast.LENGTH_LONG).show();
-        Log.d(TAG, "timeOut: " + message);
+        LogManagerUtils.d(TAG, "timeOut: " + message);
         toggleInputViews(true);
-        if (countDownTimer != null)
-            countDownTimer.cancel();
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
 
         edtCode.setText("");
         setEvents();
@@ -273,20 +273,20 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         btnVerify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String oldPhone = phoneNumber;
-                if (checkInput(false, isLogin)) {
-                    if (oldPhone.equals(phoneNumber)) {
+                String oldPhone = mPhoneNumber;
+                if (checkInput(false, mIsLogin)) {
+                    if (oldPhone.equals(mPhoneNumber)) {
                         //same phone number
-                        presenter.resendVerificationCode(LoginActivity.this, phoneNumber);
+                        mLoginPresenter.resendVerificationCode(LoginActivity.this, mPhoneNumber);
                     } else {
                         //new phone number
-                        presenter.sendVerificationCode(LoginActivity.this, phoneNumber, name);
+                        mLoginPresenter.sendVerificationCode(LoginActivity.this, mPhoneNumber, mUserName);
                     }
                 } else {
-                    if (isLogin) {
+                    if (mIsLogin) {
                         Toast.makeText(getApplicationContext(), "Please provide phone number", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getApplicationContext(), "Please provide phone number and name", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Please provide phone number and mUserName", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -299,10 +299,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void loginFail(String message) {
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_login_failed_please_try_again), Toast.LENGTH_LONG).show();
-        Log.d(TAG, "loginFail: " + message);
+        LogManagerUtils.d(TAG, "loginFail: " + message);
         toggleInputViews(true);
-        if (countDownTimer != null)
-            countDownTimer.cancel();
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
 
         setEvents();
         btnVerify.setEnabled(true);
@@ -315,8 +315,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void invalidCode(String message) {
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_invalid_verify_code_please_try_again), Toast.LENGTH_LONG).show();
-        Log.d(TAG, "invalidCode :" + message);
-        updateVerifyButton = true;
+        LogManagerUtils.d(TAG, "invalidCode :" + message);
+        mUpdateVerifyButton = true;
         edtCode.setEnabled(true);
 
         btnVerify.setEnabled(true);
@@ -327,11 +327,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void verifyFail(String message) {
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_verify_failed_please_try_again), Toast.LENGTH_LONG).show();
-        Log.d(TAG, "verifyFail :" + message);
+        LogManagerUtils.d(TAG, "verifyFail :" + message);
         toggleInputViews(true);
 
-        if (countDownTimer != null)
-            countDownTimer.cancel();
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
 
         btnVerify.setEnabled(true);
         btnVerify.setText(getResources().getString(R.string.label_send_code));
@@ -341,10 +341,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     }
 
     private boolean checkInput(boolean checkCode, boolean isLogin) {
-        name = edtName.getText().toString().trim();
-        phoneNumber = countryCodePicker.getSelectedCountryCodeWithPlus() + edtPhoneNumber.getText().toString().trim();
-        phoneNumber = ChatUtils.formatPhone(phoneNumber, getApplicationContext());
-        code = edtCode.getText().toString().trim();
+        mUserName = edtName.getText().toString().trim();
+        mPhoneNumber = countryCodePicker.getSelectedCountryCodeWithPlus() + edtPhoneNumber.getText().toString().trim();
+        mPhoneNumber = ChatUtils.formatPhone(mPhoneNumber, getApplicationContext());
+        mVerifyCode = edtCode.getText().toString().trim();
 
         if (checkCode)
             return !(edtPhoneNumber.getText().toString().trim().isEmpty() || (!isLogin && edtName.getText().toString().trim().isEmpty())
@@ -356,9 +356,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null)
-            countDownTimer.cancel();
-        presenter.detachView();
+        if (mCountDownTimer != null)
+            mCountDownTimer.cancel();
+        mLoginPresenter.detachView();
     }
 
     @Override

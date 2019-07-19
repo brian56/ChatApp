@@ -1,20 +1,15 @@
 package vn.huynh.whatsapp.custom_views;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.LayoutRes;
-import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.widget.BottomNavigationView;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import java.lang.reflect.Field;
 
 import vn.huynh.whatsapp.R;
 
@@ -23,8 +18,9 @@ import vn.huynh.whatsapp.R;
  */
 
 public class BadgedBottomNavigationBar extends BottomNavigationView {
+    private static final String TAG = BadgedBottomNavigationBar.class.getSimpleName();
     @LayoutRes
-    int badgeLayoutResId;
+    int mBadgeLayoutResId;
 
     public BadgedBottomNavigationBar(Context context) {
         super(context);
@@ -33,7 +29,7 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
     public BadgedBottomNavigationBar(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.badgedBottomNavigationBar);
-        badgeLayoutResId = a.getResourceId(R.styleable.badgedBottomNavigationBar_badge_layout, -1);
+        mBadgeLayoutResId = a.getResourceId(R.styleable.badgedBottomNavigationBar_badge_layout, -1);
         a.recycle();
     }
 
@@ -42,7 +38,7 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
     }
 
     /**
-     * show the badge on the menu item view.
+     * show the badge on the menu item mChatListview.
      *
      * @param menuItemIndex
      */
@@ -54,20 +50,20 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
             //NUMBER_OF_MENU_ITEM_VIEW_CHILDREN_WITHOUT_BADGE
             if (((ViewGroup) view).getChildCount() > 2)
                 return;
-//            while (((ViewGroup) view).getChildCount() > 2) {
-//                ((ViewGroup) view).removeViewAt(((ViewGroup) view).getChildCount() - 1);
+//            while (((ViewGroup) mChatListview).getChildCount() > 2) {
+//                ((ViewGroup) mChatListview).removeViewAt(((ViewGroup) mChatListview).getChildCount() - 1);
 //            }
         }
         android.support.design.internal.BottomNavigationItemView bottomNavigationItemView =
                 (android.support.design.internal.BottomNavigationItemView) view;
 
-        LayoutInflater.from(getContext()).inflate(badgeLayoutResId != -1 ? badgeLayoutResId : R.layout.notification_badge, bottomNavigationItemView,
+        LayoutInflater.from(getContext()).inflate(mBadgeLayoutResId != -1 ? mBadgeLayoutResId : R.layout.notification_badge, bottomNavigationItemView,
                 true);
 
     }
 
     /**
-     * this method to removeFriends dot [badge view] if it's already inflated on the menu item.
+     * this method to removeFriends dot [badge mChatListview] if it's already inflated on the menu item.
      *
      * @param menuItemIndex the menu item index
      */
@@ -84,7 +80,7 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
             if (childCount < 3) return;
         }
         android.support.design.internal.BottomNavigationItemView itemView = (android.support.design.internal.BottomNavigationItemView) v;
-        // removeFriends the last child [badge view]
+        // removeFriends the last child [badge mChatListview]
         itemView.removeViewAt(itemView.getChildCount() - 1);
         int chld = itemView.getChildCount();
         int i = 0;
@@ -103,50 +99,50 @@ public class BadgedBottomNavigationBar extends BottomNavigationView {
         }
     }
 
-    @SuppressLint("RestrictedApi")
-    public void removeShiftMode() {
-        android.support.design.internal.BottomNavigationMenuView bottomNavigationView =
-                (android.support.design.internal.BottomNavigationMenuView) getChildAt(0);
-        try {
-            Field shiftingMode = bottomNavigationView.getClass().getDeclaredField("mShiftingMode");
-            shiftingMode.setAccessible(true);
-            shiftingMode.setBoolean(bottomNavigationView, false);
-            shiftingMode.setAccessible(false);
-            for (int i = 0; i < bottomNavigationView.getChildCount(); i++) {
-                BottomNavigationItemView item = (BottomNavigationItemView) bottomNavigationView.getChildAt(i);
-                item.setShiftingMode(false);
-                // set once again checked value, so view will be updated
-                item.setChecked(item.getItemData().isChecked());
-            }
-        } catch (NoSuchFieldException e) {
-            Log.e("ERROR NO SUCH FIELD", "Unable to get shift mode field");
-        } catch (IllegalAccessException e) {
-            Log.e("ERROR ILLEGAL ALG", "Unable to change value of shift mode");
-        }
-    }
-
-    @SuppressLint("RestrictedApi")
-    public void removeTextAndShiftMode() {
-        android.support.design.internal.BottomNavigationMenuView bottomNavigationView =
-                (android.support.design.internal.BottomNavigationMenuView) getChildAt(0);
-        try {
-            Field shiftingMode = bottomNavigationView.getClass().getDeclaredField("mShiftingMode");
-            shiftingMode.setAccessible(true);
-            shiftingMode.setBoolean(bottomNavigationView, false);
-            shiftingMode.setAccessible(false);
-            for (int i = 0; i < bottomNavigationView.getChildCount(); i++) {
-                BottomNavigationItemView item = (BottomNavigationItemView) bottomNavigationView.getChildAt(i);
-                //noinspection RestrictedApi
-                item.setShiftingMode(false);
-                item.setPadding(0, 16, 0, 0);
-                // set once again checked value, so view will be updated
-                //noinspection RestrictedApi
-                item.setChecked(item.getItemData().isChecked());
-            }
-        } catch (NoSuchFieldException e) {
-            Log.e("BNVHelper", "Unable to get shift mode field", e);
-        } catch (IllegalAccessException e) {
-            Log.e("BNVHelper", "Unable to change value of shift mode", e);
-        }
-    }
+//    @SuppressLint("RestrictedApi")
+//    public void removeShiftMode() {
+//        android.support.design.internal.BottomNavigationMenuView bottomNavigationView =
+//                (android.support.design.internal.BottomNavigationMenuView) getChildAt(0);
+//        try {
+//            Field shiftingMode = bottomNavigationView.getClass().getDeclaredField("mShiftingMode");
+//            shiftingMode.setAccessible(true);
+//            shiftingMode.setBoolean(bottomNavigationView, false);
+//            shiftingMode.setAccessible(false);
+//            for (int i = 0; i < bottomNavigationView.getChildCount(); i++) {
+//                BottomNavigationItemView item = (BottomNavigationItemView) bottomNavigationView.getChildAt(i);
+//                item.setLabelVisibilityMode(LabelVisibilityMode.LABEL_VISIBILITY_UNLABELED);
+//                // set once again checked value, so mChatListview will be updated
+//                item.setChecked(item.getItemData().isChecked());
+//            }
+//        } catch (NoSuchFieldException e) {
+//            Log.e("ERROR NO SUCH FIELD", "Unable to get shift mode field");
+//        } catch (IllegalAccessException e) {
+//            Log.e("ERROR ILLEGAL ALG", "Unable to change value of shift mode");
+//        }
+//    }
+//
+//    @SuppressLint("RestrictedApi")
+//    public void removeTextAndShiftMode() {
+//        android.support.design.internal.BottomNavigationMenuView bottomNavigationView =
+//                (android.support.design.internal.BottomNavigationMenuView) getChildAt(0);
+//        try {
+//            Field shiftingMode = bottomNavigationView.getClass().getDeclaredField("mShiftingMode");
+//            shiftingMode.setAccessible(true);
+//            shiftingMode.setBoolean(bottomNavigationView, false);
+//            shiftingMode.setAccessible(false);
+//            for (int i = 0; i < bottomNavigationView.getChildCount(); i++) {
+//                BottomNavigationItemView item = (BottomNavigationItemView) bottomNavigationView.getChildAt(i);
+//                //noinspection RestrictedApi
+//                item.setLabelVisibilityMode(LabelVisibilityMode.LABEL_VISIBILITY_UNLABELED);
+//                item.setPadding(0, 16, 0, 0);
+//                // set once again checked value, so mChatListview will be updated
+//                //noinspection RestrictedApi
+//                item.setChecked(item.getItemData().isChecked());
+//            }
+//        } catch (NoSuchFieldException e) {
+//            Log.e("BNVHelper", "Unable to get shift mode field", e);
+//        } catch (IllegalAccessException e) {
+//            Log.e("BNVHelper", "Unable to change value of shift mode", e);
+//        }
+//    }
 }

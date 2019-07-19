@@ -31,52 +31,52 @@ import vn.huynh.whatsapp.utils.Constant;
 public class LoginPresenter implements LoginContract.Presenter {
     private static final String TAG = LoginPresenter.class.getSimpleName();
 
-    private LoginContract.View view;
-    private UserRepository userRepo;
+    private LoginContract.View mLoginView;
+    private UserRepository mUserRepo;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
-    private String verificationId;
-    private PhoneAuthProvider.ForceResendingToken resendingToken;
-    private boolean isLogin = false;
+    private String mVerificationId;
+    private PhoneAuthProvider.ForceResendingToken mResendingToken;
+    private boolean mIsLogin = false;
 
     public LoginPresenter() {
-        userRepo = new UserRepository();
+        mUserRepo = new UserRepository();
     }
 
     public void setLogin(boolean login) {
-        this.isLogin = login;
+        this.mIsLogin = login;
     }
 
     @Override
     public void attachView(BaseView view) {
-        this.view = (LoginContract.View) view;
+        this.mLoginView = (LoginContract.View) view;
     }
 
     @Override
     public void detachView() {
-        this.view = null;
-        this.userRepo.removeListener();
+        this.mLoginView = null;
+        this.mUserRepo.removeListener();
     }
 
     @Override
     public void checkLogin() {
-        userRepo.isLoggedIn(new UserInterface.CheckLoginCallBack() {
+        mUserRepo.isLoggedIn(new UserInterface.CheckLoginCallBack() {
             @Override
             public void alreadyLoggedIn(User user) {
                 if (user != null) {
                     ChatUtils.setUser(user);
                 }
-                if (view != null) {
-                    view.loggedInMoveToHome();
+                if (mLoginView != null) {
+                    mLoginView.loggedInMoveToHome();
                 }
             }
 
             @Override
             public void noLoggedIn() {
-                if (view != null) {
+                if (mLoginView != null) {
                     FirebaseAuth.getInstance().signOut();
                     OneSignal.setSubscription(false);
                     ChatUtils.clearUser();
-                    view.noLoggedInMoveToLogin();
+                    mLoginView.noLoggedInMoveToLogin();
                 }
             }
         });
@@ -84,26 +84,26 @@ public class LoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void sendVerificationCode(final Activity activity, final String phoneNumber, final String name) {
-        userRepo.checkPhoneNumberExist(phoneNumber, new UserInterface.CheckPhoneNumberExistCallBack() {
+        mUserRepo.checkPhoneNumberExist(phoneNumber, new UserInterface.CheckPhoneNumberExistCallBack() {
             @Override
             public void exist() {
-                if (isLogin) {
+                if (mIsLogin) {
                     //login
                     initBeforeLogin(activity, name);
                     startPhoneNumberVerification(activity, phoneNumber);
                 } else {
                     //register
-                    if (view != null)
-                        view.userExistDoLogin();
+                    if (mLoginView != null)
+                        mLoginView.userExistDoLogin();
                 }
             }
 
             @Override
             public void notExist() {
-                if (isLogin) {
+                if (mIsLogin) {
                     //login
-                    if (view != null)
-                        view.userNotExistDoRegister();
+                    if (mLoginView != null)
+                        mLoginView.userNotExistDoRegister();
                 } else {
                     //register
                     initBeforeLogin(activity, name);
@@ -120,23 +120,23 @@ public class LoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void doRegister(Activity activity, String name, String phoneNumber, String input) {
-        if (view != null)
-            view.showLoadingIndicator();
-        if (verificationId != null) {
-            verifyPhoneNumberWithCode(activity, name, verificationId, input);
+        if (mLoginView != null)
+            mLoginView.showLoadingIndicator();
+        if (mVerificationId != null) {
+            verifyPhoneNumberWithCode(activity, name, mVerificationId, input);
         } else {
-            view.verifyFail("verification null");
+            mLoginView.verifyFail("verification null");
         }
     }
 
     @Override
     public void doLogin(Activity activity, String phoneNumber, String input) {
-        if (view != null)
-            view.showLoadingIndicator();
-        if (verificationId != null) {
-            verifyPhoneNumberWithCode(activity, "", verificationId, input);
+        if (mLoginView != null)
+            mLoginView.showLoadingIndicator();
+        if (mVerificationId != null) {
+            verifyPhoneNumberWithCode(activity, "", mVerificationId, input);
         } else {
-            view.verifyFail("verification null");
+            mLoginView.verifyFail("verification null");
         }
     }
 
@@ -158,7 +158,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                 TimeUnit.SECONDS,   // Unit of timeout
                 activity,               // Activity (for callback binding)
                 mCallbacks,         // OnVerificationStateChangedCallbacks
-                resendingToken);             // ForceResendingToken from callbacks
+                mResendingToken);             // ForceResendingToken from callbacks
     }
 
     @Override
@@ -171,25 +171,25 @@ public class LoginPresenter implements LoginContract.Presenter {
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
-                verificationId = null;
-                if (view != null)
-                    view.verifyFail(e.getMessage());
+                mVerificationId = null;
+                if (mLoginView != null)
+                    mLoginView.verifyFail(e.getMessage());
             }
 
             @Override
             public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(s, forceResendingToken);
-                resendingToken = forceResendingToken;
-                verificationId = s;
-                if (view != null)
-                    view.showVerifyButton();
+                mResendingToken = forceResendingToken;
+                mVerificationId = s;
+                if (mLoginView != null)
+                    mLoginView.showVerifyButton();
             }
 
             @Override
             public void onCodeAutoRetrievalTimeOut(String s) {
                 super.onCodeAutoRetrievalTimeOut(s);
-                if (view != null)
-                    view.timeOut(s);
+                if (mLoginView != null)
+                    mLoginView.timeOut(s);
             }
         };
     }
@@ -198,20 +198,20 @@ public class LoginPresenter implements LoginContract.Presenter {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
+                if (mLoginView != null) {
+                    mLoginView.hideLoadingIndicator();
                 }
                 if (task.isSuccessful()) {
                     final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                     if (firebaseUser != null) {
-                        userRepo.getCurrentUserData(firebaseUser.getUid(), new UserInterface.LoadContactCallBack() {
+                        mUserRepo.getCurrentUserData(firebaseUser.getUid(), new UserInterface.LoadContactCallBack() {
                             @Override
                             public void loadSuccess(User user) {
                                 if (user != null) {
                                     ChatUtils.setUser(user);
                                     checkLogin();
                                 } else {
-                                    userRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                    mUserRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                                         @Override
                                         public void createSuccess() {
                                             checkLogin();
@@ -219,8 +219,8 @@ public class LoginPresenter implements LoginContract.Presenter {
 
                                         @Override
                                         public void createFail(String error) {
-                                            if (view != null) {
-                                                view.loginFail(error);
+                                            if (mLoginView != null) {
+                                                mLoginView.loginFail(error);
                                             }
                                         }
                                     });
@@ -229,7 +229,7 @@ public class LoginPresenter implements LoginContract.Presenter {
 
                             @Override
                             public void loadFail(String message) {
-                                userRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                                mUserRepo.createUser(firebaseUser.getUid(), firebaseUser.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                                     @Override
                                     public void createSuccess() {
                                         checkLogin();
@@ -237,14 +237,14 @@ public class LoginPresenter implements LoginContract.Presenter {
 
                                     @Override
                                     public void createFail(String error) {
-                                        if (view != null) {
-                                            view.loginFail(error);
+                                        if (mLoginView != null) {
+                                            mLoginView.loginFail(error);
                                         }
                                     }
                                 });
                             }
                         });
-                        /*userRepo.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
+                        /*mUserRepo.createUser(user.getUid(), user.getPhoneNumber(), name, new UserInterface.CreateUserCallBack() {
                             @Override
                             public void createSuccess() {
                                 checkLogin();
@@ -252,8 +252,8 @@ public class LoginPresenter implements LoginContract.Presenter {
 
                             @Override
                             public void createFail(String error) {
-                                if(view != null) {
-                                    view.loginFail(error);
+                                if(mChatListview != null) {
+                                    mChatListview.loginFail(error);
                                 }
                             }
                         });*/
@@ -263,10 +263,10 @@ public class LoginPresenter implements LoginContract.Presenter {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-//                verificationId = null;
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.invalidCode(e.getMessage());
+//                mVerificationId = null;
+                if (mLoginView != null) {
+                    mLoginView.hideLoadingIndicator();
+                    mLoginView.invalidCode(e.getMessage());
                 }
             }
         });

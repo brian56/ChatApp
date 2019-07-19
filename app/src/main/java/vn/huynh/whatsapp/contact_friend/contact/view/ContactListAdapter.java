@@ -1,5 +1,6 @@
 package vn.huynh.whatsapp.contact_friend.contact.view;
 
+import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import agency.tango.android.avatarview.views.AvatarView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
+import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.GlideLoader;
 
@@ -26,19 +28,26 @@ import vn.huynh.whatsapp.utils.GlideLoader;
 
 public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.UserListViewHolder> {
     private static final String TAG = ContactListAdapter.class.getSimpleName();
-    private ArrayList<User> userList;
-    private boolean contactClickable = true;
-    private OnItemClickListener onItemClickListener;
+    private ArrayList<User> mUserList;
+    private boolean mContactClickable = true;
+    private boolean mShowFriendStatus = false;
+    private boolean mShowCheckbox = false;
+    private OnItemClickListener mOnItemClickListener;
 
-    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable) {
-        this.userList = userList;
-        this.contactClickable = contactClickable;
+    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable, boolean showCheckbox, boolean showFriendStatus) {
+        this.mUserList = userList;
+        this.mContactClickable = contactClickable;
+        this.mShowCheckbox = showCheckbox;
+        this.mShowFriendStatus = showFriendStatus;
     }
 
-    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable, OnItemClickListener onItemClickListener) {
-        this.userList = userList;
-        this.contactClickable = contactClickable;
-        this.onItemClickListener = onItemClickListener;
+    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable, boolean showCheckbox,
+                              boolean showFriendStatus, OnItemClickListener onItemClickListener) {
+        this.mUserList = userList;
+        this.mShowFriendStatus = showFriendStatus;
+        this.mShowCheckbox = showCheckbox;
+        this.mContactClickable = contactClickable;
+        this.mOnItemClickListener = onItemClickListener;
     }
 
     @Override
@@ -51,59 +60,101 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
 
     @Override
     public void onBindViewHolder(final UserListViewHolder holder, int position) {
-        holder.tvName.setText(userList.get(position).getName());
-        holder.tvPhone.setText(userList.get(position).getPhoneNumber());
-        holder.iImageLoader = new GlideLoader();
-        holder.iImageLoader.loadImage(holder.avatarView, userList.get(holder.getAdapterPosition()).getAvatar(), userList.get(holder.getAdapterPosition()).getName());
-        if (contactClickable) {
+        holder.tvName.setText(mUserList.get(position).getName());
+        holder.tvPhone.setText(mUserList.get(position).getPhoneNumber());
+        holder.mIImageLoader = new GlideLoader();
+        holder.mIImageLoader.loadImage(holder.avatarView, mUserList.get(holder.getAdapterPosition()).getAvatar(), mUserList.get(holder.getAdapterPosition()).getName());
+        if (mShowCheckbox) {
+            holder.cbAdd.setVisibility(View.VISIBLE);
+            holder.cbAdd.setChecked(mUserList.get(holder.getAdapterPosition()).getSelected());
+            holder.cbAdd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mUserList.get(holder.getAdapterPosition()).setSelected(isChecked);
+                }
+            });
+        } else {
             holder.cbAdd.setVisibility(View.GONE);
-            if (userList.get(holder.getAdapterPosition()).getRegisteredUser()) {
+        }
+        if (mShowFriendStatus) {
+            holder.cbAdd.setVisibility(View.GONE);
+            holder.ivAddFriend.setVisibility(View.VISIBLE);
+            switch (mUserList.get(holder.getAdapterPosition()).getFriendStatus()) {
+                case Friend.STATUS_ACCEPT:
+                case Friend.STATUS_WAS_ACCEPTED:
+                    holder.ivAddFriend.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+                    holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    break;
+
+                case Friend.STATUS_REQUEST:
+                    holder.ivAddFriend.setImageResource(R.drawable.ic_watch_later_black_24dp);
+                    holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    break;
+
+                case Friend.STATUS_WAS_REQUESTED:
+                    holder.ivAddFriend.setImageResource(R.drawable.ic_mail_black_24dp);
+                    holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    break;
+
+                case Friend.STATUS_BLOCK:
+                case Friend.STATUS_WAS_BLOCKED:
+                    holder.ivAddFriend.setVisibility(View.GONE);
+                    break;
+
+                default:
+                    if (mShowCheckbox) {
+                        holder.cbAdd.setVisibility(View.VISIBLE);
+                        holder.ivAddFriend.setVisibility(View.GONE);
+                    } else {
+                        holder.ivAddFriend.setImageResource(R.drawable.ic_person_add_grey_24dp);
+                        holder.ivAddFriend.setColorFilter(R.color.colorAccent, PorterDuff.Mode.SRC_IN);
+                        holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mOnItemClickListener != null) {
+                                    mOnItemClickListener.onAddFriend(mUserList.get(holder.getAdapterPosition()));
+                                }
+                            }
+                        });
+                    }
+                    break;
+            }
+        } else {
+            holder.ivAddFriend.setVisibility(View.GONE);
+        }
+        if (mContactClickable) {
+            if (mUserList.get(holder.getAdapterPosition()).getRegisteredUser()) {
                 //registered user
-                holder.ivInvite.setVisibility(View.GONE);
                 holder.ivAddFriend.setVisibility(View.VISIBLE);
                 holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        User user = userList.get(holder.getAdapterPosition());
-                        onItemClickListener.onAddFriend(user);
+                        User user = mUserList.get(holder.getAdapterPosition());
+                        mOnItemClickListener.onAddFriend(user);
                     }
                 });
                 holder.linearLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        User user = userList.get(holder.getAdapterPosition());
-                        onItemClickListener.onChat(user);
+                        User user = mUserList.get(holder.getAdapterPosition());
+                        mOnItemClickListener.onChat(user);
                     }
                 });
             } else {
                 //not registered user
                 holder.ivAddFriend.setVisibility(View.GONE);
-                holder.ivInvite.setVisibility(View.VISIBLE);
-                holder.ivInvite.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        User user = userList.get(holder.getAdapterPosition());
-                        onItemClickListener.onInvite(user);
-                    }
-                });
             }
         } else {
-            holder.cbAdd.setVisibility(View.VISIBLE);
             holder.linearLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    holder.cbAdd.performClick();
-                }
-            });
-            holder.cbAdd.setChecked(userList.get(holder.getAdapterPosition()).getSelected());
-            holder.cbAdd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    userList.get(holder.getAdapterPosition()).setSelected(isChecked);
+                    if (mShowCheckbox)
+                        holder.cbAdd.performClick();
                 }
             });
         }
-        if (userList.get(holder.getAdapterPosition()).getRegisteredUser()) {
+
+        if (mUserList.get(holder.getAdapterPosition()).getRegisteredUser()) {
             holder.setAlpha(1);
         } else {
             holder.setAlpha(0.4f);
@@ -112,21 +163,21 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
 
     @Override
     public int getItemCount() {
-        if (userList != null)
-            return userList.size();
+        if (mUserList != null)
+            return mUserList.size();
         else
             return 0;
     }
 
 //    private void createChat(final int position) {
-//        final String key = ChatUtils.getChatId(FirebaseAuth.getInstance().getUid(), userList.get(position).getId());
+//        final String key = ChatUtils.getChatId(FirebaseAuth.getInstance().getUid(), mUserList.get(position).getId());
 //        //String key = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
 //
 //        HashMap newChatMap = new HashMap();
 //        newChatMap.put("id", key);
 //        newChatMap.put("group", false);
 //        newChatMap.put("users/" + FirebaseAuth.getInstance().getUid(), true);
-//        newChatMap.put("users/" + userList.get(position).getId(), true);
+//        newChatMap.put("users/" + mUserList.get(position).getId(), true);
 //
 //        DatabaseReference chatInfoDb = FirebaseDatabase.getInstance().getReference().child("chat").child(key).child("info");
 //        chatInfoDb.updateChildren(newChatMap, new DatabaseReference.CompletionListener() {
@@ -135,7 +186,7 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
 //                if (databaseError == null) {
 //                    DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("user");
 //                    userDb.child(FirebaseAuth.getInstance().getUid()).child("chat").child(key).setValue(true);
-//                    userDb.child(userList.get(position).getUid()).child("chat").child(key).setValue(true);
+//                    userDb.child(mUserList.get(position).getUid()).child("chat").child(key).setValue(true);
 //
 //                    Intent intent = new Intent(context, ChatActivity.class);
 //                    intent.putExtra("chatId", key);
@@ -160,12 +211,10 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
         CheckBox cbAdd;
         @BindView(R.id.avatar)
         AvatarView avatarView;
-        @BindView(R.id.iv_invite)
-        ImageView ivInvite;
-        @BindView(R.id.iv_add_friend)
+        @BindView(R.id.iv_friend_status)
         ImageView ivAddFriend;
 
-        public IImageLoader iImageLoader;
+        public IImageLoader mIImageLoader;
 
         public UserListViewHolder(View view) {
             super(view);

@@ -4,12 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -22,6 +21,7 @@ import java.io.IOException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 
 public class WebViewActivity extends AppCompatActivity {
     @BindView(R.id.progressBar)
@@ -96,7 +96,7 @@ public class WebViewActivity extends AppCompatActivity {
                         takePictureIntent.putExtra("PhotoPath", mCameraPhotoPath);
                     } catch (IOException ex) {
                         // Error occurred while creating the File
-                        Log.e(TAG, "Unable to create Image File", ex);
+                        LogManagerUtils.e(TAG, "Unable to create Image File: " + ex.getMessage());
                     }
 
                     // continue only if the file was successfully created

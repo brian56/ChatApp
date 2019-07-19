@@ -11,6 +11,7 @@ import vn.huynh.whatsapp.custom_views.sticky_header.stickyData.HeaderData;
 import vn.huynh.whatsapp.custom_views.sticky_header.stickyData.StickyMainData;
 
 public abstract class StickHeaderRecyclerViewAdapter<D extends StickyMainData, H extends HeaderData> extends RecyclerView.Adapter implements StickHeaderItemDecoration.StickyHeaderInterface {
+    private static final String TAG = StickHeaderRecyclerViewAdapter.class.getSimpleName();
     private List<StickyMainData> mData;
 
     @Override
@@ -100,11 +101,13 @@ public abstract class StickHeaderRecyclerViewAdapter<D extends StickyMainData, H
         if (header != null && !mData.contains(header)) {
             mData.add(headerPosition, header);
             notifyItemInserted(headerPosition);
+            notifyItemRangeChanged(headerPosition, getItemCount());
         }
         int positionHeader = getHeaderPositionByHeaderType(header.getHeaderType());
         int position = positionHeader + 1;
         mData.add(position, data);
         notifyItemInserted(position);
+        notifyItemRangeChanged(position, getItemCount());
     }
 
     public int getHeaderPositionByHeaderType(int headerType) {

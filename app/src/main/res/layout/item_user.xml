@@ -61,25 +61,20 @@
             <CheckBox
                 android:id="@+id/cb_add"
                 android:visibility="gone"
+                android:padding="12dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true" />
 
             <ImageView
-                android:id="@+id/iv_invite"
+                android:id="@+id/iv_friend_status"
                 android:visibility="gone"
+                android:padding="12dp"
+                style="@style/Widget.AppCompat.ActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:src="@drawable/ic_drafts_black_24dp" />
-
-            <ImageView
-                android:id="@+id/iv_add_friend"
-                android:visibility="gone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:src="@drawable/ic_person_add_black_24dp" />
+                android:src="@drawable/ic_person_add_grey_24dp" />
         </RelativeLayout>
 
     </LinearLayout>

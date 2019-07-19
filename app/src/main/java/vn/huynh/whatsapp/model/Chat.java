@@ -3,7 +3,6 @@ package vn.huynh.whatsapp.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.firebase.database.Exclude;
 
@@ -294,7 +293,6 @@ public class Chat implements Parcelable {
             if (group) {
                 if (this.users != null) {
                     for (int i = 0; i < this.users.size(); i++) {
-                        Log.d("User group", this.users.get(i).getName());
                         if (i < this.users.size() - 1)
                             groupName = groupName + this.users.get(i).getName() + ", ";
                         else

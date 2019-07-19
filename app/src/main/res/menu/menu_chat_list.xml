@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".screens.customer_detail.CustomerDetailActivity">
+
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/menu_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        app:showAsAction="always|collapseActionView"
+        app:actionViewClass="android.support.v7.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_add_friend_or_group"
+        android:title="@string/menu_add_friend_group"
+        android:icon="@drawable/ic_add_white_24dp"
+        app:showAsAction="always" />
+</menu>

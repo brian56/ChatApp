@@ -14,11 +14,12 @@ import vn.huynh.whatsapp.utils.MyApp;
  */
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
-    private int int_items;
+    private static final String TAG = ViewPagerAdapter.class.getSimpleName();
+    private int mNumberItems;
 
     public ViewPagerAdapter(FragmentManager fm, int item) {
         super(fm);
-        this.int_items = item;
+        this.mNumberItems = item;
     }
 
     /**
@@ -40,7 +41,7 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return int_items;
+        return mNumberItems;
     }
 
     /**

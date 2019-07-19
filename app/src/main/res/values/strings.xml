@@ -56,6 +56,14 @@
 
     <!--chat list-->
     <string name="label_number_unread_message_max">99+</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_search_hint">User name or Group name</string>
+    <string name="menu_add_friend_group">Add friend or Group</string>
+    <string name="menu_add_friend">Add friend</string>
+    <string name="menu_add_group">Add group</string>
+
+    <string name="action_delete">Delete</string>
+    <string name="action_mute">Mute</string>
 
     <!--contact and friend-->
     <string name="label_friend">Friend</string>
@@ -70,7 +78,7 @@
     <string name="menu_block">Block</string>
     <string name="menu_unblock">Unblock</string>
     <string name="menu_unfriend">Unfriend</string>
-    <string name="menu_cancel">Cancel request</string>
+    <string name="menu_cancel">Cancel</string>
 
     <string name="header_friend">My friend</string>
     <string name="header_friend_request">Friend request</string>
@@ -78,6 +86,7 @@
     <string name="header_friend_my_request">My request</string>
 
     <string name="notification_new_friend_request_from">New friend request from %1$s</string>
+    <string name="notification_your_friend_request_sent">You have sent a friend request to %1$s</string>
     <string name="notification_accept_friend_request">%1$s accepted your friend request.</string>
     <string name="notification_you_two_are_friend">You and %1$s are friend</string>
     <string name="notification_rejected_your_friend_request">%1$s rejected your friend request</string>
@@ -85,8 +94,8 @@
     <string name="notification_block">You were blocked by %1$s</string>
 
     <string name="button_add_friend">Add friend</string>
-    <string name="title_search_friend">Search friend</string>
-    <string name="error_invalid_phone_number">Please provide an valid phone number</string>
+    <string name="title_search_friend">Search user</string>
+    <string name="error_invalid_phone_number">Please provide a valid phone number</string>
     <string name="error_please_select_one_user">Please select one user</string>
 
     <!--date time-->

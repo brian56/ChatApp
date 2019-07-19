@@ -1,7 +1,6 @@
 package vn.huynh.whatsapp.contact_friend.friend.presenter;
 
 import android.app.Activity;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +18,7 @@ import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.model.UserInterface;
 import vn.huynh.whatsapp.model.UserRepository;
 import vn.huynh.whatsapp.utils.ChatUtils;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 
 /**
  * Created by duong on 5/19/2019.
@@ -26,72 +26,72 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 
 public class FriendPresenter implements FriendContract.Presenter {
     public static final String TAG = FriendContract.class.getSimpleName();
-    private ChatInterface chatRepo;
-    private UserInterface userRepo;
-    private FriendInterface friendRepo;
-    private FriendContract.View viewFriend;
-    private FriendContract.ViewSearchFriend viewSearchFriend;
-    private ContactContract.View viewContact;
-    private BaseFragment.NewNotificationCallback newNotificationCallback;
+    private ChatInterface mChatRepo;
+    private UserInterface mUserRepo;
+    private FriendInterface mFriendRepo;
+    private FriendContract.View mViewFriend;
+    private FriendContract.ViewSearchFriend mViewSearchFriend;
+    private ContactContract.View mViewContact;
+    private BaseFragment.NewNotificationCallback mNewNotificationCallback;
 
     public FriendPresenter() {
-        this.chatRepo = new ChatRepository();
-        this.userRepo = new UserRepository();
-        this.friendRepo = new FriendRepository();
+        this.mChatRepo = new ChatRepository();
+        this.mUserRepo = new UserRepository();
+        this.mFriendRepo = new FriendRepository();
     }
 
     @Override
     public void attachView(BaseView view) {
         if (view instanceof FriendContract.View)
-            this.viewFriend = (FriendContract.View) view;
+            this.mViewFriend = (FriendContract.View) view;
         if (view instanceof FriendContract.ViewSearchFriend)
-            this.viewSearchFriend = (FriendContract.ViewSearchFriend) view;
+            this.mViewSearchFriend = (FriendContract.ViewSearchFriend) view;
         if (view instanceof ContactContract.View)
-            this.viewContact = (ContactContract.View) view;
+            this.mViewContact = (ContactContract.View) view;
 
         if (view instanceof BaseFragment.NewNotificationCallback)
-            this.newNotificationCallback = (BaseFragment.NewNotificationCallback) view;
+            this.mNewNotificationCallback = (BaseFragment.NewNotificationCallback) view;
     }
 
     public void attachView(Activity view) {
         if (view instanceof BaseFragment.NewNotificationCallback)
-            this.newNotificationCallback = (BaseFragment.NewNotificationCallback) view;
+            this.mNewNotificationCallback = (BaseFragment.NewNotificationCallback) view;
     }
 
     public void removeListener() {
-        if (userRepo != null) {
-            userRepo.removeListener();
+        if (mUserRepo != null) {
+            mUserRepo.removeListener();
         }
-        if (friendRepo != null) {
-            friendRepo.removeListener();
+        if (mFriendRepo != null) {
+            mFriendRepo.removeListener();
         }
     }
 
     @Override
     public void detachView() {
-        this.viewFriend = null;
-        this.viewSearchFriend = null;
-        this.viewContact = null;
-        this.newNotificationCallback = null;
+        this.mViewFriend = null;
+        this.mViewSearchFriend = null;
+        this.mViewContact = null;
+        this.mNewNotificationCallback = null;
     }
 
     @Override
     public void detachViewFriend() {
-        this.viewFriend = null;
+        this.mViewFriend = null;
     }
 
     @Override
     public void detachViewFriendSearch() {
-        this.viewSearchFriend = null;
+        this.mViewSearchFriend = null;
     }
 
     @Override
     public void listenerFriendNotification() {
-        userRepo.listenerForUserFriend(new UserInterface.FriendCallback() {
+        mUserRepo.listenerForUserFriend(new UserInterface.FriendCallback() {
             @Override
             public void onFriendNotification(int showNotify) {
-                if (newNotificationCallback != null) {
-                    newNotificationCallback.showHideFriendDot(showNotify);
+                if (mNewNotificationCallback != null) {
+                    mNewNotificationCallback.showHideFriendDot(showNotify);
                 }
             }
         });
@@ -99,22 +99,22 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void searchFriendByPhoneNumber(String phoneNumber) {
-        if (viewSearchFriend != null) {
-            viewSearchFriend.showLoadingIndicator();
+        if (mViewSearchFriend != null) {
+            mViewSearchFriend.showLoadingIndicator();
         }
-        userRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
+        mUserRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
             @Override
             public void onSearchSuccess(List<User> userList) {
-                if (viewSearchFriend != null) {
-                    viewSearchFriend.showFriendList(userList);
+                if (mViewSearchFriend != null) {
+                    mViewSearchFriend.showFriendList(userList);
                 }
             }
 
             @Override
             public void onSearchFail(String error) {
-                if (viewSearchFriend != null) {
-                    viewSearchFriend.showErrorIndicator();
-                    viewSearchFriend.showErrorMessage(error);
+                if (mViewSearchFriend != null) {
+                    mViewSearchFriend.showErrorIndicator();
+                    mViewSearchFriend.showErrorMessage(error);
                 }
             }
         });
@@ -129,21 +129,21 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void sendInvite(User user, String message) {
-        if (viewContact != null) {
-            viewContact.showLoadingIndicator();
+        if (mViewContact != null) {
+            mViewContact.showLoadingIndicator();
         }
-        friendRepo.createInvite(user, message, new FriendInterface.CreateInviteCallback() {
+        mFriendRepo.createInvite(user, message, new FriendInterface.CreateInviteCallback() {
             @Override
             public void onCreateInviteSuccess(Friend friend) {
-                if (viewContact != null) {
-                    viewContact.showMessage("Invited " + friend.getName());
+                if (mViewContact != null) {
+                    mViewContact.showMessage("Invited " + friend.getName());
                 }
             }
 
             @Override
             public void onCreateInviteFail(String error) {
-                if (viewContact != null) {
-                    viewContact.showErrorMessage(error);
+                if (mViewContact != null) {
+                    mViewContact.showErrorMessage(error);
                 }
             }
         });
@@ -151,52 +151,52 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void loadListFriend(int friendStatus) {
-        if (viewFriend != null) {
-            viewFriend.showLoadingIndicator();
+        if (mViewFriend != null) {
+            mViewFriend.showLoadingIndicator();
         }
-        friendRepo.getAllFriend(friendStatus, new FriendInterface.GetFriendCallback() {
+        mFriendRepo.getAllFriend(friendStatus, new FriendInterface.GetFriendCallback() {
             @Override
             public void onGetAllFriendSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showFriendList(friend);
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.showFriendList(friend);
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
 
             @Override
             public void onGetAllFriendSuccessEmptyData() {
-                if (viewFriend != null) {
-                    viewFriend.showEmptyDataIndicator();
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.showEmptyDataIndicator();
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
 
             @Override
             public void onGetFriendCount(long count) {
-                if (viewFriend != null) {
-                    viewFriend.setTotalFriend(count);
+                if (mViewFriend != null) {
+                    mViewFriend.setTotalFriend(count);
                 }
             }
 
             @Override
             public void onFriendUpdate(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.updateFriendStatus(friend);
+                if (mViewFriend != null) {
+                    mViewFriend.updateFriendStatus(friend);
                 }
             }
 
             @Override
             public void onFriendRemove(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.removeFriend(friend);
+                if (mViewFriend != null) {
+                    mViewFriend.removeFriend(friend);
                 }
             }
 
             @Override
             public void onGetAllFriendFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
         });
@@ -204,24 +204,24 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void createFriendRequest(User user) {
-        friendRepo.createRequest(user, new FriendInterface.CreateRequestCallback() {
+        mFriendRepo.createRequest(user, new FriendInterface.CreateRequestCallback() {
             @Override
             public void onCreateRequestSuccess(Friend friend) {
-                if (viewSearchFriend != null) {
-                    viewSearchFriend.addFriendSuccess("Sent friend request to " + friend.getName());
+                if (mViewSearchFriend != null) {
+                    mViewSearchFriend.addFriendSuccess("Sent friend request to " + friend.getName());
                 }
-                if (viewContact != null) {
-                    viewContact.showMessage("Sent friend request to " + friend.getName());
+                if (mViewContact != null) {
+                    mViewContact.showMessage("Sent friend request to " + friend.getName());
                 }
             }
 
             @Override
             public void onCreateRequestFail(String error) {
-                if (viewSearchFriend != null) {
-                    viewSearchFriend.addFriendSuccess(error);
+                if (mViewSearchFriend != null) {
+                    mViewSearchFriend.addFriendSuccess(error);
                 }
-                if (viewContact != null) {
-                    viewContact.showErrorMessage(error);
+                if (mViewContact != null) {
+                    mViewContact.showErrorMessage(error);
                 }
             }
         });
@@ -229,18 +229,18 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void cancelFriendRequest(Friend friend) {
-        friendRepo.cancelRequest(friend, new FriendInterface.CancelRequestCallback() {
+        mFriendRepo.cancelRequest(friend, new FriendInterface.CancelRequestCallback() {
             @Override
             public void onCancelSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("Cancel friend request to " + friend.getName());
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("Cancel friend request to " + friend.getName());
                 }
             }
 
             @Override
             public void onCancelFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -248,19 +248,19 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void acceptFriendRequest(Friend friend) {
-        Log.d(TAG, "accept");
-        friendRepo.acceptRequest(friend, new FriendInterface.AcceptRequestCallback() {
+        LogManagerUtils.d(TAG, "accept");
+        mFriendRepo.acceptRequest(friend, new FriendInterface.AcceptRequestCallback() {
             @Override
             public void onAcceptSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("You and " + friend.getName() + " has became friend");
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("You and " + friend.getName() + " has became friend");
                 }
             }
 
             @Override
             public void onAcceptFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -268,18 +268,18 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void rejectFriendRequest(Friend friend) {
-        friendRepo.rejectRequest(friend, new FriendInterface.RejectRequestCallback() {
+        mFriendRepo.rejectRequest(friend, new FriendInterface.RejectRequestCallback() {
             @Override
             public void onRejectSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("Reject friend request from " + friend.getName());
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("Reject friend request from " + friend.getName());
                 }
             }
 
             @Override
             public void onRejectFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -287,18 +287,18 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void blockFriendRequest(Friend friend) {
-        friendRepo.blockRequest(friend, new FriendInterface.BlockRequestCallback() {
+        mFriendRepo.blockRequest(friend, new FriendInterface.BlockRequestCallback() {
             @Override
             public void onBlockSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("Blocked " + friend.getName());
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("Blocked " + friend.getName());
                 }
             }
 
             @Override
             public void onBlockFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -306,18 +306,18 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void removeFriend(Friend friend) {
-        friendRepo.removeFriend(friend, new FriendInterface.RemoveFriendCallback() {
+        mFriendRepo.removeFriend(friend, new FriendInterface.RemoveFriendCallback() {
             @Override
             public void onRemoveFriendSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("Removed friend " + friend.getName());
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("Removed friend " + friend.getName());
                 }
             }
 
             @Override
             public void onRemoveFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -325,18 +325,18 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void unBlockFriendRequest(Friend friend) {
-        friendRepo.removeFriend(friend, new FriendInterface.RemoveFriendCallback() {
+        mFriendRepo.removeFriend(friend, new FriendInterface.RemoveFriendCallback() {
             @Override
             public void onRemoveFriendSuccess(Friend friend) {
-                if (viewFriend != null) {
-                    viewFriend.showMessage("Unblock friend " + friend.getName());
+                if (mViewFriend != null) {
+                    mViewFriend.showMessage("Unblock friend " + friend.getName());
                 }
             }
 
             @Override
             public void onRemoveFail(String error) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(error);
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(error);
                 }
             }
         });
@@ -344,22 +344,22 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void createChat(boolean isGroup, String name, List<User> users) {
-        if (viewFriend != null)
-            viewFriend.showLoadingIndicator();
-        chatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallback() {
+        if (mViewFriend != null)
+            mViewFriend.showLoadingIndicator();
+        mChatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallback() {
             @Override
             public void createSuccess(String chatId) {
-                if (viewFriend != null) {
-                    viewFriend.openChat(chatId);
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.openChat(chatId);
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
 
             @Override
             public void createFail(String message) {
-                if (viewFriend != null) {
-                    viewFriend.showErrorMessage(message);
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.showErrorMessage(message);
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
         });
@@ -367,15 +367,15 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void checkSingleChatExist(final boolean isGroup, final String name, final List<User> users) {
-        if (viewFriend != null)
-            viewFriend.showLoadingIndicator();
+        if (mViewFriend != null)
+            mViewFriend.showLoadingIndicator();
         String singleChatId = ChatUtils.getSingleChatIdFomUsers(users);
-        chatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallback() {
+        mChatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallback() {
             @Override
             public void exist(String chatId) {
-                if (viewFriend != null) {
-                    viewFriend.openChat(chatId);
-                    viewFriend.hideLoadingIndicator();
+                if (mViewFriend != null) {
+                    mViewFriend.openChat(chatId);
+                    mViewFriend.hideLoadingIndicator();
                 }
             }
 

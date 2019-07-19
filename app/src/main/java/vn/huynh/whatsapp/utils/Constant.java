@@ -29,8 +29,10 @@ public class Constant {
     public static final String FB_KEY_NUMBER_UNREAD = "numberUnread";
     public static final String FB_KEY_SINGLE_CHAT_ID = "singleChatId";
     public static final String FB_KEY_USER_IDS = "userIds";
+    public static final String FB_KEY_MEDIA = "media";
 
     public static final String FB_KEY_USER_ID = "userId";
+    public static final String FB_KEY_ID = "id";
     public static final String FB_KEY_LAST_CHAT_ID = "lastChatId";
     public static final String FB_KEY_LAST_ONLINE = "lastOnline";
     public static final String FB_KEY_PHONE_NUMBER = "phoneNumber";

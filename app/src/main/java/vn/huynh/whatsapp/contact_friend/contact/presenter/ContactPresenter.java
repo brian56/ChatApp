@@ -24,70 +24,70 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 
 public class ContactPresenter implements ContactContract.Presenter {
     public static final String TAG = ContactPresenter.class.getSimpleName();
-    private ChatInterface chatRepo;
-    private UserInterface userRepo;
-    private ContactContract.View viewContact;
-    private GroupContract.View viewGroup;
-    private LoadContactAsyncTask loadContactAsyncTask;
+    private ChatInterface mChatRepo;
+    private UserInterface mUserRepo;
+    private ContactContract.View mViewContact;
+    private GroupContract.View mViewGroup;
+    private LoadContactAsyncTask mLoadContactAsyncTask;
 
     public ContactPresenter() {
-        chatRepo = new ChatRepository();
-        userRepo = new UserRepository();
+        mChatRepo = new ChatRepository();
+        mUserRepo = new UserRepository();
     }
 
     @Override
     public void attachView(BaseView view) {
         if (view instanceof ContactContract.View)
-            this.viewContact = (ContactContract.View) view;
+            this.mViewContact = (ContactContract.View) view;
         else if (view instanceof GroupContract.View)
-            this.viewGroup = (GroupContract.View) view;
+            this.mViewGroup = (GroupContract.View) view;
     }
 
     @Override
     public void detachView() {
-        this.viewContact = null;
-        this.viewGroup = null;
+        this.mViewContact = null;
+        this.mViewGroup = null;
     }
 
     @Override
     public void loadListContact(Context context) {
-        if (viewContact != null)
-            viewContact.showLoadingIndicator();
-        if (loadContactAsyncTask == null) {
-            loadContactAsyncTask = new LoadContactAsyncTask(context);
-            loadContactAsyncTask.execute();
+        if (mViewContact != null)
+            mViewContact.showLoadingIndicator();
+        if (mLoadContactAsyncTask == null) {
+            mLoadContactAsyncTask = new LoadContactAsyncTask(context);
+            mLoadContactAsyncTask.execute();
         } else {
-            loadContactAsyncTask.cancel(false);
-            loadContactAsyncTask = new LoadContactAsyncTask(context);
-            loadContactAsyncTask.execute();
+            mLoadContactAsyncTask.cancel(false);
+            mLoadContactAsyncTask = new LoadContactAsyncTask(context);
+            mLoadContactAsyncTask.execute();
         }
     }
 
     @Override
     public void loadListContactForGroup(Context context) {
-        if (viewGroup != null)
-            viewGroup.showLoadingIndicator();
-        if (loadContactAsyncTask == null) {
-            loadContactAsyncTask = new LoadContactAsyncTask(context);
-            loadContactAsyncTask.execute();
+        if (mViewGroup != null)
+            mViewGroup.showLoadingIndicator();
+        if (mLoadContactAsyncTask == null) {
+            mLoadContactAsyncTask = new LoadContactAsyncTask(context);
+            mLoadContactAsyncTask.execute();
         } else {
-            loadContactAsyncTask.cancel(false);
-            loadContactAsyncTask = new LoadContactAsyncTask(context);
-            loadContactAsyncTask.execute();
+            mLoadContactAsyncTask.cancel(false);
+            mLoadContactAsyncTask = new LoadContactAsyncTask(context);
+            mLoadContactAsyncTask.execute();
         }
     }
 
     @Override
     public void checkSingleChatExist(final boolean isGroup, final String name, final List<User> users) {
-        if (viewContact != null)
-            viewContact.showLoadingIndicator();
+        if (mViewContact != null)
+            mViewContact.showLoadingIndicator();
         String singleChatId = ChatUtils.getSingleChatIdFomUsers(users);
-        chatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallback() {
+        mChatRepo.checkSingleChatExist(singleChatId, new ChatInterface.CheckSingleChatCallback() {
             @Override
             public void exist(String chatId) {
-                if (viewContact != null) {
-                    viewContact.openChat(chatId);
-                    viewContact.hideLoadingIndicator();
+                if (mViewContact != null) {
+                    mViewContact.openChat(chatId);
+                    mViewContact.hideLoadingIndicator();
                 }
             }
 
@@ -100,22 +100,22 @@ public class ContactPresenter implements ContactContract.Presenter {
 
     @Override
     public void createChat(boolean isGroup, String name, List<User> users) {
-        if (viewContact != null)
-            viewContact.showLoadingIndicator();
-        chatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallback() {
+        if (mViewContact != null)
+            mViewContact.showLoadingIndicator();
+        mChatRepo.createChat(isGroup, name, users, new ChatInterface.CreateChatCallback() {
             @Override
             public void createSuccess(String chatId) {
-                if (viewContact != null) {
-                    viewContact.openChat(chatId);
-                    viewContact.hideLoadingIndicator();
+                if (mViewContact != null) {
+                    mViewContact.openChat(chatId);
+                    mViewContact.hideLoadingIndicator();
                 }
             }
 
             @Override
             public void createFail(String message) {
-                if (viewContact != null) {
-                    viewContact.showErrorMessage(message);
-                    viewContact.hideLoadingIndicator();
+                if (mViewContact != null) {
+                    mViewContact.showErrorMessage(message);
+                    mViewContact.hideLoadingIndicator();
                 }
             }
         });
@@ -153,29 +153,29 @@ public class ContactPresenter implements ContactContract.Presenter {
         @Override
         protected void onPostExecute(List<User> list) {
             super.onPostExecute(list);
-            userRepo.loadContact(context, list, new UserInterface.LoadContactCallBack() {
+            mUserRepo.loadContact(context, list, new UserInterface.LoadContactCallBack() {
                 @Override
                 public void loadSuccess(User userObject) {
-                    if (viewContact != null) {
-                        viewContact.showListContact(userObject);
-                        viewContact.hideLoadingIndicator();
+                    if (mViewContact != null) {
+                        mViewContact.showListContact(userObject);
+                        mViewContact.hideLoadingIndicator();
                     }
-                    if (viewGroup != null) {
-                        viewGroup.showListContact(userObject);
+                    if (mViewGroup != null) {
+                        mViewGroup.showListContact(userObject);
                     }
                 }
 
                 @Override
                 public void loadFail(String message) {
-                    if (viewContact != null) {
-                        viewContact.hideLoadingIndicator();
-                        viewContact.showErrorIndicator();
-                        viewContact.showErrorMessage(message);
+                    if (mViewContact != null) {
+                        mViewContact.hideLoadingIndicator();
+                        mViewContact.showErrorIndicator();
+                        mViewContact.showErrorMessage(message);
                     }
-                    if (viewGroup != null) {
-                        viewGroup.hideLoadingIndicator();
-                        viewGroup.showErrorIndicator();
-                        viewGroup.showErrorMessage(message);
+                    if (mViewGroup != null) {
+                        mViewGroup.hideLoadingIndicator();
+                        mViewGroup.showErrorIndicator();
+                        mViewGroup.showErrorMessage(message);
                     }
                 }
             });
@@ -184,21 +184,21 @@ public class ContactPresenter implements ContactContract.Presenter {
 
     @Override
     public void searchFriend(String phoneNumber) {
-        if (viewContact != null) {
-            viewContact.showLoadingIndicator();
+        if (mViewContact != null) {
+            mViewContact.showLoadingIndicator();
         }
-        userRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
+        mUserRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
             @Override
             public void onSearchSuccess(List<User> userList) {
-                if (viewContact != null) {
-                    viewContact.showSearchResult(userList);
+                if (mViewContact != null) {
+                    mViewContact.showSearchResult(userList);
                 }
             }
 
             @Override
             public void onSearchFail(String error) {
-                if (viewContact != null) {
-                    viewContact.showErrorMessage(error);
+                if (mViewContact != null) {
+                    mViewContact.showErrorMessage(error);
                 }
             }
         });

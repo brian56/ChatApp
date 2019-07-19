@@ -17,7 +17,9 @@ public interface ChatContract {
 
         void showChatDetail(Chat chatObject);
 
-        void showMessage(Message messageObject);
+        void showNewMessage(Message messageObject);
+
+        void loadMessage();
 
         void showMessageList(List<Message> messages, boolean isDone);
 
@@ -34,7 +36,7 @@ public interface ChatContract {
 
     interface Presenter extends BasePresenter {
 
-        void resetNumberUnread(String chatId);
+        void resetNumberUnread(String chatId, boolean loadMessage);
 
         void loadChatDetail(String chatId);
 
@@ -53,6 +55,8 @@ public interface ChatContract {
         void addMessageListener();
 
         void removeMessageListener();
+
+        void cancelUpload();
 
     }
 }

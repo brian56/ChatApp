@@ -15,7 +15,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
@@ -36,6 +35,7 @@ import vn.huynh.whatsapp.services.NewMessageService;
 import vn.huynh.whatsapp.setting.SettingFragment;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.ServiceUtils;
 
 public class HomeActivity extends AppCompatActivity implements BaseFragment.ParentActivityListener,
@@ -49,33 +49,29 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     @BindView(R.id.navigation)
     BadgedBottomNavigationBar bottomNavigationView;
+
     private static final String TAG = HomeActivity.class.getSimpleName();
 
-    final FragmentManager fm = getSupportFragmentManager();
-    private Fragment chatListFragment = new ChatListFragment();
-    private Fragment contactAndFriendFragment = new ContactAndFriendFragment();
-    private Fragment groupFragment = new GroupFragment();
-    private Fragment settingFragment = new SettingFragment();
+    final FragmentManager mFragmentManager = getSupportFragmentManager();
+    private Fragment mChatListFragment = new ChatListFragment();
+    private Fragment mContactAndFriendFragment = new ContactAndFriendFragment();
+    private Fragment mGroupFragment = new GroupFragment();
+    private Fragment mSettingFragment = new SettingFragment();
 
     private static final int CHAT_LIST_FRAGMENT_INDEX = 0;
     private static final int CONTACT_AND_FRIEND_FRAGMENT_INDEX = 1;
     private static final int GROUP_FRAGMENT_INDEX = 2;
     private static final int SETTING_FRAGMENT_INDEX = 3;
 
-    private String currentFragmentTAG = ChatListFragment.TAG;
-    private BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener;
-    private boolean returnFromChildActivity = false;
-    private static boolean isVisible = false;
-    private NewMessageService newMessageService;
-    private boolean isBound = false;
-    private Intent intentNewMessageService;
+    private String mCurrentFragmentTAG = ChatListFragment.TAG;
+    private BottomNavigationView.OnNavigationItemSelectedListener mNavigationItemSelectedListener;
+    private boolean mIsReturnFromChildActivity = false;
+    private static boolean sIsVisible = false;
+    private NewMessageService mNewMessageService;
+    private boolean mIsBoundService = false;
+    private Intent mIntentNewMessageService;
 
-    private FriendPresenter friendPresenter;
-
-    public static int NUMBER_NOTIFICATION_ALL = 0;
-    public static int NUMBER_NOTIFICATION_GROUP = 0;
-    public static int NUMBER_NOTIFICATION_CONTACT = 0;
-    public static int NUMBER_NOTIFICATION_SETTING = 0;
+    private FriendPresenter mFriendPresenter;
 
     private static final String KEY_CURRENT_FRAGMENT_TAG = "KEY_CURRENT_FRAGMENT_TAG";
 
@@ -102,7 +98,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
             }
 
         }
-        Log.d(HomeActivity.class.getSimpleName(), "On Create");
+        LogManagerUtils.d(TAG, "On Create");
     }
 
     @Override
@@ -126,105 +122,105 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (chatListFragment.isAdded())
-            getSupportFragmentManager().putFragment(outState, ChatListFragment.TAG, chatListFragment);
-        if (contactAndFriendFragment.isAdded())
-            getSupportFragmentManager().putFragment(outState, ContactAndFriendFragment.TAG, contactAndFriendFragment);
-        if (groupFragment.isAdded())
-            getSupportFragmentManager().putFragment(outState, GroupFragment.TAG, groupFragment);
-        if (settingFragment.isAdded())
-            getSupportFragmentManager().putFragment(outState, SettingFragment.TAG, settingFragment);
-        outState.putString(KEY_CURRENT_FRAGMENT_TAG, currentFragmentTAG);
+        if (mChatListFragment.isAdded())
+            getSupportFragmentManager().putFragment(outState, ChatListFragment.TAG, mChatListFragment);
+        if (mContactAndFriendFragment.isAdded())
+            getSupportFragmentManager().putFragment(outState, ContactAndFriendFragment.TAG, mContactAndFriendFragment);
+        if (mGroupFragment.isAdded())
+            getSupportFragmentManager().putFragment(outState, GroupFragment.TAG, mGroupFragment);
+        if (mSettingFragment.isAdded())
+            getSupportFragmentManager().putFragment(outState, SettingFragment.TAG, mSettingFragment);
+        outState.putString(KEY_CURRENT_FRAGMENT_TAG, mCurrentFragmentTAG);
     }
 
     private void initFragments(Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-            chatListFragment = new ChatListFragment();
-            contactAndFriendFragment = new ContactAndFriendFragment();
-            groupFragment = new GroupFragment();
-            settingFragment = new SettingFragment();
+            mChatListFragment = new ChatListFragment();
+            mContactAndFriendFragment = new ContactAndFriendFragment();
+            mGroupFragment = new GroupFragment();
+            mSettingFragment = new SettingFragment();
 
-            loadFragment(chatListFragment, ChatListFragment.TAG);
-            currentFragmentTAG = ChatListFragment.TAG;
+            loadFragment(mChatListFragment, ChatListFragment.TAG);
+            mCurrentFragmentTAG = ChatListFragment.TAG;
         } else {
             if (getSupportFragmentManager().getFragment(savedInstanceState, ChatListFragment.TAG) != null) {
-                chatListFragment = getSupportFragmentManager().getFragment(savedInstanceState, ChatListFragment.TAG);
+                mChatListFragment = getSupportFragmentManager().getFragment(savedInstanceState, ChatListFragment.TAG);
             }
             if (getSupportFragmentManager().getFragment(savedInstanceState, ContactAndFriendFragment.TAG) != null) {
-                contactAndFriendFragment = getSupportFragmentManager().getFragment(savedInstanceState, ContactAndFriendFragment.TAG);
+                mContactAndFriendFragment = getSupportFragmentManager().getFragment(savedInstanceState, ContactAndFriendFragment.TAG);
             }
             if (getSupportFragmentManager().getFragment(savedInstanceState, GroupFragment.TAG) != null) {
-                groupFragment = getSupportFragmentManager().getFragment(savedInstanceState, GroupFragment.TAG);
+                mGroupFragment = getSupportFragmentManager().getFragment(savedInstanceState, GroupFragment.TAG);
             }
             if (getSupportFragmentManager().getFragment(savedInstanceState, SettingFragment.TAG) != null) {
-                settingFragment = getSupportFragmentManager().getFragment(savedInstanceState, SettingFragment.TAG);
+                mSettingFragment = getSupportFragmentManager().getFragment(savedInstanceState, SettingFragment.TAG);
             }
 
-            currentFragmentTAG = savedInstanceState.getString(KEY_CURRENT_FRAGMENT_TAG);
-            if (currentFragmentTAG == null) {
-                currentFragmentTAG = ChatListFragment.TAG;
+            mCurrentFragmentTAG = savedInstanceState.getString(KEY_CURRENT_FRAGMENT_TAG);
+            if (mCurrentFragmentTAG == null) {
+                mCurrentFragmentTAG = ChatListFragment.TAG;
             }
-            switch (currentFragmentTAG) {
+            switch (mCurrentFragmentTAG) {
                 case ChatListFragment.TAG:
-                    loadFragment(chatListFragment, ChatListFragment.TAG);
+                    loadFragment(mChatListFragment, ChatListFragment.TAG);
                     break;
                 case ContactAndFriendFragment.TAG:
-                    loadFragment(contactAndFriendFragment, ContactAndFriendFragment.TAG);
+                    loadFragment(mContactAndFriendFragment, ContactAndFriendFragment.TAG);
                     break;
                 case GroupFragment.TAG:
-                    loadFragment(groupFragment, GroupFragment.TAG);
+                    loadFragment(mGroupFragment, GroupFragment.TAG);
                     break;
                 case SettingFragment.TAG:
-                    loadFragment(settingFragment, SettingFragment.TAG);
+                    loadFragment(mSettingFragment, SettingFragment.TAG);
                     break;
                 default:
-                    loadFragment(chatListFragment, ChatListFragment.TAG);
+                    loadFragment(mChatListFragment, ChatListFragment.TAG);
                     break;
             }
         }
     }
 
     private void setEvent() {
-        navigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
+        mNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 invalidateOptionsMenu();
                 switch (item.getItemId()) {
                     case R.id.navigation_chat:
                         toolbar.setTitle(getResources().getString(R.string.menu_chat));
-//                        ChatListFragment.unreadChatIdMap.clear();
+//                        ChatListFragment.sUnreadChatIdMap.clear();
 //                        removeBadgeNumber(CHAT_LIST_FRAGMENT_INDEX);
-                        currentFragmentTAG = ChatListFragment.TAG;
-                        loadFragment(chatListFragment, ChatListFragment.TAG);
+                        mCurrentFragmentTAG = ChatListFragment.TAG;
+                        loadFragment(mChatListFragment, ChatListFragment.TAG);
                         return true;
                     case R.id.navigation_contact:
                         toolbar.setTitle(getResources().getString(R.string.menu_contact_and_friend));
 //                        removeBadgeNumber(CONTACT_AND_FRIEND_FRAGMENT_INDEX);
-                        currentFragmentTAG = ContactAndFriendFragment.TAG;
-                        loadFragment(contactAndFriendFragment, ContactAndFriendFragment.TAG);
+                        mCurrentFragmentTAG = ContactAndFriendFragment.TAG;
+                        loadFragment(mContactAndFriendFragment, ContactAndFriendFragment.TAG);
                         return true;
                     case R.id.navigation_group:
                         toolbar.setTitle(getResources().getString(R.string.menu_group));
 //                        removeBadgeNumber(GROUP_FRAGMENT_INDEX);
-                        currentFragmentTAG = GroupFragment.TAG;
-                        loadFragment(groupFragment, GroupFragment.TAG);
+                        mCurrentFragmentTAG = GroupFragment.TAG;
+                        loadFragment(mGroupFragment, GroupFragment.TAG);
                         return true;
                     case R.id.navigation_setting:
                         toolbar.setTitle(getResources().getString(R.string.menu_setting));
 //                        removeBadgeNumber(SETTING_FRAGMENT_INDEX);
-                        currentFragmentTAG = SettingFragment.TAG;
-                        loadFragment(settingFragment, SettingFragment.TAG);
+                        mCurrentFragmentTAG = SettingFragment.TAG;
+                        loadFragment(mSettingFragment, SettingFragment.TAG);
                         return true;
                 }
                 return false;
             }
         };
-        bottomNavigationView.setOnNavigationItemSelectedListener(navigationItemSelectedListener);
+        bottomNavigationView.setOnNavigationItemSelectedListener(mNavigationItemSelectedListener);
     }
 
     private void loadFragment(Fragment fragment, String TAG) {
         // load fragment
-        FragmentTransaction transaction = fm.beginTransaction();
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
         if (fragment.isAdded()) {
             transaction.show(fragment);
         } else {
@@ -235,37 +231,37 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     private void hideOtherFragments(FragmentTransaction transaction, String TAG) {
         if (!ChatListFragment.TAG.equals(TAG)) {
-            transaction.hide(chatListFragment);
+            transaction.hide(mChatListFragment);
         } else {
-            transaction.show(chatListFragment);
+            transaction.show(mChatListFragment);
         }
         if (!ContactAndFriendFragment.TAG.equals(TAG)) {
-            transaction.hide(contactAndFriendFragment);
+            transaction.hide(mContactAndFriendFragment);
         } else {
-            transaction.show(contactAndFriendFragment);
+            transaction.show(mContactAndFriendFragment);
         }
         if (!GroupFragment.TAG.equals(TAG)) {
-            transaction.hide(groupFragment);
+            transaction.hide(mGroupFragment);
         } else {
-            transaction.show(groupFragment);
+            transaction.show(mGroupFragment);
         }
         if (!SettingFragment.TAG.equals(TAG)) {
-            transaction.hide(settingFragment);
+            transaction.hide(mSettingFragment);
         } else {
-            transaction.show(settingFragment);
+            transaction.show(mSettingFragment);
         }
         transaction.commit();
     }
 
     private void setupBottomNavigation(BadgedBottomNavigationBar badgedBottomNavigationBar) {
-        badgedBottomNavigationBar.removeTextAndShiftMode();//disable BottomNavigationView shift mode
+//        badgedBottomNavigationBar.removeTextAndShiftMode();//disable BottomNavigationView shift mode
         badgedBottomNavigationBar.changeIconSize(24);
     }
 
     private void initPresenter() {
-        friendPresenter = new FriendPresenter();
-        friendPresenter.attachView(this);
-        friendPresenter.listenerFriendNotification();
+        mFriendPresenter = new FriendPresenter();
+        mFriendPresenter.attachView(this);
+        mFriendPresenter.listenerFriendNotification();
     }
 
     @Override
@@ -310,25 +306,25 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
 
     @Override
     public boolean returnFromChildActivity() {
-        return returnFromChildActivity;
+        return mIsReturnFromChildActivity;
     }
 
     @Override
     public void setReturnFromChildActivity(boolean returnFromChildActivity) {
-        this.returnFromChildActivity = returnFromChildActivity;
+        this.mIsReturnFromChildActivity = returnFromChildActivity;
     }
 
     @Override
     public void showMessageNotification(boolean show) {
-        if (newMessageService != null) {
-            newMessageService.setShowMessageNotification(show);
+        if (mNewMessageService != null) {
+            mNewMessageService.setShowMessageNotification(show);
         }
     }
 
     @Override
     public void showFriendNotification(boolean show) {
-        if (newMessageService != null) {
-            newMessageService.setShowFriendNotification(show);
+        if (mNewMessageService != null) {
+            mNewMessageService.setmIsShowFriendNotification(show);
         }
     }
 
@@ -342,16 +338,16 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     }
 
     public static boolean checkVisible() {
-        return isVisible;
+        return sIsVisible;
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
-            newMessageService = binder.getService();
-            Log.d("Noti_MainActivity", "setShowMessageNotification()");
-            newMessageService.setShowMessageNotification(false);
+            mNewMessageService = binder.getService();
+            LogManagerUtils.d(TAG, "setShowMessageNotification()");
+            mNewMessageService.setShowMessageNotification(false);
         }
 
         @Override
@@ -363,21 +359,21 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(HomeActivity.class.getSimpleName(), "On Start");
+        LogManagerUtils.d(TAG, "On Start");
 
-        if (!isBound) {
-            intentNewMessageService = new Intent(this, NewMessageService.class);
+        if (!mIsBoundService) {
+            mIntentNewMessageService = new Intent(this, NewMessageService.class);
             if (!ServiceUtils.isServiceRunning(NewMessageService.class.getCanonicalName(), this)) {
-                startService(intentNewMessageService);
+                startService(mIntentNewMessageService);
             }
-            bindService(intentNewMessageService, serviceConnection, Context.BIND_AUTO_CREATE);
-            isBound = true;
+            bindService(mIntentNewMessageService, serviceConnection, Context.BIND_AUTO_CREATE);
+            mIsBoundService = true;
         }
-        if (newMessageService != null) {
-            Log.d("Home onStop()", "setShowMessageNotification()");
-            newMessageService.setShowMessageNotification(false);
+        if (mNewMessageService != null) {
+            LogManagerUtils.d(TAG, "onStop setShowMessageNotification()");
+            mNewMessageService.setShowMessageNotification(false);
         }
-        isVisible = true;
+        sIsVisible = true;
         initPresenter();
     }
 
@@ -387,42 +383,42 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
         if (returnFromChildActivity()) {
             setReturnFromChildActivity(false);
         }
-        Log.d(HomeActivity.class.getSimpleName(), "On Resume");
+        LogManagerUtils.d(TAG, "On Resume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(HomeActivity.class.getSimpleName(), "On Pause");
+        LogManagerUtils.d(TAG, "On Pause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        isVisible = false;
-        if (newMessageService != null) {
-            Log.d("Home onStop()", "setShowMessageNotification()");
-            newMessageService.setShowMessageNotification(true);
+        sIsVisible = false;
+        if (mNewMessageService != null) {
+            LogManagerUtils.d(TAG, "onStop() " + "setShowMessageNotification()");
+            mNewMessageService.setShowMessageNotification(true);
         }
-        Log.d(HomeActivity.class.getSimpleName(), "On Stop");
+        LogManagerUtils.d(TAG, "On Stop");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (isBound) {
-            if (newMessageService != null)
-                newMessageService.setShowMessageNotification(true);
+        if (mIsBoundService) {
+            if (mNewMessageService != null)
+                mNewMessageService.setShowMessageNotification(true);
             unbindService(serviceConnection);
-            isBound = false;
-            Log.d(HomeActivity.class.getSimpleName(), "unbind service");
+            mIsBoundService = false;
+            LogManagerUtils.d(TAG, "unbind service");
         }
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.d(HomeActivity.class.getSimpleName(), "On Restart");
+        LogManagerUtils.d(TAG, "On Restart");
     }
 
     private void setupOneSignal() {

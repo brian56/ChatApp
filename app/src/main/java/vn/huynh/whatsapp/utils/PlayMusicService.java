@@ -4,11 +4,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.IBinder;
-import android.util.Log;
 
 import vn.huynh.whatsapp.R;
 
 public class PlayMusicService extends Service {
+    private static final String TAG = PlayMusicService.class.getSimpleName();
     private MediaPlayer mediaPlayer;
 
     public PlayMusicService() {
@@ -35,7 +35,7 @@ public class PlayMusicService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(PlayMusicService.class.getSimpleName(), "on destroy");
+        LogManagerUtils.d(TAG, "on destroy");
         mediaPlayer.release();
         Intent in = new Intent(this, RestartServiceReceiver.class);
         in.setAction("StartKilledService");
@@ -45,7 +45,7 @@ public class PlayMusicService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        Log.d(PlayMusicService.class.getSimpleName(), "on removeFriends");
+        LogManagerUtils.d(TAG, "on removeFriends");
         Intent in = new Intent(this, RestartServiceReceiver.class);
         in.setAction("StartKilledService");
         sendBroadcast(in);

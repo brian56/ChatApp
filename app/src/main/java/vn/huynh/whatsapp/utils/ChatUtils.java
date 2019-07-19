@@ -69,7 +69,7 @@ public class ChatUtils {
         String singleChatId = "";
         Collections.sort(list);
         for (int i = 0; i < list.size(); i++) {
-            if(i == list.size() -1)
+            if (i == list.size() - 1)
                 singleChatId += list.get(i);
             else
                 singleChatId += list.get(i) + "_";
@@ -85,7 +85,7 @@ public class ChatUtils {
         String singleChatId = "";
         Collections.sort(listId);
         for (int i = 0; i < listId.size(); i++) {
-            if(i == listId.size() -1)
+            if (i == listId.size() - 1)
                 singleChatId += listId.get(i);
             else
                 singleChatId += listId.get(i) + "_";

@@ -33,9 +33,6 @@
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".contact_friend.contact.view.FindUserActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".chat.view.ChatActivity"
             android:parentActivityName=".home.HomeActivity"
             android:windowSoftInputMode="stateUnchanged|adjustResize"

@@ -2,10 +2,12 @@ package vn.huynh.whatsapp.chat_list.view;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,26 +24,35 @@ import vn.huynh.whatsapp.model.Message;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.DateUtils;
 import vn.huynh.whatsapp.utils.GlideLoader;
+import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.MyApp;
+import vn.huynh.whatsapp.utils.VNCharacterUtils;
 
 /**
  * Created by duong on 3/20/2019.
  */
 
-public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder> {
+public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder> implements Filterable {
     private static final String TAG = ChatListAdapter.class.getSimpleName();
-    private ArrayList<Chat> chatList;
-    private Context context;
-    private OnItemClickListener onItemClickListener;
+    private ArrayList<Chat> mChatList;
+    private ArrayList<Chat> mChatListFilter;
+    private Context mContext;
+    private OnItemClickListener mOnItemClickListener;
+    private ChatAdapterListener mChatAdapterListener;
 
-    public ChatListAdapter(ArrayList<Chat> chatList, Context context, OnItemClickListener onItemClickListener) {
-        this.chatList = chatList;
-        this.context = context;
-        this.onItemClickListener = onItemClickListener;
+    public ChatListAdapter(ArrayList<Chat> chatList, Context context, OnItemClickListener onItemClickListener,
+                           ChatAdapterListener listener) {
+        this.mChatList = chatList;
+        this.mChatListFilter = chatList;
+        this.mContext = context;
+        this.mOnItemClickListener = onItemClickListener;
+        this.mChatAdapterListener = listener;
     }
 
     public void setChatList(ArrayList<Chat> chatList) {
-        this.chatList = chatList;
+        this.mChatList = chatList;
+        this.mChatListFilter = chatList;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -54,11 +65,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
     @Override
     public void onBindViewHolder(final ChatListViewHolder holder, final int position) {
-        Log.d("Chat group", chatList.get(holder.getAdapterPosition()).getChatName());
-        holder.tvTitle.setText(chatList.get(holder.getAdapterPosition()).getChatName());
-        if (chatList.get(holder.getAdapterPosition()).getNumberUnread() != null
-                && chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-            Long num = chatList.get(holder.getAdapterPosition()).getNumberUnread().get(ChatUtils.getUser().getId());
+        LogManagerUtils.d(TAG, "chat name: " + mChatListFilter.get(holder.getAdapterPosition()).getChatName());
+        final Chat itemChat = mChatListFilter.get(holder.getAdapterPosition());
+        holder.tvTitle.setText(itemChat.getChatName());
+        if (itemChat.getNumberUnread() != null
+                && itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
+            Long num = itemChat.getNumberUnread().get(ChatUtils.getUser().getId());
             holder.tvUnread.setVisibility(View.VISIBLE);
             if (num > 99)
                 holder.tvUnread.setText(MyApp.resources.getString(R.string.label_number_unread_message_max));
@@ -71,43 +83,82 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onItemClickListener.onClick(chatList.get(holder.getAdapterPosition()));
+                mOnItemClickListener.onClick(holder.getAdapterPosition(), itemChat);
             }
         });
-        if (chatList.get(holder.getAdapterPosition()).getLastMessageSent() == null) {
+        if (itemChat.getLastMessageSent() == null) {
             holder.tvLastMessage.setVisibility(View.GONE);
         } else {
             holder.tvLastMessage.setVisibility(View.VISIBLE);
-            if (chatList.get(holder.getAdapterPosition()).getLastMessageSent().getType() == Message.TYPE_TEXT) {
+            if (itemChat.getLastMessageSent().getType() == Message.TYPE_TEXT) {
                 //sent text
-                holder.tvLastMessage.setText(chatList.get(holder.getAdapterPosition()).getLastMessageSent().getText());
+                holder.tvLastMessage.setText(itemChat.getLastMessageSent().getText());
                 holder.tvLastMessage.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             } else {
                 //sent media
                 holder.tvLastMessage.setText(MyApp.resources.getString(R.string.message_sent_media));
                 holder.tvLastMessage.setCompoundDrawablePadding(8 * (int) MyApp.resources.getDisplayMetrics().density);
-                holder.tvLastMessage.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_photo_size_select_actual_black_24dp, 0);
+                holder.tvLastMessage.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_photo_size_select_actual_grey_24dp, 0);
             }
         }
-        if (!chatList.get(holder.getAdapterPosition()).isGroup()) {
+        if (!itemChat.isGroup()) {
             holder.ivGroup.setVisibility(View.GONE);
             holder.avatarView.setVisibility(View.VISIBLE);
-            holder.iImageLoader = new GlideLoader();
-            holder.iImageLoader.loadImage(holder.avatarView, chatList.get(holder.getAdapterPosition()).getSingleChatAvatar(), chatList.get(holder.getAdapterPosition()).getChatName());
+            holder.mIImageLoader = new GlideLoader();
+            holder.mIImageLoader.loadImage(holder.avatarView, itemChat.getSingleChatAvatar(), itemChat.getChatName());
         } else {
             holder.ivGroup.setVisibility(View.VISIBLE);
             holder.avatarView.setVisibility(View.GONE);
         }
-        String time = DateUtils.formatTimeWithMarker(chatList.get(holder.getAdapterPosition()).getLastMessageDateInLong());
+        String time = DateUtils.formatTimeWithMarker(itemChat.getLastMessageDateInLong());
         holder.tvTime.setText(time);
     }
 
     @Override
     public int getItemCount() {
-        if (chatList != null)
-            return chatList.size();
+        if (mChatListFilter != null)
+            return mChatListFilter.size();
         else
             return 0;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String charString = charSequence.toString();
+                charString = VNCharacterUtils.removeAccent(charString.toLowerCase());
+                ArrayList<Chat> filteredList = null;
+                if (TextUtils.isEmpty(charString.trim())) {
+                    filteredList = mChatList;
+                } else {
+                    filteredList = new ArrayList<>();
+                    for (Chat row : mChatList) {
+                        if (VNCharacterUtils.removeAccent(row.getChatName().toLowerCase()).contains(charString.trim())) {
+                            filteredList.add(row);
+                        }
+                    }
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = filteredList;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                mChatListFilter = (ArrayList<Chat>) filterResults.values;
+                notifyDataSetChanged();
+                if (mChatAdapterListener != null) {
+                    mChatAdapterListener.onFilter(mChatListFilter.size() > 0 ? false : true);
+                }
+            }
+        };
+    }
+
+    public interface ChatAdapterListener {
+        void onFilter(boolean isEmptyResult);
     }
 
 
@@ -127,7 +178,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         @BindView(R.id.tv_time)
         TextView tvTime;
 
-        public IImageLoader iImageLoader;
+        public IImageLoader mIImageLoader;
 
         public ChatListViewHolder(View view) {
             super(view);
@@ -136,6 +187,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     }
 
     public interface OnItemClickListener {
-        void onClick(Chat chat);
+        void onClick(int position, Chat chat);
     }
 }

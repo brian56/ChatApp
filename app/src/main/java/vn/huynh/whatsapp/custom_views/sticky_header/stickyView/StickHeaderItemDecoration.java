@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
-
+    private static final String TAG = StickHeaderItemDecoration.class.getSimpleName();
     private StickyHeaderInterface mListener;
     private int mStickyHeaderHeight;
 

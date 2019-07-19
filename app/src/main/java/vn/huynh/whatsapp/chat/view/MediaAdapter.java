@@ -33,14 +33,14 @@ import vn.huynh.whatsapp.R;
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHolder> {
     private static final String TAG = MediaAdapter.class.getSimpleName();
 
-    private List<String> mediaList;
-    private Context context;
-    private boolean showRemoveButton = false;
+    private List<String> mMediaList;
+    private Context mContext;
+    private boolean mShowRemoveButton = false;
 
     public MediaAdapter(Context context, List<String> mediaList, boolean showRemoveButton) {
-        this.context = context;
-        this.mediaList = mediaList;
-        this.showRemoveButton = showRemoveButton;
+        this.mContext = context;
+        this.mMediaList = mediaList;
+        this.mShowRemoveButton = showRemoveButton;
     }
 
     @Override
@@ -52,12 +52,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     @Override
     public void onBindViewHolder(final MediaViewHolder holder, int position) {
         holder.loader.setVisibility(View.VISIBLE);
-        if (showRemoveButton) {
+        if (mShowRemoveButton) {
             holder.ivRemove.setVisibility(View.VISIBLE);
             holder.ivRemove.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mediaList.remove(holder.getAdapterPosition());
+                    mMediaList.remove(holder.getAdapterPosition());
                     notifyItemRemoved(holder.getAdapterPosition());
                 }
             });
@@ -65,12 +65,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
             holder.ivRemove.setVisibility(View.GONE);
         }
         try {
-            Glide.with(context)
-                    .load(Uri.parse(mediaList.get(holder.getAdapterPosition())))
+            Glide.with(mContext)
+                    .load(Uri.parse(mMediaList.get(holder.getAdapterPosition())))
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            if (!TextUtils.isEmpty(mediaList.get(holder.getAdapterPosition())))
+                            if (!TextUtils.isEmpty(mMediaList.get(holder.getAdapterPosition())))
                                 holder.loader.setVisibility(View.GONE);
                             return false;
                         }
@@ -91,7 +91,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
         holder.ivMedia.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ImageViewer.Builder(v.getContext(), mediaList)
+                new ImageViewer.Builder(v.getContext(), mMediaList)
                         .setStartPosition(holder.getAdapterPosition())
                         .hideStatusBar(false)
                         .show();
@@ -101,10 +101,10 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
     @Override
     public int getItemCount() {
-        if (mediaList == null)
+        if (mMediaList == null)
             return 0;
         else
-            return mediaList.size();
+            return mMediaList.size();
     }
 
     public class MediaViewHolder extends RecyclerView.ViewHolder {

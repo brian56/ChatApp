@@ -26,7 +26,7 @@ public class ContactAndFriendFragment extends BaseFragment {
     @BindView(R.id.viewpager)
     ViewPager viewPager;
 
-    public static final int NUMBER_ITEM = 3;
+    public static final int NUMBER_ITEM = 2;
 
 
     public ContactAndFriendFragment() {

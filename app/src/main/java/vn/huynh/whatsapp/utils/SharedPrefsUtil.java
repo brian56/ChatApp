@@ -10,7 +10,7 @@ import android.content.SharedPreferences;
 public class SharedPrefsUtil {
     private static final String TAG = SharedPrefsUtil.class.getSimpleName();
     private static final String PREFS_NAME = "share_prefs";
-    private static SharedPrefsUtil mInstance;
+    private static SharedPrefsUtil sInstance;
     private SharedPreferences mSharedPreferences;
 
     private SharedPrefsUtil() {
@@ -18,10 +18,10 @@ public class SharedPrefsUtil {
     }
 
     public static SharedPrefsUtil getInstance() {
-        if (mInstance == null) {
-            mInstance = new SharedPrefsUtil();
+        if (sInstance == null) {
+            sInstance = new SharedPrefsUtil();
         }
-        return mInstance;
+        return sInstance;
     }
 
     @SuppressWarnings("unchecked")

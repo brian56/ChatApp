@@ -21,64 +21,64 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 
 public class ChatPresenter implements ChatContract.Presenter {
     private static final String TAG = ChatPresenter.class.getSimpleName();
-    private ChatContract.View view;
-    private ChatInterface chatRepo;
-    private MessageInterface messageRepo;
+    private ChatContract.View mViewChat;
+    private ChatInterface mChatRepo;
+    private MessageInterface mMessageRepo;
 
     public ChatPresenter() {
-        chatRepo = new ChatRepository();
-        messageRepo = new MessageRepository();
+        mChatRepo = new ChatRepository();
+        mMessageRepo = new MessageRepository();
     }
 
     @Override
     public void attachView(BaseView view) {
-        this.view = (ChatContract.View) view;
+        this.mViewChat = (ChatContract.View) view;
     }
 
     @Override
     public void detachView() {
-        this.view = null;
+        this.mViewChat = null;
     }
 
     @Override
     public void removeChatDetailListener() {
-        this.chatRepo.removeChatDetailListener();
+        this.mChatRepo.removeChatDetailListener();
     }
 
     @Override
     public void addChatDetailListener() {
-        this.chatRepo.addChatDetailListener();
+        this.mChatRepo.addChatDetailListener();
     }
 
     @Override
     public void addMessageListener() {
-        this.messageRepo.addMessageListener();
+        this.mMessageRepo.addMessageListener();
     }
 
     @Override
     public void removeMessageListener() {
-        this.messageRepo.removeMessageListener();
+        this.mMessageRepo.removeMessageListener();
     }
 
     @Override
     public void loadChatDetail(final String chatId) {
-        if (view != null)
-            view.showLoadingIndicator();
-        chatRepo.getChatDetail(chatId, new ChatInterface.ChatDetailCallback() {
+        if (mViewChat != null)
+            mViewChat.showLoadingIndicator();
+        mChatRepo.getChatDetail(chatId, new ChatInterface.ChatDetailCallback() {
             @Override
             public void loadSuccess(final Chat chatObject) {
-                if (view != null) {
-                    chatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
+                if (mViewChat != null) {
+                    mChatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
                         @Override
                         public void success() {
-                            view.showChatDetail(chatObject);
-                            view.hideLoadingIndicator();
+                            mViewChat.showChatDetail(chatObject);
+                            mViewChat.hideLoadingIndicator();
                         }
 
                         @Override
                         public void fail() {
-                            view.showErrorMessage("");
-                            view.hideLoadingIndicator();
+                            mViewChat.showErrorMessage("");
+                            mViewChat.hideLoadingIndicator();
                         }
                     });
                 }
@@ -86,19 +86,24 @@ public class ChatPresenter implements ChatContract.Presenter {
 
             @Override
             public void loadFail(String message) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showErrorMessage(message);
+                if (mViewChat != null) {
+                    mViewChat.hideLoadingIndicator();
+                    mViewChat.showErrorMessage(message);
                 }
             }
         });
     }
 
     @Override
-    public void resetNumberUnread(String chatId) {
-        chatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
+    public void resetNumberUnread(String chatId, final boolean loadMessage) {
+        mChatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
             @Override
             public void success() {
+                if (loadMessage) {
+                    if (mViewChat != null) {
+                        mViewChat.loadMessage();
+                    }
+                }
             }
 
             @Override
@@ -109,24 +114,24 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void loadMessage(final String chatId) {
-        if (view != null)
-            view.showLoadingIndicator();
+        if (mViewChat != null)
+            mViewChat.showLoadingIndicator();
 
-        messageRepo.getChatMessageFirstPage(chatId, new MessageInterface.GetChatMessageFirstPageCallback() {
+        mMessageRepo.getChatMessageFirstPage(chatId, new MessageInterface.GetChatMessageFirstPageCallback() {
             @Override
             public void loadSuccess(List<Message> messages, String newestMessageId) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showMessageList(messages, false);
+                if (mViewChat != null) {
+                    mViewChat.hideLoadingIndicator();
+                    mViewChat.showMessageList(messages, false);
                 }
                 listenToNewMessage(chatId);
             }
 
             @Override
             public void loadSuccessDone(List<Message> messages, String newestMessageId) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showMessageList(messages, true);
+                if (mViewChat != null) {
+                    mViewChat.hideLoadingIndicator();
+                    mViewChat.showMessageList(messages, true);
                     //TODO: load done
                 }
                 listenToNewMessage(chatId);
@@ -134,19 +139,19 @@ public class ChatPresenter implements ChatContract.Presenter {
 
             @Override
             public void loadSuccessEmptyData() {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showMessageList(null, true);
-                    view.showEmptyDataIndicator();
+                if (mViewChat != null) {
+                    mViewChat.hideLoadingIndicator();
+                    mViewChat.showMessageList(null, true);
+                    mViewChat.showEmptyDataIndicator();
                 }
                 listenToNewMessage(chatId);
             }
 
             @Override
             public void loadFail(String error) {
-                if (view != null) {
-                    view.hideLoadingIndicator();
-                    view.showErrorMessage(error);
+                if (mViewChat != null) {
+                    mViewChat.hideLoadingIndicator();
+                    mViewChat.showErrorMessage(error);
                 }
             }
         });
@@ -154,34 +159,34 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void loadMessageMore(String chatId) {
-        messageRepo.getChatMessageLoadMore(chatId, new MessageInterface.GetChatMessageLoadMoreCallback() {
+        mMessageRepo.getChatMessageLoadMore(chatId, new MessageInterface.GetChatMessageLoadMoreCallback() {
             @Override
             public void loadSuccess(List<Message> messages) {
-                if (view != null) {
-                    view.showMessageListLoadMore(messages, false);
+                if (mViewChat != null) {
+                    mViewChat.showMessageListLoadMore(messages, false);
                 }
             }
 
             @Override
             public void loadSuccessDone(List<Message> messages) {
-                if (view != null) {
-                    view.showMessageListLoadMore(messages, true);
+                if (mViewChat != null) {
+                    mViewChat.showMessageListLoadMore(messages, true);
                     //TODO: load done
                 }
             }
 
             @Override
             public void loadSuccessEmptyData() {
-                if (view != null) {
-                    view.showMessageListLoadMore(null, true);
+                if (mViewChat != null) {
+                    mViewChat.showMessageListLoadMore(null, true);
                     //TODO: load done
                 }
             }
 
             @Override
             public void loadFail(String error) {
-                if (view != null) {
-                    view.showErrorMessage(error);
+                if (mViewChat != null) {
+                    mViewChat.showErrorMessage(error);
                 }
             }
         });
@@ -189,18 +194,18 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void listenToNewMessage(String chatId) {
-        messageRepo.getNewMessage(chatId, new MessageInterface.GetNewMessageCallback() {
+        mMessageRepo.getNewMessage(chatId, new MessageInterface.GetNewMessageCallback() {
             @Override
             public void getSuccess(Message messageObjects) {
-                if (view != null) {
-                    view.showMessage(messageObjects);
+                if (mViewChat != null) {
+                    mViewChat.showNewMessage(messageObjects);
                 }
             }
 
             @Override
             public void getFail(String message) {
-                if (view != null) {
-                    view.showErrorMessage(message);
+                if (mViewChat != null) {
+                    mViewChat.showErrorMessage(message);
                 }
             }
 
@@ -210,7 +215,7 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void sendMessage(final Chat chat, final String text, final ArrayList<String> mediaUri) {
-        messageRepo.getNewMessageId(chat.getId(), new MessageInterface.SendMessageCallBack() {
+        mMessageRepo.getNewMessageId(chat.getId(), new MessageInterface.SendMessageCallBack() {
             @Override
             public void getNewMessageIdSuccess(String messageId) {
                 Message message = new Message(messageId);
@@ -221,18 +226,18 @@ public class ChatPresenter implements ChatContract.Presenter {
                 seenUsers.put(ChatUtils.getUser().getId(), (long) 1);
                 message.setSeenUsers(seenUsers);
 
-                if(mediaUri.size() > 0) {
+                if (mediaUri.size() > 0) {
                     Map<String, String> mediaMap = new HashMap<>();
                     for (int i = 0; i < mediaUri.size(); i++) {
                         mediaMap.put(mediaUri.get(i), "");
                     }
                     message.setMedia(mediaMap);
                 }
-                if(view != null) {
-                    view.addSendingMessageToList(message);
-                    view.resetUI();
+                if (mViewChat != null) {
+                    mViewChat.addSendingMessageToList(message);
+                    mViewChat.resetUI();
                 }
-                messageRepo.sendMessage(chat, messageId, text, mediaUri, new MessageInterface.SendMessageCallBack() {
+                mMessageRepo.sendMessage(chat, messageId, text, mediaUri, new MessageInterface.SendMessageCallBack() {
                     @Override
                     public void sendSuccess() {
                         //send success
@@ -240,8 +245,8 @@ public class ChatPresenter implements ChatContract.Presenter {
 
                     @Override
                     public void sendFail(String message) {
-                        if(view != null)
-                            view.showErrorMessage(message);
+                        if (mViewChat != null)
+                            mViewChat.showErrorMessage(message);
                     }
 
                     @Override
@@ -262,5 +267,10 @@ public class ChatPresenter implements ChatContract.Presenter {
             }
         });
 
+    }
+
+    @Override
+    public void cancelUpload() {
+        mMessageRepo.cancelUpload();
     }
 }

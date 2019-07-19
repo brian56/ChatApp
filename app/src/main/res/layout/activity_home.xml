@@ -22,8 +22,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:background="@color/colorAccent"
         app:itemBackground="@drawable/nav_item_state_bg"
         app:itemIconTint="@drawable/nav_icon_state_bg"
+        app:labelVisibilityMode="unlabeled"
         app:menu="@menu/navigation" />
 
 </LinearLayout>

@@ -31,13 +31,13 @@ import vn.huynh.whatsapp.utils.MyApp;
 
 public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, FriendListAdapter.HeaderDataImpl> {
     private static final String TAG = FriendListAdapter.class.getSimpleName();
-    private Context context;
-    private ItemFriendMenuClickListener itemFriendMenuClickListener;
+    private Context mContext;
+    private ItemFriendMenuClickListener mItemFriendMenuClickListener;
 
     public FriendListAdapter(Context context,
                              ItemFriendMenuClickListener itemFriendMenuClickListener) {
-        this.context = context;
-        this.itemFriendMenuClickListener = itemFriendMenuClickListener;
+        this.mContext = context;
+        this.mItemFriendMenuClickListener = itemFriendMenuClickListener;
     }
 
     @Override
@@ -60,9 +60,9 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof FriendListViewHolder) {
-            ((FriendListViewHolder) holder).bindData(position);
+            ((FriendListViewHolder) holder).bindData(holder.getAdapterPosition());
         } else if (holder instanceof HeaderViewHolder) {
-            ((HeaderViewHolder) holder).bindData(position);
+            ((HeaderViewHolder) holder).bindData(holder.getAdapterPosition());
         }
     }
 
@@ -145,6 +145,7 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                 if (((Friend) getListData().get(i)).getUserId().equals(friend.getUserId())) {
                     getListData().remove(i);
                     notifyItemRemoved(i);
+                    notifyItemRangeChanged(i, getItemCount());
                 }
             }
         }
@@ -174,6 +175,8 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
         ImageView ivMoreAction;
         @BindView(R.id.avatar)
         AvatarView avatarView;
+        @BindView(R.id.tv_action)
+        TextView tvAction;
 
         public IImageLoader iImageLoader;
 
@@ -185,96 +188,125 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
         void bindData(final int position) {
             tvName.setText(getDataInPosition(position).getName());
             tvPhone.setText(getDataInPosition(position).getPhoneNumber());
-            ivMoreAction.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    PopupMenu popup = new PopupMenu(context, ivMoreAction);
-                    if (getDataInPosition(position).getStatus() == Friend.STATUS_WAS_REQUESTED) {
-                        popup.inflate(R.menu.menu_friend_was_requested);
+            tvAction.setVisibility(View.GONE);
+
+            if (getDataInPosition(position).getStatus() == Friend.STATUS_WAS_REQUESTED) {
+                tvAction.setVisibility(View.VISIBLE);
+                tvAction.setText(MyApp.resources.getString(R.string.menu_accept));
+                tvAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mItemFriendMenuClickListener.onAccept(getDataInPosition(position));
+                    }
+                });
+                ivMoreAction.setVisibility(View.VISIBLE);
+                ivMoreAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PopupMenu popup = new PopupMenu(mContext, ivMoreAction);
+                        popup.inflate(R.menu.menu_popup_friend_was_requested);
                         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
                                 switch (item.getItemId()) {
-                                    case R.id.menu_accept:
-                                        //handle menu1 click
-                                        itemFriendMenuClickListener.onAccept(getDataInPosition(position));
-                                        return true;
                                     case R.id.menu_reject:
                                         //handle menu1 click
-                                        itemFriendMenuClickListener.onReject(getDataInPosition(position));
+                                        mItemFriendMenuClickListener.onReject(getDataInPosition(position));
                                         return true;
                                     case R.id.menu_block:
                                         //handle menu1 click
-                                        itemFriendMenuClickListener.onBlock(getDataInPosition(position));
+                                        mItemFriendMenuClickListener.onBlock(getDataInPosition(position));
                                         return true;
                                     default:
                                         return false;
                                 }
                             }
                         });
+                        popup.show();
                     }
-                    if (getDataInPosition(position).getStatus() == Friend.STATUS_ACCEPT
-                            || getDataInPosition(position).getStatus() == Friend.STATUS_WAS_ACCEPTED) {
-                        popup.inflate(R.menu.menu_friend);
+                });
+            }
+            if (getDataInPosition(position).getStatus() == Friend.STATUS_ACCEPT
+                    || getDataInPosition(position).getStatus() == Friend.STATUS_WAS_ACCEPTED) {
+                tvAction.setVisibility(View.GONE);
+                ivMoreAction.setVisibility(View.VISIBLE);
+                ivMoreAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PopupMenu popup = new PopupMenu(mContext, ivMoreAction);
+                        popup.inflate(R.menu.menu_popup_friend);
                         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
                                 switch (item.getItemId()) {
                                     case R.id.menu_unfriend:
                                         //handle menu1 click
-                                        itemFriendMenuClickListener.onUnfriend(getDataInPosition(position));
+                                        mItemFriendMenuClickListener.onUnfriend(getDataInPosition(position));
                                         return true;
                                     case R.id.menu_block:
                                         //handle menu1 click
-                                        itemFriendMenuClickListener.onBlock(getDataInPosition(position));
+                                        mItemFriendMenuClickListener.onBlock(getDataInPosition(position));
                                         return true;
                                     default:
                                         return false;
                                 }
                             }
                         });
+                        popup.show();
                     }
-                    if (getDataInPosition(position).getStatus() == Friend.STATUS_REQUEST) {
-                        popup.inflate(R.menu.menu_friend_my_request);
-                        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                switch (item.getItemId()) {
-                                    case R.id.menu_cancel:
-                                        //handle menu1 click
-                                        itemFriendMenuClickListener.onCancel(getDataInPosition(position));
-                                        return true;
-                                    case R.id.menu_block:
-                                        //handle menu1 click
-                                        itemFriendMenuClickListener.onBlock(getDataInPosition(position));
-                                        return true;
-                                    default:
-                                        return false;
+                });
+            }
+            if (getDataInPosition(position).getStatus() == Friend.STATUS_REQUEST) {
+                tvAction.setVisibility(View.VISIBLE);
+                tvAction.setText(MyApp.resources.getString(R.string.menu_cancel));
+                tvAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mItemFriendMenuClickListener.onCancel(getDataInPosition(position));
+                    }
+                });
+                ivMoreAction.setVisibility(View.VISIBLE);
+                ivMoreAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PopupMenu popup = new PopupMenu(mContext, ivMoreAction);
+                        if (getDataInPosition(position).getStatus() == Friend.STATUS_REQUEST) {
+                            popup.inflate(R.menu.menu_popup_friend_my_request);
+                            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                @Override
+                                public boolean onMenuItemClick(MenuItem item) {
+                                    switch (item.getItemId()) {
+                                        case R.id.menu_block:
+                                            //handle menu1 click
+                                            mItemFriendMenuClickListener.onBlock(getDataInPosition(position));
+                                            return true;
+                                        default:
+                                            return false;
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        popup.show();
                     }
-                    if (getDataInPosition(position).getStatus() == Friend.STATUS_BLOCK) {
-                        popup.inflate(R.menu.menu_friend_my_block);
-                        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                switch (item.getItemId()) {
-                                    case R.id.menu_unblock:
-                                        //handle menu1 click
-                                        itemFriendMenuClickListener.onUnblock(getDataInPosition(position));
-                                        return true;
-                                    default:
-                                        return false;
-                                }
-                            }
-                        });
+                });
+            }
+
+            if (getDataInPosition(position).getStatus() == Friend.STATUS_BLOCK) {
+                tvAction.setVisibility(View.VISIBLE);
+                tvAction.setText(MyApp.resources.getString(R.string.menu_unblock));
+                tvAction.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mItemFriendMenuClickListener.onUnblock(getDataInPosition(position));
                     }
-                    popup.show();
-                }
-            });
+                });
+                ivMoreAction.setVisibility(View.GONE);
+            }
+
             iImageLoader = new GlideLoader();
-            iImageLoader.loadImage(avatarView, getDataInPosition(position).getAvatar(), getDataInPosition(position).getName());
+            iImageLoader.loadImage(avatarView, getDataInPosition(position)
+                    .getAvatar(), getDataInPosition(position)
+                    .getName());
         }
     }
 

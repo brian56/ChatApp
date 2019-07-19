@@ -11,14 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <agency.tango.android.avatarview.views.AvatarView
             android:id="@+id/avatar"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center_vertical"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:scaleType="fitXY"
             app:av_border_color="@android:color/white"
             app:av_border_width="0dp"
@@ -44,6 +45,7 @@
                 android:id="@+id/tv_phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/sub_text_color"
@@ -51,14 +53,23 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/iv_more_action"
+        <TextView
+            android:id="@+id/tv_action"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:foreground="?android:attr/selectableItemBackground"
+            android:padding="8dp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/bg_button_round_corner"
+            android:text="@string/menu_accept" />
+
+        <ImageView
+            android:id="@+id/iv_more_action"
+            style="@style/Widget.AppCompat.ActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:padding="12dp"
+            android:tint="@color/colorPrimary"
             android:src="@drawable/ic_more_vert_black_24dp" />
 
     </LinearLayout>

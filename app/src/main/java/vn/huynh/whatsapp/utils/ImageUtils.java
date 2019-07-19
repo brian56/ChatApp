@@ -18,7 +18,6 @@ import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.Base64;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
@@ -375,23 +374,23 @@ public class ImageUtils {
         int streamLength;
         do {
             ByteArrayOutputStream bmpStream = new ByteArrayOutputStream();
-            Log.d("compressBitmap", "Quality: " + compressQuality);
+            LogManagerUtils.d(TAG, "Compress bitmap Quality: " + compressQuality);
             bmpPic.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpStream);
             byte[] bmpPicByteArray = bmpStream.toByteArray();
             streamLength = bmpPicByteArray.length;
             compressQuality -= 5;
-            Log.d("compressBitmap", "Size: " + streamLength / 1024 + " kb");
+            LogManagerUtils.d(TAG, "Compress bitmap Size: " + streamLength / 1024 + " kb");
         } while (streamLength >= MAX_IMAGE_SIZE);
 
         try {
             //save the resized and compressed file to disk cache
-            Log.d("compressBitmap", "cacheDir: " + context.getCacheDir());
+            LogManagerUtils.d(TAG, "cacheDir: " + context.getCacheDir());
             FileOutputStream bmpFile = new FileOutputStream(context.getCacheDir() + fileName);
             bmpPic.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpFile);
             bmpFile.flush();
             bmpFile.close();
         } catch (Exception e) {
-            Log.e("compressBitmap", "Error on saving file");
+            LogManagerUtils.e(TAG, "Error on saving file");
         }
         //return the path of resized and compressed file
         return context.getCacheDir() + fileName;
@@ -403,7 +402,7 @@ public class ImageUtils {
         // Image nin islenmeden onceki genislik ve yuksekligi
         final int height = options.outHeight;
         final int width = options.outWidth;
-        Log.d(debugTag, "image height: " + height + "---image width: " + width);
+        LogManagerUtils.d(TAG, "MemoryInformation: image height: " + height + "---image width: " + width);
         int inSampleSize = 1;
 
         if (height > reqHeight || width > reqWidth) {
@@ -417,7 +416,7 @@ public class ImageUtils {
                 inSampleSize *= 2;
             }
         }
-        Log.d(debugTag, "inSampleSize: " + inSampleSize);
+        LogManagerUtils.d(TAG, "inSampleSize: " + inSampleSize);
         return inSampleSize;
     }
 

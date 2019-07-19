@@ -4,7 +4,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Log;
 
 /**
  * Created by duong on 4/3/2019.
@@ -12,6 +11,7 @@ import android.util.Log;
 
 public class ServiceUtils {
     private static final String TAG = ServiceUtils.class.getSimpleName();
+
     public static boolean isServiceRunning(String serviceName, Context context) {
         if (context == null)
             return false;
@@ -23,7 +23,7 @@ public class ServiceUtils {
                 }
             }
         } catch (NullPointerException e) {
-            Log.e(TAG, e.getMessage());
+            LogManagerUtils.e(TAG, e.getMessage());
         }
         return false;
     }

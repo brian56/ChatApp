@@ -58,6 +58,7 @@
             android:layout_height="18dp"
             android:visibility="gone"
             android:layout_alignParentEnd="true"
+            android:tint="@color/colorAccent_2"
             android:src="@drawable/ic_delivered_24dp"/>
 
         <com.agrawalsuneet.dotsloader.loaders.TashieLoader

@@ -55,14 +55,14 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     public static final String TAG = "ContactFragment";
 
-    private RecyclerView.Adapter userListAdapter;
-    private RecyclerView.LayoutManager userListLayoutManager;
-    private ArrayList<User> userList;
+    private RecyclerView.Adapter mUserListAdapter;
+    private RecyclerView.LayoutManager mUserListLayoutManager;
+    private ArrayList<User> mUserList;
 
-    private boolean firstStart = true;
-    private ContactContract.Presenter contactPresenter;
-    private FriendContract.Presenter friendPresenter;
-    private InviteDialog inviteDialog;
+    private boolean mIsFirstStart = true;
+    private ContactContract.Presenter mContactPresenter;
+    private FriendContract.Presenter mFriendPresenter;
+    private InviteDialog mInviteDialog;
 
     public ContactFragment() {
     }
@@ -84,10 +84,10 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupPresenter();
-        inviteDialog = new InviteDialog(getContext());
+        mInviteDialog = new InviteDialog(getContext());
         setEvents();
         initializeRecyclerView();
-        contactPresenter.loadListContact(getContext());
+        mContactPresenter.loadListContact(getContext());
     }
 
     @Override
@@ -106,58 +106,59 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     }
 
     private void setupPresenter() {
-        contactPresenter = new ContactPresenter();
-        contactPresenter.attachView(this);
+        mContactPresenter = new ContactPresenter();
+        mContactPresenter.attachView(this);
 
-        friendPresenter = new FriendPresenter();
-        friendPresenter.attachView(this);
+        mFriendPresenter = new FriendPresenter();
+        mFriendPresenter.attachView(this);
     }
 
     private void setEvents() {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                userList.clear();
-                userListAdapter.notifyDataSetChanged();
-                contactPresenter.loadListContact(getContext());
+                mUserList.clear();
+                mUserListAdapter.notifyDataSetChanged();
+                mContactPresenter.loadListContact(getContext());
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                userList.clear();
-                userListAdapter.notifyDataSetChanged();
-                contactPresenter.loadListContact(getContext());
+                mUserList.clear();
+                mUserListAdapter.notifyDataSetChanged();
+                mContactPresenter.loadListContact(getContext());
             }
         });
     }
 
     private void initializeRecyclerView() {
-        userList = new ArrayList<>();
+        mUserList = new ArrayList<>();
         rvUserList.setNestedScrollingEnabled(false);
         rvUserList.setHasFixedSize(false);
-        userListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
-        rvUserList.setLayoutManager(userListLayoutManager);
-        userListAdapter = new ContactListAdapter(userList, true, new ContactListAdapter.OnItemClickListener() {
-            @Override
-            public void onInvite(User user) {
-                showInviteDialog(user);
-            }
+        mUserListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
+        rvUserList.setLayoutManager(mUserListLayoutManager);
+        mUserListAdapter = new ContactListAdapter(mUserList, true, false, true,
+                new ContactListAdapter.OnItemClickListener() {
+                    @Override
+                    public void onInvite(User user) {
+                        showInviteDialog(user);
+                    }
 
-            @Override
-            public void onAddFriend(User user) {
-                friendPresenter.createFriendRequest(user);
-            }
+                    @Override
+                    public void onAddFriend(User user) {
+                        mFriendPresenter.createFriendRequest(user);
+                    }
 
-            @Override
-            public void onChat(User user) {
-                List<User> list = new ArrayList<>();
-                list.add(new User(ChatUtils.getUser().getId()));
-                list.add(user);
-                contactPresenter.checkSingleChatExist(false, "", list);
-            }
-        });
-        rvUserList.setAdapter(userListAdapter);
+                    @Override
+                    public void onChat(User user) {
+                        List<User> list = new ArrayList<>();
+                        list.add(new User(ChatUtils.getUser().getId()));
+                        list.add(user);
+                        mContactPresenter.checkSingleChatExist(false, "", list);
+                    }
+                });
+        rvUserList.setAdapter(mUserListAdapter);
 
     }
 
@@ -166,13 +167,13 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     }
 
     private void showInviteDialog(final User user) {
-        if (inviteDialog != null && inviteDialog.isShowing()) {
+        if (mInviteDialog != null && mInviteDialog.isShowing()) {
             return;
         }
-        inviteDialog.show(user, new InviteDialog.InviteListener() {
+        mInviteDialog.show(user, new InviteDialog.InviteListener() {
             @Override
             public void onInviteCompleteListener(User friend, String message) {
-                friendPresenter.sendInvite(friend, message);
+                mFriendPresenter.sendInvite(friend, message);
             }
         });
     }
@@ -184,9 +185,9 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     @Override
     public void showListContact(User userObject) {
-        if(userObject != null) {
-            userList.add(userObject);
-            Collections.sort(userList, new Comparator<User>() {
+        if (userObject != null) {
+            mUserList.add(userObject);
+            Collections.sort(mUserList, new Comparator<User>() {
                 @Override
                 public int compare(User o1, User o2) {
                     if (o1.getRegisteredUser() && !o2.getRegisteredUser())
@@ -196,7 +197,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
                     return o1.getName().compareToIgnoreCase(o2.getName());
                 }
             });
-            userListAdapter.notifyDataSetChanged();
+            mUserListAdapter.notifyDataSetChanged();
         }
     }
 
@@ -247,17 +248,17 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @Override
     public void onStart() {
         super.onStart();
-        if (!firstStart && !parentActivityListener.returnFromChildActivity()) {
-            userList.clear();
-            userListAdapter.notifyDataSetChanged();
-            contactPresenter.loadListContact(getContext());
+        if (!mIsFirstStart && !parentActivityListener.returnFromChildActivity()) {
+            mUserList.clear();
+            mUserListAdapter.notifyDataSetChanged();
+            mContactPresenter.loadListContact(getContext());
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        firstStart = false;
+        mIsFirstStart = false;
     }
 
     @Override
@@ -268,6 +269,6 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
     @Override
     public void onDestroy() {
         super.onDestroy();
-        contactPresenter.detachView();
+        mContactPresenter.detachView();
     }
 }

@@ -33,7 +33,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/ic_cloud_done_black_48dp" />
+            android:src="@drawable/ic_cloud_done_grey_48dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
             android:text="@string/label_indicator_no_data"
             android:textColor="@color/sub_text_color"
             android:gravity="center"
-            android:drawableStart="@drawable/ic_refresh_black_24dp"
+            android:drawableStart="@drawable/ic_refresh_grey_24dp"
             android:drawablePadding="4dp"
             android:textStyle="italic" />
 
@@ -59,14 +59,14 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/ic_error_black_48dp" />
+            android:src="@drawable/ic_error_grey_48dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/label_indicator_error"
-            android:drawableStart="@drawable/ic_refresh_black_24dp"
+            android:drawableStart="@drawable/ic_refresh_grey_24dp"
             android:drawablePadding="4dp"
             android:textColor="@color/sub_text_color"
             android:textStyle="italic" />

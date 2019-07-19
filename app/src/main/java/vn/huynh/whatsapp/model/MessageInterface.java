@@ -26,6 +26,8 @@ public interface MessageInterface extends BaseModelInterface {
 
     void addMessageListener();
 
+    void cancelUpload();
+
     interface SendMessageCallBack {
         void getNewMessageIdSuccess(String messageId);
 

@@ -17,18 +17,19 @@ import vn.huynh.whatsapp.model.User;
  */
 
 public class InviteDialog {
+    private static final String TAG = InviteDialog.class.getSimpleName();
     @BindView(R.id.edt_invite_message)
     EditText edtInviteMessage;
     @BindView(R.id.btn_invite)
     Button btnInvite;
 
-    private Context context;
-    private Dialog dialog;
-    private User friend;
-    private InviteListener inviteListener;
+    private Context mContext;
+    private Dialog mDialog;
+    private User mUserFriend;
+    private InviteListener mInviteListener;
 
     public InviteDialog(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     public interface InviteListener {
@@ -36,47 +37,47 @@ public class InviteDialog {
     }
 
     public boolean isShowing() {
-        return (dialog != null) && dialog.isShowing();
+        return (mDialog != null) && mDialog.isShowing();
     }
 
     public void show(User friend, InviteListener inviteListener) {
         if (friend == null)
             return;
-        this.inviteListener = inviteListener;
-        this.friend = friend;
-        dialog = new Dialog(context, R.style.Dialog);
-        View view = View.inflate(context, R.layout.dialog_invite, null);
-        dialog.setTitle(context.getResources().getString(R.string.title_invite_friend));
-        dialog.setContentView(view);
+        this.mInviteListener = inviteListener;
+        this.mUserFriend = friend;
+        mDialog = new Dialog(mContext, R.style.Dialog);
+        View view = View.inflate(mContext, R.layout.dialog_invite, null);
+        mDialog.setTitle(mContext.getResources().getString(R.string.title_invite_friend));
+        mDialog.setContentView(view);
         ButterKnife.bind(this, view);
-        dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        mDialog.setCancelable(true);
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         initData();
         setupEvent();
 
-        dialog.show();
+        mDialog.show();
     }
 
     private void initData() {
-        edtInviteMessage.setHint(context.getResources().getString(R.string.hint_invite_message, friend.getName()));
+        edtInviteMessage.setHint(mContext.getResources().getString(R.string.hint_invite_message, mUserFriend.getName()));
     }
 
     private void setupEvent() {
         btnInvite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dialog != null) {
-                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-                    if (inviteListener != null) {
+                if (mDialog != null) {
+                    mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                    if (mInviteListener != null) {
                         if (edtInviteMessage.getText().toString().trim().isEmpty()) {
-                            inviteListener.onInviteCompleteListener(friend, edtInviteMessage.getHint().toString());
+                            mInviteListener.onInviteCompleteListener(mUserFriend, edtInviteMessage.getHint().toString());
                         } else {
-                            inviteListener.onInviteCompleteListener(friend, edtInviteMessage.getText().toString().trim());
+                            mInviteListener.onInviteCompleteListener(mUserFriend, edtInviteMessage.getText().toString().trim());
                         }
                     }
-                    dialog.dismiss();
+                    mDialog.dismiss();
                 }
             }
         });
