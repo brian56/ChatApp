@@ -379,10 +379,10 @@ public class ChatRepository implements ChatInterface {
         }
         Map<String, String> userIdsMap = new HashMap<>();
         Map<String, Long> numberUnread = new HashMap<>();
-        Map<String, String> notificationIdMap = new HashMap<>();
+        Map<String, Boolean> notificationIdMap = new HashMap<>();
         for (String userId : userIds) {
             userIdsMap.put(userIdRef.push().getKey(), userId);
-            notificationIdMap.put(notificationIdRef.push().getKey(), userId);
+            notificationIdMap.put(userId, true);
             numberUnread.put(userId, 0L);
         }
         chat.setUserIds(userIdsMap);
@@ -498,6 +498,22 @@ public class ChatRepository implements ChatInterface {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
+            }
+        });
+    }
+
+    @Override
+    public void setChatNotification(final boolean turnOn, final String chatId, final TurnOffNotificationCallback callback) {
+        final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId)
+                .child(Constant.FB_KEY_NOTIFICATION_USER_IDS).child(ChatUtils.getUser().getId());
+        dbRefChat.setValue(turnOn, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    callback.success(chatId, turnOn);
+                } else {
+                    callback.fail(databaseError.getMessage());
+                }
             }
         });
     }

@@ -4,19 +4,17 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
+import com.loopeer.itemtouchhelperextension.ItemTouchHelperExtension;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,9 +33,10 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseFragment;
+import vn.huynh.whatsapp.chat.ChatContract;
+import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
 import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.chat_list.ChatListContract;
 import vn.huynh.whatsapp.chat_list.presenter.ChatListPresenter;
@@ -73,7 +73,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     private ChatListAdapter mChatListAdapter;
     private LinearLayoutManager mChatListLayoutManager;
     private ArrayList<Chat> mChatList;
-    private ChatListContract.Presenter mChatListPresenter = new ChatListPresenter();
+    private ChatListContract.Presenter mChatListPresenter;
+    private ChatContract.Presenter mChatPresenter;
     private SearchView mSearchView;
 
     private static final int CREATE_GROUP_INTENT = 100;
@@ -85,8 +86,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     private boolean mFirstStart = true;
     public static Map<String, Long> sUnreadChatIdMap = new HashMap<>();
 
-    private ItemTouchHelper.SimpleCallback mTouchCallback;
-    private ItemTouchHelper mItemTouchHelper;
+    private ItemTouchHelperExtension.Callback mTouchCallback;
+    private ItemTouchHelperExtension mItemTouchHelper;
 //    private boolean returnFromChatActivity = false;
 
     public ChatListFragment() {
@@ -114,10 +115,10 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //TODO: restore data if have
-        initializeRecyclerView();
+        initData();
         setupPresenter();
         setEvents();
-        resetDataBeforeReload();
+        resetData();
         mChatListPresenter.loadChatList(false, mChatList);
     }
 
@@ -236,165 +237,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == CREATE_GROUP_INTENT) {
-                if (data.getStringExtra(Constant.EXTRA_CHAT_ID) != null) {
-                    String chatGroupId = data.getStringExtra(Constant.EXTRA_CHAT_ID);
-
-                    parentActivityListener.setReturnFromChildActivity(true);
-                    Intent intent = new Intent(getContext(), ChatActivity.class);
-                    intent.putExtra(Constant.EXTRA_CHAT_ID, chatGroupId);
-                    startActivity(intent);
-                }
-            }
-        }
-    }
-
-    private void initializeRecyclerView() {
-        mChatList = new ArrayList<>();
-        rvChatList.setNestedScrollingEnabled(false);
-        mChatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
-        rvChatList.setLayoutManager(mChatListLayoutManager);
-        mChatListAdapter = new ChatListAdapter(mChatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
-            @Override
-            public void onClick(int position, Chat chat) {
-                chat.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
-                mChatListAdapter.notifyItemChanged(position);
-                parentActivityListener.setReturnFromChildActivity(true);
-                parentActivityListener.showMessageNotification(true);
-                ChatListFragment.sUnreadChatIdMap.remove(chat.getId());
-                GroupFragment.sUnreadChatIdMap.remove(chat.getId());
-                if (ChatListFragment.sUnreadChatIdMap.isEmpty()) {
-                    newNotificationCallback.removeChatNotificationDot();
-                }
-                if (GroupFragment.sUnreadChatIdMap.isEmpty()) {
-                    newNotificationCallback.removeGroupNotificationDot();
-                }
-                Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
-                startActivity(intent);
-
-            }
-        }, new ChatListAdapter.ChatAdapterListener() {
-            @Override
-            public void onFilter(boolean isEmptyResult) {
-                if (isEmptyResult) {
-                    rvChatList.setVisibility(View.GONE);
-                    showHideListEmptyIndicator(llIndicator, llEmptyData, true);
-                } else {
-                    rvChatList.setVisibility(View.VISIBLE);
-                    showHideListEmptyIndicator(llIndicator, llEmptyData, false);
-                }
-            }
-        });
-
-        rvChatList.setAdapter(mChatListAdapter);
-        mTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                try {
-                    final int position = viewHolder.getAdapterPosition();
-                    final Chat chatItem = mChatList.get(position);
-                    final String chatName = chatItem.getChatName();
-                    mChatList.remove(position);
-                    mChatListAdapter.notifyItemRemoved(position);
-                    Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Chat: " + chatName + (direction == ItemTouchHelper.RIGHT ? " was deleted" : " was muted"), Snackbar.LENGTH_LONG);
-                    snackbar.setAction(android.R.string.cancel, new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            try {
-                                mChatList.add(position, chatItem);
-                                mChatListAdapter.notifyItemInserted(position);
-                                mChatListLayoutManager.scrollToPositionWithOffset(position, 0);
-                            } catch (Exception e) {
-                                LogManagerUtils.e(TAG, e.getMessage());
-                            }
-                        }
-                    });
-                    snackbar.setActionTextColor(Color.WHITE);
-                    snackbar.addCallback(new Snackbar.Callback() {
-
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            //see Snackbar.Callback docs for event details
-                            if (event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_CONSECUTIVE) {
-                                //TODO:
-                            }
-                        }
-
-                        @Override
-                        public void onShown(Snackbar snackbar) {
-
-                        }
-                    });
-                    snackbar.show();
-                } catch (Exception e) {
-                    LogManagerUtils.e(TAG, e.getMessage());
-                }
-            }
-
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                new RecyclerViewSwipeDecorator.Builder(getContext(), c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary))
-                        .addSwipeLeftActionIcon(R.drawable.ic_notifications_off_white_24dp)
-                        .addSwipeRightBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAccent))
-                        .addSwipeRightActionIcon(R.drawable.ic_delete_white_24dp)
-                        .addSwipeRightLabel(getString(R.string.action_delete))
-                        .setSwipeRightLabelColor(Color.WHITE)
-                        .addSwipeLeftLabel(getString(R.string.action_mute))
-                        .setSwipeLeftLabelColor(Color.WHITE)
-                        .create()
-                        .decorate();
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            }
-        };
-        mItemTouchHelper = new ItemTouchHelper(mTouchCallback);
-        mItemTouchHelper.attachToRecyclerView(rvChatList);
-    }
-
-    private void resetDataBeforeReload() {
-        mChatList.clear();
-        mChatListAdapter.notifyDataSetChanged();
-        sUnreadChatIdMap.clear();
-        GroupFragment.sUnreadChatIdMap.clear();
-//        newNotificationCallback.removeChatNotificationDot();
-//        newNotificationCallback.removeGroupNotificationDot();
-        mTotalChat = 0;
-        mChatCount = 0;
-    }
-
-    private void setupPresenter() {
-        mChatListPresenter = new ChatListPresenter();
-        mChatListPresenter.attachView(this);
-    }
-
-    private void setEvents() {
-        swipeRefreshLayout.setDistanceToTriggerSync(250);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                resetDataBeforeReload();
-                mChatListPresenter.loadChatList(false, mChatList);
-            }
-        });
-        llIndicator.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resetDataBeforeReload();
-                mChatListPresenter.loadChatList(false, mChatList);
-            }
-        });
-    }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -409,7 +251,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         super.onStart();
         //TODO: attach the listener for chat list items
         if (!mFirstStart && !parentActivityListener.returnFromChildActivity()) {
-            resetDataBeforeReload();
+            resetData();
             mChatListPresenter.loadChatList(false, mChatList);
         }
         if (!sUnreadChatIdMap.isEmpty()) {
@@ -458,25 +300,325 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == CREATE_GROUP_INTENT) {
+                if (data.getStringExtra(Constant.EXTRA_CHAT_ID) != null) {
+                    String chatGroupId = data.getStringExtra(Constant.EXTRA_CHAT_ID);
+
+                    parentActivityListener.setReturnFromChildActivity(true);
+                    Intent intent = new Intent(getContext(), ChatActivity.class);
+                    intent.putExtra(Constant.EXTRA_CHAT_ID, chatGroupId);
+                    startActivity(intent);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void initData() {
+        initializeRecyclerView();
+    }
+
+    private void initializeRecyclerView() {
+        mChatList = new ArrayList<>();
+        rvChatList.setNestedScrollingEnabled(false);
+        mChatListLayoutManager = new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false);
+        rvChatList.setLayoutManager(mChatListLayoutManager);
+        mChatListAdapter = new ChatListAdapter(mChatList, getActivity(), new ChatListAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position, Chat chat) {
+                chat.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
+                mChatListAdapter.notifyItemChanged(position);
+                parentActivityListener.setReturnFromChildActivity(true);
+                parentActivityListener.showMessageNotification(true);
+                ChatListFragment.sUnreadChatIdMap.remove(chat.getId());
+                GroupFragment.sUnreadChatIdMap.remove(chat.getId());
+                if (ChatListFragment.sUnreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeChatNotificationDot();
+                }
+                if (GroupFragment.sUnreadChatIdMap.isEmpty()) {
+                    newNotificationCallback.removeGroupNotificationDot();
+                }
+                Intent intent = new Intent(getContext(), ChatActivity.class);
+                intent.putExtra(Constant.EXTRA_CHAT_OBJECT, chat);
+                startActivity(intent);
+
+            }
+        }, new ChatListAdapter.ChatAdapterListener() {
+            @Override
+            public void onFilter(boolean isEmptyResult) {
+                if (isEmptyResult) {
+                    rvChatList.setVisibility(View.GONE);
+                    showHideListEmptyIndicator(llIndicator, llEmptyData, true);
+                } else {
+                    rvChatList.setVisibility(View.VISIBLE);
+                    showHideListEmptyIndicator(llIndicator, llEmptyData, false);
+                }
+            }
+        });
+
+        rvChatList.setAdapter(mChatListAdapter);
+        /*mTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int direction) {
+                try {
+                    final int position = viewHolder.getAdapterPosition();
+                    final Chat chatItem = mChatList.get(position);
+                    final String chatName = chatItem.getChatName();
+                    final boolean currentNotificationSetting = chatItem.getNotificationUserIds().get(ChatUtils.getUser().getId());
+                    final long numberUnread = chatItem.getNumberUnread().get(ChatUtils.getUser().getId());
+                    //TODO: temporary do function
+                    if(direction == ItemTouchHelper.RIGHT) {
+                        chatItem.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
+                        showHideNotificationDot(mChatList.get(position).getId(),
+                                mChatList.get(position).getNumberUnread().get(ChatUtils.getUser().getId()),
+                                mChatList.get(position).isGroup());
+                        mChatListAdapter.notifyItemChanged(position);
+                    } else {
+                        //TODO: change notification for this
+                        mChatList.get(position).getNotificationUserIds().put(ChatUtils.getUser().getId(), !currentNotificationSetting);
+                        mChatListAdapter.notifyItemChanged(position);
+                    }
+                    Snackbar snackbar = Snackbar.make(viewHolder.itemView,
+                            "Conversation: " + chatName + (direction == ItemTouchHelper.RIGHT ? " was mark as read" : " was muted"),
+                            Snackbar.LENGTH_LONG);
+                    snackbar.setAction(android.R.string.cancel, new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+                            //undo the function
+                            if(direction == ItemTouchHelper.RIGHT) {
+                                mChatList.get(position).getNumberUnread().put(ChatUtils.getUser().getId(), numberUnread);
+                                showHideNotificationDot(mChatList.get(position).getId(),
+                                        numberUnread,
+                                        mChatList.get(position).isGroup());
+                                mChatListAdapter.notifyItemChanged(position);
+                            } else {
+                                //TODO: turn on notification
+                                mChatList.get(position).getNotificationUserIds().put(ChatUtils.getUser().getId(), currentNotificationSetting);
+                                mChatListAdapter.notifyItemChanged(position);
+                            }
+                        }
+                    });
+                    snackbar.setActionTextColor(Color.WHITE);
+                    snackbar.addCallback(new Snackbar.Callback() {
+
+                        @Override
+                        public void onDismissed(Snackbar snackbar, int event) {
+                            //see Snackbar.Callback docs for event details
+                            if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                                //TODO: actually do the function
+                                if(direction == ItemTouchHelper.RIGHT) {
+                                    //mark as read
+                                    mChatPresenter.resetNumberUnread(chatItem.getId(), false);
+                                } else {
+                                    //change notification setting
+                                    mChatPresenter.setChatNotification(!currentNotificationSetting, chatItem.getId());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onShown(Snackbar snackbar) {
+
+                        }
+                    });
+                    snackbar.show();
+                } catch (Exception e) {
+                    LogManagerUtils.e(TAG, e.getMessage());
+                }
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                int position = viewHolder.getAdapterPosition();
+                boolean currentNotification = mChatList.get(position).getNotificationUserIds().get(ChatUtils.getUser().getId());
+
+                new RecyclerViewSwipeDecorator.Builder(getContext(), c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary))
+                        .addSwipeLeftActionIcon(currentNotification ? R.drawable.ic_notifications_off_white_24dp : R.drawable.ic_notifications_active_white_24dp)
+                        .addSwipeRightBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAccent))
+                        .addSwipeRightActionIcon(R.drawable.ic_delivered_white_24dp)
+                        .addSwipeRightLabel(getString(R.string.action_mark_as_read))
+                        .setSwipeRightLabelColor(Color.WHITE)
+                        .addSwipeLeftLabel(currentNotification ? getString(R.string.action_mute) : getString(R.string.action_unmute))
+                        .setSwipeLeftLabelColor(Color.WHITE)
+                        .create()
+                        .decorate();
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };*/
+        mTouchCallback = new ItemTouchHelperCallback();
+        mItemTouchHelper = new ItemTouchHelperExtension(mTouchCallback);
+        mItemTouchHelper.attachToRecyclerView(rvChatList);
+        mChatListAdapter.setItemTouchHelperExtension(mItemTouchHelper);
+        mChatListAdapter.setOnActionItemClickListener(new ChatListAdapter.OnActionItemClickListener() {
+            @Override
+            public void onMarkAsRead(final int position, final Chat chatItem) {
+                mItemTouchHelper.closeOpened();
+                final long numberUnread = chatItem.getNumberUnread().get(ChatUtils.getUser().getId());
+                chatItem.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
+                showHideNotificationDot(mChatList.get(position).getId(),
+                        mChatList.get(position).getNumberUnread().get(ChatUtils.getUser().getId()),
+                        mChatList.get(position).isGroup());
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mChatListAdapter.notifyItemChanged(position);
+                    }
+                }, 1000);
+
+                Snackbar snackbar = Snackbar.make(getView(),
+                        "Conversation: " + chatItem.getChatName() + " was mark as read",
+                        Snackbar.LENGTH_LONG);
+                snackbar.setAction(android.R.string.cancel, new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View view) {
+                        //undo the function
+                        mChatList.get(position).getNumberUnread().put(ChatUtils.getUser().getId(), numberUnread);
+                        showHideNotificationDot(mChatList.get(position).getId(),
+                                numberUnread,
+                                mChatList.get(position).isGroup());
+                        mChatListAdapter.notifyItemChanged(position);
+                    }
+                });
+                snackbar.setActionTextColor(Color.WHITE);
+                snackbar.addCallback(new Snackbar.Callback() {
+
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        //see Snackbar.Callback docs for event details
+                        if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE
+                                || event == Snackbar.Callback.DISMISS_EVENT_SWIPE) {
+                            //TODO: actually do the function
+                            //mark as read
+                            mChatPresenter.resetNumberUnread(chatItem.getId(), false);
+                        }
+                    }
+
+                    @Override
+                    public void onShown(Snackbar snackbar) {
+
+                    }
+                });
+                snackbar.show();
+            }
+
+            @Override
+            public void onMute(int position, Chat chatItem) {
+                mItemTouchHelper.closeOpened();
+                final String chatId = chatItem.getId();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mChatPresenter.setChatNotification(false, chatId);
+                    }
+                }, 1000);
+            }
+
+            @Override
+            public void onUnmute(int position, Chat chatItem) {
+                mItemTouchHelper.closeOpened();
+                final String chatId = chatItem.getId();
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mChatPresenter.setChatNotification(true, chatId);
+                    }
+                }, 1000);
+            }
+
+            @Override
+            public void onBack() {
+                mItemTouchHelper.closeOpened();
+            }
+        });
+    }
+
+    @Override
+    public void resetData() {
+        mChatList.clear();
+        mChatListAdapter.notifyDataSetChanged();
+        sUnreadChatIdMap.clear();
+        GroupFragment.sUnreadChatIdMap.clear();
+//        newNotificationCallback.removeChatNotificationDot();
+//        newNotificationCallback.removeGroupNotificationDot();
+        mTotalChat = 0;
+        mChatCount = 0;
+    }
+
+    private void setupPresenter() {
+        mChatListPresenter = new ChatListPresenter();
+        mChatListPresenter.attachView(this);
+
+        mChatPresenter = new ChatPresenter();
+        mChatPresenter.attachView(this);
+    }
+
+    @Override
+    public void setEvents() {
+        swipeRefreshLayout.setDistanceToTriggerSync(250);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                resetData();
+                mChatListPresenter.loadChatList(false, mChatList);
+            }
+        });
+        llIndicator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resetData();
+                mChatListPresenter.loadChatList(false, mChatList);
+            }
+        });
+    }
+    @Override
     public void setChatCount(long count) {
         mTotalChat = count;
+    }
+
+    public void showHideNotificationDot(String chatId, long numberUnreadMessage, boolean isGroup) {
+        if (numberUnreadMessage > 0) {
+            sUnreadChatIdMap.put(chatId, numberUnreadMessage);
+            if (isGroup)
+                GroupFragment.sUnreadChatIdMap.put(chatId, numberUnreadMessage);
+        } else {
+            sUnreadChatIdMap.remove(chatId);
+            if (isGroup)
+                GroupFragment.sUnreadChatIdMap.remove(chatId);
+        }
+
+        if (sUnreadChatIdMap.isEmpty()) {
+            newNotificationCallback.removeChatNotificationDot();
+        } else {
+            newNotificationCallback.newChatNotificationDot();
+        }
+        if (isGroup) {
+            if (GroupFragment.sUnreadChatIdMap.isEmpty())
+                newNotificationCallback.removeGroupNotificationDot();
+            else
+                newNotificationCallback.newGroupNotificationDot();
+        }
     }
 
     @Override
     public void showChatList(Chat chat, int position) {
         if (chat != null) {
             mChatCount++;
-            if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                if (sUnreadChatIdMap.isEmpty()) {
-                    newNotificationCallback.newChatNotificationDot();
-                }
-                sUnreadChatIdMap.put(chat.getId(), 1L);
-                if (chat.isGroup()) {
-                    if (GroupFragment.sUnreadChatIdMap.isEmpty()) {
-                        newNotificationCallback.newGroupNotificationDot();
-                    }
-                    GroupFragment.sUnreadChatIdMap.put(chat.getId(), 1L);
-                }
+            if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0 && chat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
+                showHideNotificationDot(chat.getId(), chat.getNumberUnread().get(ChatUtils.getUser().getId()), chat.isGroup());
             }
             showHideListIndicator(llIndicator, false);
             mChatList.add(position, chat);
@@ -509,15 +651,10 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 }
 
                 if (index >= 0) {
+                    if (chat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
+                        showHideNotificationDot(chat.getId(), chat.getNumberUnread().get(ChatUtils.getUser().getId()), chat.isGroup());
+                    }
                     if (hasNewMessage) {
-                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                            sUnreadChatIdMap.put(chat.getId(), 1L);
-                            newNotificationCallback.newChatNotificationDot();
-                            if (chat.isGroup()) {
-                                GroupFragment.sUnreadChatIdMap.put(chat.getId(), 1L);
-                                newNotificationCallback.newGroupNotificationDot();
-                            }
-                        }
                         if (index == 0) {
                             mChatListAdapter.notifyItemChanged(index);
                         } else {
@@ -530,21 +667,57 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                         }
                     } else {
                         mChatListAdapter.notifyItemChanged(index);
-                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
-                            sUnreadChatIdMap.remove(chat.getId());
-                            if (sUnreadChatIdMap.isEmpty())
-                                newNotificationCallback.removeChatNotificationDot();
-                            if (chat.isGroup()) {
-                                GroupFragment.sUnreadChatIdMap.remove(chat.getId());
-                                if (GroupFragment.sUnreadChatIdMap.isEmpty())
-                                    newNotificationCallback.removeGroupNotificationDot();
-                            }
-                        }
                     }
                 }
             }
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void updateChatNotification(String chatId, boolean turnOn) {
+        if (mChatList.size() > 0) {
+            int index = -1;
+            for (int i = 0; i < mChatList.size(); i++) {
+                if (chatId.equals(mChatList.get(i).getId())) {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index >= 0) {
+                mChatList.get(index).getNotificationUserIds().put(ChatUtils.getUser().getId(), turnOn);
+                mChatListAdapter.notifyItemChanged(index);
+                if (turnOn) {
+                    showHideNotificationDot(mChatList.get(index).getId(),
+                            mChatList.get(index).getNumberUnread().get(ChatUtils.getUser().getId()),
+                            mChatList.get(index).isGroup());
+                } else {
+                    showHideNotificationDot(mChatList.get(index).getId(),
+                            0,
+                            mChatList.get(index).isGroup());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void updateNumberUnreadMessage(String chatId) {
+        if (mChatList.size() > 0) {
+            int index = -1;
+            for (int i = 0; i < mChatList.size(); i++) {
+                if (chatId.equals(mChatList.get(i).getId())) {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index >= 0) {
+                mChatList.get(index).getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
+                showHideNotificationDot(chatId, 0, mChatList.get(index).isGroup());
+                mChatListAdapter.notifyItemChanged(index);
+            }
         }
     }
 
@@ -564,6 +737,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void showEmptyDataIndicator() {
         newNotificationCallback.removeChatNotificationDot();
+        newNotificationCallback.removeGroupNotificationDot();
         showHideListLoadingIndicator(llIndicator, loader, false);
         showHideListEmptyIndicator(llIndicator, llEmptyData, true);
     }

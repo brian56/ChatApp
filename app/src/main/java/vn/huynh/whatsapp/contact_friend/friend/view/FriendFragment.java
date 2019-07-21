@@ -98,7 +98,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initializeRecyclerView();
+        initData();
         setEvents();
     }
 
@@ -123,7 +123,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         sDoUpdate = false;
         SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, "");
         SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, 0);
-        resetDataBeforeReload();
+        resetData();
         setupPresenter();
         mFriendPresenter.loadListFriend(-1);
 //        mFriendPresenter.listenerFriendNotification();
@@ -150,11 +150,12 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         mFriendPresenter.attachView(this);
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                resetDataBeforeReload();
+                resetData();
                 mFriendListAdapter.notifyDataSetChanged();
                 mFriendPresenter.loadListFriend(-1);
             }
@@ -162,7 +163,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                resetDataBeforeReload();
+                resetData();
                 mFriendListAdapter.notifyDataSetChanged();
                 mFriendPresenter.loadListFriend(-1);
             }
@@ -182,6 +183,11 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                 });
             }
         });
+    }
+
+    @Override
+    public void initData() {
+        initializeRecyclerView();
     }
 
     private void initHeadersAndData() {
@@ -245,7 +251,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         initHeadersAndData();
     }
 
-    private void resetDataBeforeReload() {
+    @Override
+    public void resetData() {
 //        friendRequestMap = new HashMap<>();
         mFriendListAdapter.clearData();
         initHeadersAndData();

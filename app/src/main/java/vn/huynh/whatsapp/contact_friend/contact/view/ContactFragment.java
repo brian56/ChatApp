@@ -86,7 +86,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
         setupPresenter();
         mInviteDialog = new InviteDialog(getContext());
         setEvents();
-        initializeRecyclerView();
+        initData();
         mContactPresenter.loadListContact(getContext());
     }
 
@@ -113,7 +113,8 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
         mFriendPresenter.attachView(this);
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -130,6 +131,11 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
                 mContactPresenter.loadListContact(getContext());
             }
         });
+    }
+
+    @Override
+    public void initData() {
+        initializeRecyclerView();
     }
 
     private void initializeRecyclerView() {
@@ -162,7 +168,8 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
 
     }
 
-    private void resetDataBeforeReload() {
+    @Override
+    public void resetData() {
 
     }
 

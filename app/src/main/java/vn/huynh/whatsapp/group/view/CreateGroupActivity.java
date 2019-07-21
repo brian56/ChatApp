@@ -76,7 +76,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
         getSupportActionBar().setTitle("Create group");
 
         setupPresenter();
-        initializeRecyclerView();
+        initData();
         setEvents();
         mUserList.clear();
         mContactPresenter.loadListContactForGroup(this);
@@ -97,7 +97,8 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
         return super.onOptionsItemSelected(item);
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         btnCreateChatRoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,6 +134,16 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
                 mContactPresenter.loadListContactForGroup(CreateGroupActivity.this);
             }
         });
+    }
+
+    @Override
+    public void initData() {
+        initializeRecyclerView();
+    }
+
+    @Override
+    public void resetData() {
+
     }
 
     private void initializeRecyclerView() {
@@ -190,6 +201,16 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
 
     @Override
     public void updateChatStatus(Chat chatObject, boolean hasNewMessage) {
+
+    }
+
+    @Override
+    public void updateChatNotification(String chatId, boolean turnOn) {
+
+    }
+
+    @Override
+    public void updateNumberUnreadMessage(String chatId) {
 
     }
 

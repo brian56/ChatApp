@@ -63,7 +63,9 @@
     <string name="menu_add_group">Add group</string>
 
     <string name="action_delete">Delete</string>
+    <string name="action_mark_as_read">Mark as read</string>
     <string name="action_mute">Mute</string>
+    <string name="action_unmute">Unmute</string>
 
     <!--contact and friend-->
     <string name="label_friend">Friend</string>

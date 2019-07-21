@@ -31,6 +31,8 @@ public interface ChatInterface extends BaseModelInterface {
 
     void resetNumberUnread(String chatId, ResetUnreadMessageCallback callback);
 
+    void setChatNotification(boolean turnOn, String chatId, TurnOffNotificationCallback callback);
+
     interface ChatListCallback {
         void loadSuccess(Chat chat);
 
@@ -69,5 +71,11 @@ public interface ChatInterface extends BaseModelInterface {
         void success();
 
         void fail();
+    }
+
+    interface TurnOffNotificationCallback {
+        void success(String chatId, boolean turnOn);
+
+        void fail(String error);
     }
 }

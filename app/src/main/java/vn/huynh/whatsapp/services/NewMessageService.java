@@ -65,8 +65,8 @@ public class NewMessageService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
     private DatabaseReference mDF = FirebaseDatabase.getInstance().getReference();
-    private DatabaseReference mDatabaseMessage;
-    private ValueEventListener mValueEventListenerMessage;
+    private DatabaseReference mDatabaseNewMessage;
+    private ValueEventListener mValueEventListenerNewMessage;
     private DatabaseReference mDatabaseFriend;
     private ChildEventListener mChildEventListenerFriend;
 
@@ -83,14 +83,14 @@ public class NewMessageService extends Service {
             return START_STICKY;
         }
         String userId = ChatUtils.getUser().getId();
-        mDatabaseMessage = mDF.child("user").child(userId).child("lastChatId");
-        mValueEventListenerMessage = new ValueEventListener() {
+        mDatabaseNewMessage = mDF.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_LAST_CHAT_ID);
+        mValueEventListenerNewMessage = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     LogManagerUtils.d(TAG, "onStartCommand: " + dataSnapshot.getKey());
                     final String chatId = dataSnapshot.getValue().toString().split("=")[0];
-                    DatabaseReference dbRef = mDF.child("chat").child(chatId);
+                    DatabaseReference dbRef = mDF.child(Constant.FB_KEY_CHAT).child(chatId);
                     dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -103,9 +103,12 @@ public class NewMessageService extends Service {
                                 } else {
                                     return;
                                 }
+                                if (!chat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
+                                    return;
+                                }
                                 loadUserData(chat);
                                 updateMsgStatus(chatId, chat.getLastMessageSent().getId());
-                                DatabaseReference dbRef = mDF.child("user").child(chat.getLastMessageSent().getCreator());
+                                DatabaseReference dbRef = mDF.child(Constant.FB_KEY_USER).child(chat.getLastMessageSent().getCreator());
                                 dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -141,10 +144,10 @@ public class NewMessageService extends Service {
 
             }
         };
-        mDatabaseMessage.addValueEventListener(mValueEventListenerMessage);
+        mDatabaseNewMessage.addValueEventListener(mValueEventListenerNewMessage);
 
         //friend mNotification
-        mDatabaseFriend = mDF.child("friend").child(userId);
+        mDatabaseFriend = mDF.child(Constant.FB_KEY_FRIEND).child(userId);
         mChildEventListenerFriend = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -309,14 +312,14 @@ public class NewMessageService extends Service {
     }
 
     private void updateMsgStatus(final String chatId, final String messageId) {
-        DatabaseReference df = mDF.child("message").child(chatId).
-                child(messageId).child("seenUsers").child(ChatUtils.getUser().getId());
+        DatabaseReference df = mDF.child(Constant.FB_KEY_MESSAGE).child(chatId).
+                child(messageId).child(Constant.FB_KEY_SEEN_USERS).child(ChatUtils.getUser().getId());
         df.setValue(1);
     }
 
     public void removeListener() {
-        if (mDatabaseMessage != null) {
-            mDatabaseMessage.removeEventListener(mValueEventListenerMessage);
+        if (mDatabaseNewMessage != null) {
+            mDatabaseNewMessage.removeEventListener(mValueEventListenerNewMessage);
         }
         if (mDatabaseFriend != null) {
             mDatabaseFriend.removeEventListener(mChildEventListenerFriend);
@@ -400,7 +403,7 @@ public class NewMessageService extends Service {
         if (chat != null && chat.getUserIds() != null) {
             for (Map.Entry<String, String> entry : chat.getUserIds().entrySet()) {
                 final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference()
-                        .child("user").child(entry.getValue());
+                        .child(Constant.FB_KEY_USER).child(entry.getValue());
                 databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

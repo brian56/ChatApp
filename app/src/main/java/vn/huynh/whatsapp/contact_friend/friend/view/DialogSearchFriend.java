@@ -96,7 +96,7 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
 
         mDialog.show();
         initPresenter();
-        setupEvent();
+        setEvents();
     }
 
     private void initPresenter() {
@@ -104,7 +104,8 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
         mFriendPresenter.attachView(this);
     }
 
-    private void initData() {
+    @Override
+    public void initData() {
         mPhoneNumber = "";
         mSelectedUsers = new ArrayList<>();
         mUserArrayList = new ArrayList<>();
@@ -122,7 +123,8 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
         mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
 
-    private void setupEvent() {
+    @Override
+    public void setEvents() {
         btnAddFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -159,6 +161,11 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
                 }
             }
         });
+    }
+
+    @Override
+    public void resetData() {
+
     }
 
     @Override

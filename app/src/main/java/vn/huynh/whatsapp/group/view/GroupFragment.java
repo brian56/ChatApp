@@ -82,11 +82,16 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initializeRecyclerView();
+        initData();
         setupPresenter();
         setEvents();
-        resetDataBeforeReload();
+        resetData();
         mGroupPresenter.loadChatList(true, mChatList);
+    }
+
+    @Override
+    public void initData() {
+        initializeRecyclerView();
     }
 
     private void initializeRecyclerView() {
@@ -136,7 +141,8 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         mGroupPresenter.attachView(this);
     }
 
-    private void resetDataBeforeReload() {
+    @Override
+    public void resetData() {
         mChatList.clear();
         mChatListAdapter.notifyDataSetChanged();
         sUnreadChatIdMap.clear();
@@ -145,7 +151,8 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
 //        newNotificationCallback.removeGroupNotificationDot();
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         fabCreateGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,14 +164,14 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                resetDataBeforeReload();
+                resetData();
                 mGroupPresenter.loadChatList(true, mChatList);
             }
         });
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                resetDataBeforeReload();
+                resetData();
                 mGroupPresenter.loadChatList(true, mChatList);
             }
         });
@@ -269,33 +276,6 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     @Override
     public void updateChatStatus(Chat chat, boolean hasNewMessage) {
         try {
-
-            /*if (mChatList.size() > 0) {
-                int i = mChatList.indexOf(chat);
-                if (i >= 0) {
-                    if (hasNewMessage) {
-                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                            sUnreadChatIdMap.put(chat.getId(), 1L);
-                            newNotificationCallback.newGroupNotificationDot();
-                        }
-                        if (i == 0) {
-                            mChatListAdapter.notifyItemChanged(i);
-                        } else {
-                            mChatList.remove(chat);
-                            mChatListAdapter.notifyItemRemoved(i);
-                            mChatList.add(0, chat);
-                            mChatListAdapter.notifyItemInserted(0);
-                            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
-                        }
-                    } else {
-                        mChatListAdapter.notifyItemChanged(i);
-                        if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) == 0) {
-                            sUnreadChatIdMap.remove(chat.getId());
-                            if (sUnreadChatIdMap.isEmpty())
-                                newNotificationCallback.removeGroupNotificationDot();
-                        }
-                    }
-                }*/
             int index = -1;
             for (int i = 0; i < mChatList.size(); i++) {
                 if (chat.getId().equals(mChatList.get(i).getId())) {
@@ -349,6 +329,16 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     }
 
     @Override
+    public void updateChatNotification(String chatId, boolean turnOn) {
+
+    }
+
+    @Override
+    public void updateNumberUnreadMessage(String chatId) {
+
+    }
+
+    @Override
     public void showErrorMessage(String message) {
 
     }
@@ -365,7 +355,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     public void onStart() {
         super.onStart();
         if (!mFirstStart && !parentActivityListener.returnFromChildActivity()) {
-            resetDataBeforeReload();
+            resetData();
             mGroupPresenter.loadChatList(true, mChatList);
         }
     }

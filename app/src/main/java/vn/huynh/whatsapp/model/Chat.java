@@ -28,7 +28,7 @@ public class Chat implements Parcelable {
     private Object lastMessageDate;
     private String singleChatId;
     private Map<String, String> userIds;
-    private Map<String, String> notificationUserIds;
+    private Map<String, Boolean> notificationUserIds;
     private Map<String, Long> numberUnread;
     private Message lastMessageSent;
     private List<User> users;
@@ -53,7 +53,7 @@ public class Chat implements Parcelable {
         in.readMap(userIds, String.class.getClassLoader());
 
         notificationUserIds = new HashMap<>();
-        in.readMap(notificationUserIds, String.class.getClassLoader());
+        in.readMap(notificationUserIds, Boolean.class.getClassLoader());
 
         numberUnread = new HashMap<>();
         in.readMap(numberUnread, String.class.getClassLoader());
@@ -219,11 +219,11 @@ public class Chat implements Parcelable {
         this.userIds = userIds;
     }
 
-    public Map<String, String> getNotificationUserIds() {
+    public Map<String, Boolean> getNotificationUserIds() {
         return notificationUserIds;
     }
 
-    public void setNotificationUserIds(Map<String, String> notificationUserIds) {
+    public void setNotificationUserIds(Map<String, Boolean> notificationUserIds) {
         this.notificationUserIds = notificationUserIds;
     }
 

@@ -16,6 +16,10 @@ public interface ChatListContract {
 
         void updateChatStatus(Chat chatObject, boolean hasNewMessage);
 
+        void updateChatNotification(String chatId, boolean turnOn);
+
+        void updateNumberUnreadMessage(String chatId);
+
         void setChatCount(long count);
 
     }

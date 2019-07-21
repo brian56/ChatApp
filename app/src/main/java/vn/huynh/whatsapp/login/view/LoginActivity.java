@@ -66,11 +66,12 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        initialize();
+        initData();
         setEvents();
     }
 
-    private void initialize() {
+    @Override
+    public void initData() {
         FirebaseApp.initializeApp(this);
         mLoginPresenter = new LoginPresenter();
         mLoginPresenter.attachView(this);
@@ -125,7 +126,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         });
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         setEventButtonVerify();
         tvLoginOrRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -152,6 +154,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                 }
             }
         });
+    }
+
+    @Override
+    public void resetData() {
+
     }
 
     @Override

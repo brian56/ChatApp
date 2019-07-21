@@ -112,8 +112,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             }
             LogManagerUtils.d(TAG, mChatId);
             ChatUtils.setCurrentChatId(mChatId);
-            initializeMessageList();
-            initializeMediaList();
+            initData();
             setupPresenter(this, mChatObject, mChatId);
             setEvents();
         } else {
@@ -201,14 +200,16 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         mChatPresenter.removeChatDetailListener();
     }
 
-    private void resetDataBeforeReload() {
+    @Override
+    public void resetData() {
         mMessageArrayList.clear();
         mMessageAdapter.notifyDataSetChanged();
         mIsLoadingMore = false;
         mIsLoadedAllMessage = false;
     }
 
-    private void setupPresenter(ChatContract.View view, Chat chat, String chatId) {
+    @Override
+    public void setupPresenter(ChatContract.View view, Chat chat, String chatId) {
         mChatPresenter = new ChatPresenter();
         mChatPresenter.attachView(view);
 
@@ -221,7 +222,8 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         }
     }
 
-    private void setEvents() {
+    @Override
+    public void setEvents() {
         btnNewMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -247,13 +249,14 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         llIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                resetDataBeforeReload();
+                resetData();
                 mChatPresenter.loadMessage(mChatObject.getId());
             }
         });
     }
 
-    private void openGallery() {
+    @Override
+    public void openGallery() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -279,6 +282,13 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         }
     }
 
+    @Override
+    public void initData() {
+        initializeMessageList();
+        initializeMediaList();
+        initScrollListener();
+    }
+
     private void initializeMessageList() {
         rvChat.setNestedScrollingEnabled(false);
         rvChat.setHasFixedSize(false);
@@ -291,7 +301,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         rvChat.setLayoutManager(mMessageLayoutManager);
         mMessageAdapter = new MessageAdapter(mMessageArrayList, mChatObject, ChatActivity.this);
         rvChat.setAdapter(mMessageAdapter);
-        initScrollListener();
     }
 
     private void initializeMediaList() {
@@ -330,16 +339,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         };
         rvChat.addOnScrollListener(mOnScrollLoadMoreListener);
 
-    }
-
-    private void loadMoreMessage() {
-        if (mMessageArrayList.size() > 0 && mMessageArrayList.get(0) != null) {
-            mMessageArrayList.add(0, null);
-            mMessageAdapter.notifyItemInserted(0);
-//            postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
-        }
-        if (mChatPresenter != null)
-            mChatPresenter.loadMessageMore(mChatId);
     }
 
     @Override
@@ -398,7 +397,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             mChatObject = object;
             mMessageAdapter.setChatObject(mChatObject);
             getSupportActionBar().setTitle(mChatObject.getChatName());
-            resetDataBeforeReload();
+            resetData();
             mChatPresenter.resetNumberUnread(mChatObject.getId(), true);
         }
     }
@@ -406,6 +405,16 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     @Override
     public void loadMessage() {
         mChatPresenter.loadMessage(mChatObject.getId());
+    }
+
+    @Override
+    public void loadMoreMessage() {
+        if (mMessageArrayList.size() > 0 && mMessageArrayList.get(0) != null) {
+            mMessageArrayList.add(0, null);
+            mMessageAdapter.notifyItemInserted(0);
+        }
+        if (mChatPresenter != null)
+            mChatPresenter.loadMessageMore(mChatId);
     }
 
     @Override
@@ -422,7 +431,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                 last.setType(Message.TYPE_LAST_MESSAGE);
                 mMessageArrayList.add(0, last);
                 mMessageAdapter.notifyItemInserted(0);
-//                postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
             }
             mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
         }
@@ -444,9 +452,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                     mMessageAdapter.notifyItemChanged(1);
                     notifyChange = false;
                 }
-//                postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
             }
-//            mMessageAdapter.notifyItemRangeInserted(0, messages.size());
         }
         if (isDone) {
 //            rvChat.removeOnScrollListener(mOnScrollLoadMoreListener);
@@ -455,7 +461,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             mMessageArrayList.add(0, last);
             mMessageAdapter.notifyItemInserted(0);
             mMessageAdapter.notifyItemChanged(1);
-//            postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
         }
     }
 
@@ -472,10 +477,8 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                             //update mMessage that I have just sent
                             Message.copyMessageObject(mMessageArrayList.get(i), messageObject);
                             mMessageAdapter.notifyItemChanged(i);
-//                           postDelayNotifyItem(rvChat, mMessageAdapter, i, false, false, true);
                             if (i > 0) {
                                 mMessageAdapter.notifyItemChanged(i - 1);
-//                            postDelayNotifyItem(rvChat, mMessageAdapter, i-1, false, false, true);
                             }
                             mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
                             return;
@@ -486,16 +489,13 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                 mMessageArrayList.add(messageObject);
                 if (mMessageArrayList.size() == 0) {
                     mMessageAdapter.notifyItemInserted(0);
-//                    postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
                 } else {
                     mMessageAdapter.notifyItemInserted(mMessageArrayList.size() - 1);
-//                    postDelayNotifyItem(rvChat, mMessageAdapter, mMessageArrayList.size() - 1, true, false, false);
                 }
 
                 if (mMessageArrayList.size() > 1) {
                     //hide the check icon on the previous mMessage
                     mMediaAdapter.notifyItemChanged(mMessageArrayList.size() - 2);
-//                    postDelayNotifyItem(rvChat, mMessageAdapter, mMessageArrayList.size() - 2, false, false, true);
                 }
 
                 mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
@@ -509,12 +509,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
                 mMessageArrayList.add(messageObject);
                 mMessageAdapter.notifyItemInserted(mMessageArrayList.size() - 1);
-//                postDelayNotifyItem(rvChat, mMessageAdapter, mMessageArrayList.size() - 1, true, false, false);
 
                 if (mMessageArrayList.size() > 1) {
                     //hide the check icon in my last mMessage
                     mMessageAdapter.notifyItemChanged(mMessageArrayList.size() - 2);
-//                   postDelayNotifyItem(rvChat, mMessageAdapter, i, false, false, true);
                 }
                 if (btnNewMessage.getVisibility() == View.GONE) {
                     mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
@@ -535,13 +533,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             mMessageArrayList.add(messageObject);
             if (mMessageArrayList.size() > 1)
                 mMediaAdapter.notifyItemChanged(mMessageArrayList.size() - 2);
-//                postDelayNotifyItem(rvChat, mMessageAdapter, mMessageArrayList.size() - 2, false, false, true);
             if (mMessageArrayList.size() == 0)
                 mMessageAdapter.notifyItemInserted(0);
-//                postDelayNotifyItem(rvChat, mMessageAdapter, 0, true, false, false);
             else {
                 mMessageAdapter.notifyItemInserted(mMessageArrayList.size() - 1);
-//                postDelayNotifyItem(rvChat, mMessageAdapter, mMessageArrayList.size() - 1, true, false, false);
             }
             mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
         }
@@ -560,17 +555,6 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         }
     }
 
-   /* @Override
-    public void updateMessageStatus(Message mMessage) {
-        for (int i = mMessageArrayList.size() - 1; i >= 0; i--) {
-            if(mMessageArrayList.get(i).getId().equals(mMessage.getId())) {
-                Message.copyMessageObject(mMessageArrayList.get(i), mMessage);
-                mMessageAdapter.notifyItemChanged(i);
-                return;
-            }
-        }
-    }*/
-
     @Override
     public void resetUI() {
         edtMessage.setText(null);
@@ -580,33 +564,5 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             mMediaAdapter.notifyDataSetChanged();
         if (mMessageArrayList != null && mMessageArrayList.size() > 0)
             mMessageLayoutManager.scrollToPositionWithOffset(mMessageArrayList.size() - 1, 0);
-    }
-
-    private void postDelayNotifyItem(RecyclerView recyclerView, final MessageAdapter adapter, final int position,
-                                     boolean insert, boolean remove, boolean change) {
-        if (insert) {
-            recyclerView.post(new Runnable() {
-                public void run() {
-                    // There is no need to use notifyDataSetChanged()
-                    adapter.notifyItemInserted(position);
-                }
-            });
-        }
-        if (remove) {
-            recyclerView.post(new Runnable() {
-                public void run() {
-                    // There is no need to use notifyDataSetChanged()
-                    adapter.notifyItemRemoved(position);
-                }
-            });
-        }
-        if (change) {
-            recyclerView.post(new Runnable() {
-                public void run() {
-                    // There is no need to use notifyDataSetChanged()
-                    adapter.notifyItemChanged(position);
-                }
-            });
-        }
     }
 }

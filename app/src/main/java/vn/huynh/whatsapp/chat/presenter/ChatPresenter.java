@@ -7,6 +7,7 @@ import java.util.Map;
 
 import vn.huynh.whatsapp.base.BaseView;
 import vn.huynh.whatsapp.chat.ChatContract;
+import vn.huynh.whatsapp.chat_list.ChatListContract;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.ChatInterface;
 import vn.huynh.whatsapp.model.ChatRepository;
@@ -22,6 +23,7 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 public class ChatPresenter implements ChatContract.Presenter {
     private static final String TAG = ChatPresenter.class.getSimpleName();
     private ChatContract.View mViewChat;
+    private ChatListContract.View mViewChatList;
     private ChatInterface mChatRepo;
     private MessageInterface mMessageRepo;
 
@@ -32,12 +34,16 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void attachView(BaseView view) {
-        this.mViewChat = (ChatContract.View) view;
+        if (view instanceof ChatContract.View)
+            this.mViewChat = (ChatContract.View) view;
+        if (view instanceof ChatListContract.View)
+            this.mViewChatList = (ChatListContract.View) view;
     }
 
     @Override
     public void detachView() {
         this.mViewChat = null;
+        this.mViewChatList = null;
     }
 
     @Override
@@ -95,7 +101,26 @@ public class ChatPresenter implements ChatContract.Presenter {
     }
 
     @Override
-    public void resetNumberUnread(String chatId, final boolean loadMessage) {
+    public void setChatNotification(boolean turnOn, String chatId) {
+        mChatRepo.setChatNotification(turnOn, chatId, new ChatInterface.TurnOffNotificationCallback() {
+            @Override
+            public void success(String chatId, boolean turnOn) {
+                if (mViewChatList != null) {
+                    mViewChatList.updateChatNotification(chatId, turnOn);
+                }
+            }
+
+            @Override
+            public void fail(String error) {
+                if (mViewChatList != null) {
+                    mViewChatList.showErrorMessage(error);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void resetNumberUnread(final String chatId, final boolean loadMessage) {
         mChatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
             @Override
             public void success() {
@@ -103,6 +128,9 @@ public class ChatPresenter implements ChatContract.Presenter {
                     if (mViewChat != null) {
                         mViewChat.loadMessage();
                     }
+                }
+                if (mViewChatList != null) {
+                    mViewChatList.updateNumberUnreadMessage(chatId);
                 }
             }
 

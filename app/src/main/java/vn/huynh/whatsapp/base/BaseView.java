@@ -14,4 +14,10 @@ public interface BaseView {
     void showErrorIndicator();
 
     void showErrorMessage(String error);
+
+    void initData();
+
+    void setEvents();
+
+    void resetData();
 }

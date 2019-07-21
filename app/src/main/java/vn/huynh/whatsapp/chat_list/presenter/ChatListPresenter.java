@@ -110,16 +110,4 @@ public class ChatListPresenter implements ChatListContract.Presenter {
             }
         });
     }
-
-    public static void updateChat(List<Chat> list, Chat chatObject) {
-        if (chatObject == null || list == null || list.size() == 0) {
-            return;
-        }
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getId().equals(chatObject.getId())) {
-                list.get(i).cloneChat(chatObject);
-                break;
-            }
-        }
-    }
 }

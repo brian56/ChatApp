@@ -14,12 +14,17 @@ import vn.huynh.whatsapp.model.Message;
 
 public interface ChatContract {
     interface View extends BaseView {
+        void setupPresenter(ChatContract.View view, Chat chat, String chatId);
+
+        void openGallery();
 
         void showChatDetail(Chat chatObject);
 
         void showNewMessage(Message messageObject);
 
         void loadMessage();
+
+        void loadMoreMessage();
 
         void showMessageList(List<Message> messages, boolean isDone);
 
@@ -35,6 +40,7 @@ public interface ChatContract {
     }
 
     interface Presenter extends BasePresenter {
+        void setChatNotification(boolean turnOn, String chatId);
 
         void resetNumberUnread(String chatId, boolean loadMessage);
 
