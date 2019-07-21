@@ -144,7 +144,7 @@ public class ContactFragment extends BaseFragment implements ContactContract.Vie
         rvUserList.setHasFixedSize(false);
         mUserListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
         rvUserList.setLayoutManager(mUserListLayoutManager);
-        mUserListAdapter = new ContactListAdapter(mUserList, true, false, true,
+        mUserListAdapter = new ContactListAdapter(getContext(), mUserList, true, false, true,
                 new ContactListAdapter.OnItemClickListener() {
                     @Override
                     public void onInvite(User user) {

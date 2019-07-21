@@ -1,5 +1,6 @@
 package vn.huynh.whatsapp.contact_friend.contact.view;
 
+import android.content.Context;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -21,6 +23,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.GlideLoader;
+import vn.huynh.whatsapp.utils.MyApp;
 
 /**
  * Created by duong on 3/20/2019.
@@ -33,16 +36,19 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
     private boolean mShowFriendStatus = false;
     private boolean mShowCheckbox = false;
     private OnItemClickListener mOnItemClickListener;
+    private Context mContext;
 
-    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable, boolean showCheckbox, boolean showFriendStatus) {
+    public ContactListAdapter(Context context, ArrayList<User> userList, boolean contactClickable, boolean showCheckbox, boolean showFriendStatus) {
+        this.mContext = context;
         this.mUserList = userList;
         this.mContactClickable = contactClickable;
         this.mShowCheckbox = showCheckbox;
         this.mShowFriendStatus = showFriendStatus;
     }
 
-    public ContactListAdapter(ArrayList<User> userList, boolean contactClickable, boolean showCheckbox,
+    public ContactListAdapter(Context context, ArrayList<User> userList, boolean contactClickable, boolean showCheckbox,
                               boolean showFriendStatus, OnItemClickListener onItemClickListener) {
+        this.mContext = context;
         this.mUserList = userList;
         this.mShowFriendStatus = showFriendStatus;
         this.mShowCheckbox = showCheckbox;
@@ -84,16 +90,37 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
                 case Friend.STATUS_WAS_ACCEPTED:
                     holder.ivAddFriend.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
                     holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Toast.makeText(mContext, MyApp.resources.getString(R.string.you_were_friend,
+                                    mUserList.get(holder.getAdapterPosition()).getName()), Toast.LENGTH_LONG).show();
+                        }
+                    });
                     break;
 
                 case Friend.STATUS_REQUEST:
                     holder.ivAddFriend.setImageResource(R.drawable.ic_watch_later_black_24dp);
                     holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Toast.makeText(mContext, MyApp.resources.getString(R.string.you_have_sent_friend_request_to_this,
+                                    mUserList.get(holder.getAdapterPosition()).getName()), Toast.LENGTH_LONG).show();
+                        }
+                    });
                     break;
 
                 case Friend.STATUS_WAS_REQUESTED:
                     holder.ivAddFriend.setImageResource(R.drawable.ic_mail_black_24dp);
                     holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Toast.makeText(mContext, MyApp.resources.getString(R.string.sent_you_a_friend_request_please_confirm,
+                                    mUserList.get(holder.getAdapterPosition()).getName()), Toast.LENGTH_LONG).show();
+                        }
+                    });
                     break;
 
                 case Friend.STATUS_BLOCK:
@@ -125,14 +152,6 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
         if (mContactClickable) {
             if (mUserList.get(holder.getAdapterPosition()).getRegisteredUser()) {
                 //registered user
-                holder.ivAddFriend.setVisibility(View.VISIBLE);
-                holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        User user = mUserList.get(holder.getAdapterPosition());
-                        mOnItemClickListener.onAddFriend(user);
-                    }
-                });
                 holder.linearLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

@@ -100,6 +100,10 @@
     <string name="error_invalid_phone_number">Please provide a valid phone number</string>
     <string name="error_please_select_one_user">Please select one user</string>
 
+    <string name="you_were_friend">You and %1$s were already friend</string>
+    <string name="you_have_sent_friend_request_to_this">You have sent a friend request to %1$s and wait for response</string>
+    <string name="sent_you_a_friend_request_please_confirm">%1$s have sent you a friend request and wait for your response</string>
+
     <!--date time-->
     <string name="time_now">now</string>
     <string name="time_minutes">minutes</string>

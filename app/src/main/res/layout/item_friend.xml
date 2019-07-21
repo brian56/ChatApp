@@ -19,7 +19,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center_vertical"
-            android:layout_margin="8dp"
+            android:layout_margin="12dp"
             android:scaleType="fitXY"
             app:av_border_color="@android:color/white"
             app:av_border_width="0dp"
@@ -45,9 +45,10 @@
                 android:id="@+id/tv_phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:ellipsize="end"
                 android:maxLines="1"
+                android:textStyle="italic"
                 android:textColor="@color/sub_text_color"
                 android:textSize="14sp" />
 

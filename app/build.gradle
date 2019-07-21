@@ -21,8 +21,8 @@ android {
         applicationId "vn.huynh.whatsapp"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 2
-        versionName "1.1"
+        versionCode 4
+        versionName "1.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
                 onesignal_app_id               : 'b8b93960-12ac-46bd-b0e0-fd9129f0d13a',
@@ -32,7 +32,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

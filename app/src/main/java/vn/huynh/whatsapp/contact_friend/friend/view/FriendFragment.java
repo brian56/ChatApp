@@ -369,11 +369,12 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                 mFriendListAdapter.removeData(friend);
                 switch (friend.getStatus()) {
                     case Friend.STATUS_WAS_REQUESTED:
-//                        friendRequestMap.put(friend.getUserId(), friend.getStatus());
                         mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRequested);
                         break;
                     case Friend.STATUS_ACCEPT:
-//                        friendRequestMap.remove(friend.getUserId());
+                        mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
+                        break;
+                    case Friend.STATUS_WAS_ACCEPTED:
                         mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
                         break;
                     case Friend.STATUS_REQUEST:

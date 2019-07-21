@@ -115,7 +115,7 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
         mLinearLayoutManager = new LinearLayoutManager(mContext, LinearLayout.VERTICAL, false);
         rvSearchResult.setLayoutManager(mLinearLayoutManager);
 
-        mUserListAdapter = new ContactListAdapter(mUserArrayList, false, true, true);
+        mUserListAdapter = new ContactListAdapter(mContext, mUserArrayList, false, true, true);
         rvSearchResult.setAdapter(mUserListAdapter);
         hideLoadingIndicator();
 

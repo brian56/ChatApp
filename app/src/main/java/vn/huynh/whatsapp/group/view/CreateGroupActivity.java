@@ -154,7 +154,7 @@ public class CreateGroupActivity extends BaseActivity implements GroupContract.V
         rvUserList.setHasFixedSize(false);
         mUserListLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayout.VERTICAL, false);
         rvUserList.setLayoutManager(mUserListLayoutManager);
-        mUserListAdapter = new ContactListAdapter(mUserList, false, true, false);
+        mUserListAdapter = new ContactListAdapter(getApplicationContext(), mUserList, false, true, false);
         rvUserList.setAdapter(mUserListAdapter);
 
     }

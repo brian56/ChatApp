@@ -19,14 +19,14 @@
             android:layout_marginStart="6dp"
             app:ccp_hideNameCode="true"
             app:ccp_textColor="@color/default_text_color"
-            app:ccp_textSize="18sp" />
+            app:ccp_textSize="16sp" />
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="-10dp"
-            android:layout_marginTop="-4dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginTop="-2dp"
             app:counterEnabled="true"
             app:counterMaxLength="10">
 

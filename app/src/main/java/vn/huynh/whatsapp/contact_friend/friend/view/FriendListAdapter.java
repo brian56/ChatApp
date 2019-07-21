@@ -75,19 +75,19 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
             linearLayout.setVisibility(View.VISIBLE);
             switch (((HeaderData) getDataInPosition(headerPosition)).getHeaderType()) {
                 case Friend.STATUS_WAS_REQUESTED:
-                    tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.black));
+                    tvHeader.setTextColor(MyApp.resources.getColor(R.color.black));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend_request));
                     break;
                 case Friend.STATUS_ACCEPT:
-                    tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.blue));
+                    tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
                     break;
                 case Friend.STATUS_REQUEST:
-                    tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.green));
+                    tvHeader.setTextColor(MyApp.resources.getColor(R.color.green));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend_my_request));
                     break;
                 case Friend.STATUS_BLOCK:
-                    tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.purple));
+                    tvHeader.setTextColor(MyApp.resources.getColor(R.color.purple));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend_block));
                     break;
             }
@@ -371,19 +371,19 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                 linearLayout.setVisibility(View.VISIBLE);
                 switch (((HeaderData) getDataInPosition(position)).getHeaderType()) {
                     case Friend.STATUS_WAS_REQUESTED:
-                        tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.black));
+                        tvHeader.setTextColor(MyApp.resources.getColor(R.color.black));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend_request));
                         break;
                     case Friend.STATUS_ACCEPT:
-                        tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.blue));
+                        tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
                         break;
                     case Friend.STATUS_REQUEST:
-                        tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.green));
+                        tvHeader.setTextColor(MyApp.resources.getColor(R.color.green));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend_my_request));
                         break;
                     case Friend.STATUS_BLOCK:
-                        tvHeader.setBackgroundColor(MyApp.resources.getColor(R.color.purple));
+                        tvHeader.setTextColor(MyApp.resources.getColor(R.color.purple));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend_block));
                         break;
                 }
