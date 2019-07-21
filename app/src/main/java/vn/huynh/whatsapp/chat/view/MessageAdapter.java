@@ -166,22 +166,22 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             && mMessageList.get(holder.getAdapterPosition() - 1).getType() == Message.TYPE_LAST_MESSAGE)) {
                         if (mMessageList.get(holder.getAdapterPosition()).getCreator().
                                 equals(mMessageList.get(holder.getAdapterPosition() - 1).getCreator())) {
-                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.GONE);
+//                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.GONE);
                             ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.GONE);
                             ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.INVISIBLE);
                         } else {
-                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+//                            ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
                             ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
                             ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+//                        ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
                         ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
                         ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
                     }
                 } else {
                     //first message
-                    ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
+//                    ((TheirMessageViewHolder) holder).tvSender.setVisibility(View.VISIBLE);
                     ((TheirMessageViewHolder) holder).viewPaddingTop.setVisibility(View.VISIBLE);
                     ((TheirMessageViewHolder) holder).avatarView.setVisibility(View.VISIBLE);
                 }

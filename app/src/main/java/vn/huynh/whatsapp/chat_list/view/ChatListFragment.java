@@ -76,6 +76,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     private ChatListContract.Presenter mChatListPresenter;
     private ChatContract.Presenter mChatPresenter;
     private SearchView mSearchView;
+    private SearchManager searchManager;
 
     private static final int CREATE_GROUP_INTENT = 100;
     private static final String KEY_CHAT_LIST = "KEY_CHAT_LIST";
@@ -88,7 +89,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
 
     private ItemTouchHelperExtension.Callback mTouchCallback;
     private ItemTouchHelperExtension mItemTouchHelper;
-//    private boolean returnFromChatActivity = false;
 
     public ChatListFragment() {
     }
@@ -153,7 +153,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_chat_list, menu);
 
-        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+        searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
         mSearchView = (SearchView) menu.findItem(R.id.action_search)
                 .getActionView();
         mSearchView.setSearchableInfo(searchManager
@@ -360,101 +360,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         });
 
         rvChatList.setAdapter(mChatListAdapter);
-        /*mTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, final int direction) {
-                try {
-                    final int position = viewHolder.getAdapterPosition();
-                    final Chat chatItem = mChatList.get(position);
-                    final String chatName = chatItem.getChatName();
-                    final boolean currentNotificationSetting = chatItem.getNotificationUserIds().get(ChatUtils.getUser().getId());
-                    final long numberUnread = chatItem.getNumberUnread().get(ChatUtils.getUser().getId());
-                    //TODO: temporary do function
-                    if(direction == ItemTouchHelper.RIGHT) {
-                        chatItem.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
-                        showHideNotificationDot(mChatList.get(position).getId(),
-                                mChatList.get(position).getNumberUnread().get(ChatUtils.getUser().getId()),
-                                mChatList.get(position).isGroup());
-                        mChatListAdapter.notifyItemChanged(position);
-                    } else {
-                        //TODO: change notification for this
-                        mChatList.get(position).getNotificationUserIds().put(ChatUtils.getUser().getId(), !currentNotificationSetting);
-                        mChatListAdapter.notifyItemChanged(position);
-                    }
-                    Snackbar snackbar = Snackbar.make(viewHolder.itemView,
-                            "Conversation: " + chatName + (direction == ItemTouchHelper.RIGHT ? " was mark as read" : " was muted"),
-                            Snackbar.LENGTH_LONG);
-                    snackbar.setAction(android.R.string.cancel, new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            //undo the function
-                            if(direction == ItemTouchHelper.RIGHT) {
-                                mChatList.get(position).getNumberUnread().put(ChatUtils.getUser().getId(), numberUnread);
-                                showHideNotificationDot(mChatList.get(position).getId(),
-                                        numberUnread,
-                                        mChatList.get(position).isGroup());
-                                mChatListAdapter.notifyItemChanged(position);
-                            } else {
-                                //TODO: turn on notification
-                                mChatList.get(position).getNotificationUserIds().put(ChatUtils.getUser().getId(), currentNotificationSetting);
-                                mChatListAdapter.notifyItemChanged(position);
-                            }
-                        }
-                    });
-                    snackbar.setActionTextColor(Color.WHITE);
-                    snackbar.addCallback(new Snackbar.Callback() {
-
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            //see Snackbar.Callback docs for event details
-                            if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
-                                //TODO: actually do the function
-                                if(direction == ItemTouchHelper.RIGHT) {
-                                    //mark as read
-                                    mChatPresenter.resetNumberUnread(chatItem.getId(), false);
-                                } else {
-                                    //change notification setting
-                                    mChatPresenter.setChatNotification(!currentNotificationSetting, chatItem.getId());
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onShown(Snackbar snackbar) {
-
-                        }
-                    });
-                    snackbar.show();
-                } catch (Exception e) {
-                    LogManagerUtils.e(TAG, e.getMessage());
-                }
-            }
-
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                int position = viewHolder.getAdapterPosition();
-                boolean currentNotification = mChatList.get(position).getNotificationUserIds().get(ChatUtils.getUser().getId());
-
-                new RecyclerViewSwipeDecorator.Builder(getContext(), c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary))
-                        .addSwipeLeftActionIcon(currentNotification ? R.drawable.ic_notifications_off_white_24dp : R.drawable.ic_notifications_active_white_24dp)
-                        .addSwipeRightBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAccent))
-                        .addSwipeRightActionIcon(R.drawable.ic_delivered_white_24dp)
-                        .addSwipeRightLabel(getString(R.string.action_mark_as_read))
-                        .setSwipeRightLabelColor(Color.WHITE)
-                        .addSwipeLeftLabel(currentNotification ? getString(R.string.action_mute) : getString(R.string.action_unmute))
-                        .setSwipeLeftLabelColor(Color.WHITE)
-                        .create()
-                        .decorate();
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            }
-        };*/
         mTouchCallback = new ItemTouchHelperCallback();
         mItemTouchHelper = new ItemTouchHelperExtension(mTouchCallback);
         mItemTouchHelper.attachToRecyclerView(rvChatList);
@@ -584,6 +489,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             }
         });
     }
+
     @Override
     public void setChatCount(long count) {
         mTotalChat = count;
@@ -615,8 +521,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
 
     @Override
     public void showChatList(Chat chat, int position) {
+        mChatCount++;
         if (chat != null) {
-            mChatCount++;
             if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0 && chat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
                 showHideNotificationDot(chat.getId(), chat.getNumberUnread().get(ChatUtils.getUser().getId()), chat.isGroup());
             }
@@ -624,13 +530,13 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             mChatList.add(position, chat);
             mChatListAdapter.notifyItemInserted(position);
             mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
-            if (mChatCount == mTotalChat) {
-                hideLoadingIndicator();
+        }
+        if (mChatCount == mTotalChat) {
+            hideLoadingIndicator();
 //                mChatListAdapter.notifyDataSetChanged();
-                mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
-                if (mChatList.size() == 0 && !swipeRefreshLayout.isRefreshing()) {
-                    showHideListEmptyIndicator(llIndicator, llEmptyData, true);
-                }
+            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
+            if (mChatList.size() == 0 && !swipeRefreshLayout.isRefreshing()) {
+                showHideListEmptyIndicator(llIndicator, llEmptyData, true);
             }
         }
     }

@@ -93,7 +93,7 @@ public class MessageRepository implements MessageInterface {
     }
 
     @Override
-    public void getChatMessageFirstPage(String chatId, final GetChatMessageFirstPageCallback callBack) {
+    public void getChatMessageFirstPage(String chatId, final GetChatMessageFirstPageCallback callback) {
         mMessageList.clear();
         mLastMessagePaginationId = "";
         mNewestMessageId = "";
@@ -110,14 +110,16 @@ public class MessageRepository implements MessageInterface {
                         mNewestMessageId = mMessageList.get(mMessageList.size() - 1).getId();
                         mLastMessagePaginationId = mMessageList.get(0).getId();
 //                        mMessageList.remove(0);
-                        callBack.loadSuccess(mMessageList, mNewestMessageId);
+                        if (callback != null)
+                            callback.loadSuccess(mMessageList, mNewestMessageId);
                         return;
                     }
                     if (mMessageList.size() == mTotalMessageCurrentPage) {
                         mNewestMessageId = mMessageList.get(mMessageList.size() - 1).getId();
                         mLastMessagePaginationId = mMessageList.get(0).getId();
 //                        mMessageList.remove(0);
-                        callBack.loadSuccessDone(mMessageList, mNewestMessageId);
+                        if (callback != null)
+                            callback.loadSuccessDone(mMessageList, mNewestMessageId);
                     }
                 }
             }
@@ -139,7 +141,8 @@ public class MessageRepository implements MessageInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
 
@@ -148,7 +151,8 @@ public class MessageRepository implements MessageInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    callBack.loadSuccessEmptyData();
+                    if (callback != null)
+                        callback.loadSuccessEmptyData();
                 } else {
                     queryFirstPage.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -157,13 +161,15 @@ public class MessageRepository implements MessageInterface {
                                 mTotalMessageCurrentPage = dataSnapshot.getChildrenCount();
                                 queryFirstPage.addChildEventListener(mLoadMessageChildEventListener);
                             } else {
-                                callBack.loadSuccessEmptyData();
+                                if (callback != null)
+                                    callback.loadSuccessEmptyData();
                             }
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                            if (callback != null)
+                                callback.loadFail(databaseError.getMessage());
                         }
                     });
                 }
@@ -171,13 +177,14 @@ public class MessageRepository implements MessageInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         });
     }
 
     @Override
-    public void getChatMessageLoadMore(String chatId, final GetChatMessageLoadMoreCallback callBack) {
+    public void getChatMessageLoadMore(String chatId, final GetChatMessageLoadMoreCallback callback) {
         if (!mIsLoadingMore) {
             mIsLoadingMore = true;
             mMessageList.clear();
@@ -192,15 +199,17 @@ public class MessageRepository implements MessageInterface {
                         if (mMessageList.size() == Config.NUMBER_PAGINATION_MESSAGE) {
                             mLastMessagePaginationId = mMessageList.get(0).getId();
                             mMessageList.remove(0);
-                            callBack.loadSuccess(mMessageList);
                             mIsLoadingMore = false;
+                            if (callback != null)
+                                callback.loadSuccess(mMessageList);
                             return;
                         }
                         if (mMessageList.size() == mTotalMessageCurrentPage) {
                             mLastMessagePaginationId = mMessageList.get(0).getId();
                             mMessageList.remove(0);
                             mIsLoadingMore = false;
-                            callBack.loadSuccessDone(mMessageList);
+                            if (callback != null)
+                                callback.loadSuccessDone(mMessageList);
                         }
                     }
                 }
@@ -222,7 +231,8 @@ public class MessageRepository implements MessageInterface {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    if (callback != null)
+                        callback.loadFail(databaseError.getMessage());
                 }
             };
 
@@ -234,13 +244,15 @@ public class MessageRepository implements MessageInterface {
                         mLoadMoreMessageQuery.addChildEventListener(mLoadMoreMessageChildEventListener);
                     } else {
                         mIsLoadingMore = false;
-                        callBack.loadSuccessEmptyData();
+                        if (callback != null)
+                            callback.loadSuccessEmptyData();
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    if (callback != null)
+                        callback.loadFail(databaseError.getMessage());
                 }
             });
         }
@@ -265,7 +277,8 @@ public class MessageRepository implements MessageInterface {
                     if (message.getId().equals(mNewestMessageId))
                         return;
                     mNewestMessageId = message.getId();
-                    callback.getSuccess(message);
+                    if (callback != null)
+                        callback.getSuccess(message);
                 }
             }
 
@@ -274,7 +287,7 @@ public class MessageRepository implements MessageInterface {
                 if (dataSnapshot.exists()) {
                     Message message = dataSnapshot.getValue(Message.class);
 //                    message.setId(dataSnapshot.getKey());
-//                    callBack.updateMessageStatus(message);
+//                    callback.updateMessageStatus(message);
                 }
             }
 
@@ -290,7 +303,8 @@ public class MessageRepository implements MessageInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.getFail(databaseError.getMessage());
             }
         };
         mNewMessageQuery.addChildEventListener(mNewMessageChildEventListener);
@@ -304,14 +318,15 @@ public class MessageRepository implements MessageInterface {
     }
 
     @Override
-    public void getNewMessageId(String chatId, SendMessageCallBack callBack) {
+    public void getNewMessageId(String chatId, SendMessageCallBack callback) {
         mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).push();
-        callBack.getNewMessageIdSuccess(mLoadMessageDb.getKey());
+        if (callback != null)
+            callback.getNewMessageIdSuccess(mLoadMessageDb.getKey());
     }
 
     @Override
     public void sendMessage(final Chat chat, final String messageId, String text,
-                            final List<String> uriList, final SendMessageCallBack callBack) {
+                            final List<String> uriList, final SendMessageCallBack callback) {
         mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chat.getId()).child(messageId);
 
         final Message message = new Message();
@@ -343,23 +358,23 @@ public class MessageRepository implements MessageInterface {
                 @Override
                 public void uploadSuccess(Map<String, String> mediaMap) {
                     message.setMedia(mediaMap);
-                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callBack);
+                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
                 }
 
                 @Override
                 public void uploadFail() {
-                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callBack);
+                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
                 }
             });
             mUploadMediaAsyncTask.execute(uriList);
         } else {
-            updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callBack);
+            updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
         }
     }
 
 
     private void updateDatabaseWithNewMessage(final Chat chat, final DatabaseReference newMessageDB,
-                                              final Message message, final SendMessageCallBack callBack) {
+                                              final Message message, final SendMessageCallBack callback) {
         //update number unread message in chat object
         final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).child(Constant.FB_KEY_NUMBER_UNREAD);
         dbRefChat.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -390,7 +405,7 @@ public class MessageRepository implements MessageInterface {
                                         message.setCreateDate(timeStamp);
                                         String id = dataSnapshot.getKey();
                                         message.setId(id);
-                                        updateLastMessageToChatAndUser(message, chat, callBack);
+                                        updateLastMessageToChatAndUser(message, chat, callback);
                                     }
                                 }
 
@@ -401,7 +416,8 @@ public class MessageRepository implements MessageInterface {
                             });
 
                         } else {
-                            callBack.sendFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.sendFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -409,13 +425,14 @@ public class MessageRepository implements MessageInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.sendFail(databaseError.getMessage());
             }
         });
 
     }
 
-    private void updateLastMessageToChatAndUser(Message message, Chat chat, final SendMessageCallBack callBack) {
+    private void updateLastMessageToChatAndUser(Message message, Chat chat, final SendMessageCallBack callback) {
         DatabaseReference chatRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).child(Constant.FB_KEY_LAST_MESSAGE_DATE);
         chatRef.setValue(message.getCreateDateInLong());
         for (String userId : chat.getUserIds().values()) {
@@ -434,9 +451,11 @@ public class MessageRepository implements MessageInterface {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
-                    callBack.sendSuccess();
+                    if (callback != null)
+                        callback.sendSuccess();
                 } else {
-                    callBack.sendFail(databaseError.getMessage());
+                    if (callback != null)
+                        callback.sendFail(databaseError.getMessage());
                 }
             }
 
@@ -452,12 +471,12 @@ public class MessageRepository implements MessageInterface {
         private Map<String, String> mediaMap;
 
         public UploadMediaAsyncTask(String chatId, String messageId, Map<String, String> mediaMap,
-                                    UploadMediaCallBack callBack) {
+                                    UploadMediaCallBack callback) {
             mStorageRef = FirebaseStorage.getInstance().getReference();
             this.chatId = chatId;
             this.messageId = messageId;
             this.mediaMap = mediaMap;
-            this.uploadMediaCallBack = callBack;
+            this.uploadMediaCallBack = callback;
 
         }
 

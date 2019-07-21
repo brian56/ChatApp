@@ -50,7 +50,7 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void isLoggedIn(final CheckLoginCallBack callBack) {
+    public void isLoggedIn(final CheckLoginCallback callback) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null && ChatUtils.getUser() != null) {
             mUserDb = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId());
@@ -64,22 +64,26 @@ public class UserRepository implements UserInterface {
                         mUserDb.updateChildren(map, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                                callBack.alreadyLoggedIn(user);
+                                if (callback != null)
+                                    callback.alreadyLoggedIn(user);
                             }
                         });
                     } else {
                         ChatUtils.clearUser();
-                        callBack.noLoggedIn();
+                        if (callback != null)
+                            callback.noLoggedIn();
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    if (callback != null)
+                        callback.noLoggedIn();
                 }
             });
         } else {
-            callBack.noLoggedIn();
+            if (callback != null)
+                callback.noLoggedIn();
         }
     }
 
@@ -104,7 +108,7 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void getCurrentUserData(String userId, final LoadContactCallBack callBack) {
+    public void getCurrentUserData(String userId, final LoadContactCallback callback) {
         final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
         ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
@@ -112,24 +116,26 @@ public class UserRepository implements UserInterface {
                 if (dataSnapshot.exists()) {
                     User user = dataSnapshot.getValue(User.class);
                     LogManagerUtils.d(TAG, user.getName());
-                    if (callBack != null) {
-                        callBack.loadSuccess(user);
+                    if (callback != null) {
+                        callback.loadSuccess(user);
                     }
                 } else {
-                    callBack.loadFail("");
+                    if (callback != null)
+                        callback.loadFail("");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
         userDb.addListenerForSingleValueEvent(userValueEventListener);
     }
 
     @Override
-    public void checkPhoneNumberExist(String phoneNumber, final CheckPhoneNumberExistCallBack callBack) {
+    public void checkPhoneNumberExist(String phoneNumber, final CheckPhoneNumberExistCallback callback) {
         DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER);
         Query query = userDb.orderByChild(Constant.FB_KEY_PHONE_NUMBER).equalTo(phoneNumber);
         ValueEventListener userValueEventListener = new ValueEventListener() {
@@ -137,32 +143,36 @@ public class UserRepository implements UserInterface {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     if (dataSnapshot.getChildrenCount() > 0) {
-                        callBack.exist();
+                        if (callback != null)
+                            callback.exist();
                     } else {
-                        callBack.notExist();
+                        if (callback != null)
+                            callback.notExist();
                     }
                 } else {
-                    callBack.notExist();
+                    if (callback != null)
+                        callback.notExist();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.notExist();
             }
         };
         query.addListenerForSingleValueEvent(userValueEventListener);
     }
 
     @Override
-    public void loadContact(Context context, List<User> contacts, final LoadContactCallBack callBack) {
+    public void loadContact(Context context, List<User> contacts, final LoadContactCallback callback) {
         for (int i = 0; i < contacts.size(); i++) {
-            getContactData(contacts.get(i), callBack);
+            getContactData(contacts.get(i), callback);
         }
     }
 
     @Override
-    public void getContactData(final User contact, final LoadContactCallBack callBack) {
+    public void getContactData(final User contact, final LoadContactCallback callback) {
         DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER);
         Query query = userDb.orderByChild(Constant.FB_KEY_PHONE_NUMBER).equalTo(contact.getPhoneNumber());
         ValueEventListener userValueEventListener = new ValueEventListener() {
@@ -173,7 +183,8 @@ public class UserRepository implements UserInterface {
                         User user = childSnapshot.getValue(User.class);
                         user.setRegisteredUser(true);
                         if (user.getId().equals(ChatUtils.getUser().getId())) {
-                            callBack.loadSuccess(null);
+                            if (callback != null)
+                                callback.loadSuccess(null);
                         } else {
                             if (user.getName().equalsIgnoreCase(user.getPhoneNumber())) {
                                 user.setName(contact.getName());
@@ -187,32 +198,36 @@ public class UserRepository implements UserInterface {
                                     if (dataSnapshot.exists()) {
                                         contact.setFriendStatus(dataSnapshot.child(Constant.FB_KEY_STATUS).getValue(Integer.class));
                                     }
-                                    callBack.loadSuccess(contact);
+                                    if (callback != null)
+                                        callback.loadSuccess(contact);
                                 }
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                                    callBack.loadFail(databaseError.getMessage());
+                                    if (callback != null)
+                                        callback.loadFail(databaseError.getMessage());
                                 }
                             });
                         }
                     }
                 } else {
                     contact.setRegisteredUser(false);
-                    callBack.loadSuccess(contact);
+                    if (callback != null)
+                        callback.loadSuccess(contact);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callBack.loadFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
         query.addListenerForSingleValueEvent(userValueEventListener);
     }
 
     @Override
-    public void createUser(final String userId, final String phoneNumber, final String name, final CreateUserCallBack callBack) {
+    public void createUser(final String userId, final String phoneNumber, final String name, final CreateUserCallback callback) {
         final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
         userDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -234,17 +249,20 @@ public class UserRepository implements UserInterface {
                                     if (dataSnapshot.exists()) {
                                         User user = dataSnapshot.getValue(User.class);
                                         ChatUtils.setUser(user);
-                                        callBack.createSuccess();
+                                        if (callback != null)
+                                            callback.createSuccess();
                                     }
                                 }
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                    if (callback != null)
+                                        callback.createFail(databaseError.getMessage());
                                 }
                             });
                         } else {
-                            callBack.createFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.createFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -252,7 +270,8 @@ public class UserRepository implements UserInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.createFail(databaseError.getMessage());
             }
         });
     }
@@ -277,7 +296,8 @@ public class UserRepository implements UserInterface {
                         user = childSnapshot.getValue(User.class);
                         user.setId(childSnapshot.getKey());
                         if (user.getId().equals(ChatUtils.getUser().getId())) {
-                            callback.onSearchSuccess(result);
+                            if (callback != null)
+                                callback.onSearchSuccess(result);
                         } else {
                             result.add(user);
                             break;
@@ -292,28 +312,34 @@ public class UserRepository implements UserInterface {
                                     String status = dataSnapshot.child(Constant.FB_KEY_STATUS).getValue().toString();
                                     int s = Integer.valueOf(status);
                                     result.get(0).setFriendStatus(s);
-                                    callback.onSearchSuccess(result);
+                                    if (callback != null)
+                                        callback.onSearchSuccess(result);
                                 } else {
-                                    callback.onSearchSuccess(result);
+                                    if (callback != null)
+                                        callback.onSearchSuccess(result);
                                 }
                             }
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-                                callback.onSearchFail(databaseError.getMessage());
+                                if (callback != null)
+                                    callback.onSearchFail(databaseError.getMessage());
                             }
                         });
                     } else {
-                        callback.onSearchSuccess(result);
+                        if (callback != null)
+                            callback.onSearchSuccess(result);
                     }
                 } else {
-                    callback.onSearchSuccess(null);
+                    if (callback != null)
+                        callback.onSearchSuccess(null);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onSearchFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.onSearchFail(databaseError.getMessage());
             }
         };
         query.addListenerForSingleValueEvent(userValueEventListener);
@@ -327,12 +353,12 @@ public class UserRepository implements UserInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists())
-                    callback.onFriendNotification(dataSnapshot.getValue(Integer.class));
+                    if (callback != null)
+                        callback.onFriendNotification(dataSnapshot.getValue(Integer.class));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         };
         mUserFriendDb.addValueEventListener(mUserFriendValueListener);

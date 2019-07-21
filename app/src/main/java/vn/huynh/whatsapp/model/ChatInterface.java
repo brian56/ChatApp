@@ -70,7 +70,7 @@ public interface ChatInterface extends BaseModelInterface {
     interface ResetUnreadMessageCallback {
         void success();
 
-        void fail();
+        void fail(String error);
     }
 
     interface TurnOffNotificationCallback {

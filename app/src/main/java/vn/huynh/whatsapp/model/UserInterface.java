@@ -14,19 +14,19 @@ import vn.huynh.whatsapp.base.BaseModelInterface;
 
 public interface UserInterface extends BaseModelInterface {
 
-    void isLoggedIn(CheckLoginCallBack callBack);
+    void isLoggedIn(CheckLoginCallback callback);
 
-    void loadContact(Context context, List<User> contacts, LoadContactCallBack callBack);
+    void loadContact(Context context, List<User> contacts, LoadContactCallback callback);
 
     Task getUserData(String userId);
 
-    void getContactData(User user, LoadContactCallBack callBack);
+    void getContactData(User user, LoadContactCallback callback);
 
-    void getCurrentUserData(String userId, LoadContactCallBack callBack);
+    void getCurrentUserData(String userId, LoadContactCallback callback);
 
-    void checkPhoneNumberExist(String phoneNumber, CheckPhoneNumberExistCallBack callBack);
+    void checkPhoneNumberExist(String phoneNumber, CheckPhoneNumberExistCallback callback);
 
-    void createUser(String userId, String phoneNumber, String name, CreateUserCallBack callBack);
+    void createUser(String userId, String phoneNumber, String name, CreateUserCallback callback);
 
     void updateUser(String userId, String phoneNumber, String name);
 
@@ -34,25 +34,25 @@ public interface UserInterface extends BaseModelInterface {
 
     void listenerForUserFriend(FriendCallback callback);
 
-    interface LoadContactCallBack {
+    interface LoadContactCallback {
         void loadSuccess(User user);
 
         void loadFail(String message);
     }
 
-    interface CreateUserCallBack {
+    interface CreateUserCallback {
         void createSuccess();
 
         void createFail(String error);
     }
 
-    interface CheckLoginCallBack {
+    interface CheckLoginCallback {
         void alreadyLoggedIn(User user);
 
         void noLoggedIn();
     }
 
-    interface CheckPhoneNumberExistCallBack {
+    interface CheckPhoneNumberExistCallback {
         void exist();
 
         void notExist();

@@ -92,6 +92,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
         if (holder instanceof ItemSwipeWithActionWidthNoSpringViewHolder) {
             ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMuteAction(holder.isShowMute);
+            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMarkAsReadAction(holder.isShowMArkAsRead);
 
             ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).tvMute.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -117,7 +118,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                     }
                 }
             });
-            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).tvBack.setOnClickListener(new View.OnClickListener() {
+            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).ivBack.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (mOnActionItemClickListener != null) {
@@ -168,6 +169,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                mItemTouchHelperExtension.closeOpened();
                 mChatListFilter = (ArrayList<Chat>) filterResults.values;
                 notifyDataSetChanged();
                 if (mChatAdapterListener != null) {
@@ -204,6 +206,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
         public IImageLoader mIImageLoader;
         boolean isShowMute = true;
+        boolean isShowMArkAsRead = true;
 
         public ChatListBaseViewHolder(View view) {
             super(view);
@@ -268,6 +271,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             tvTime.setText(time);
 
             isShowMute = itemChat.getNotificationUserIds().get(ChatUtils.getUser().getId());
+            isShowMArkAsRead = itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0 ? true : false;
             itemView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -289,8 +293,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         TextView tvMute;
         @BindView(R.id.tv_action_unmute)
         TextView tvUnMute;
-        @BindView(R.id.tv_action_back)
-        TextView tvBack;
+        @BindView(R.id.iv_action_back)
+        ImageView ivBack;
 
         public ItemSwipeWithActionWidthViewHolder(View itemView) {
             super(itemView);
@@ -305,6 +309,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 tvMute.setVisibility(View.GONE);
                 tvUnMute.setVisibility(View.VISIBLE);
             }
+        }
+
+        public void showMarkAsReadAction(boolean isShow) {
+            if (isShow)
+                tvMarkAsRead.setVisibility(View.VISIBLE);
+            else
+                tvMarkAsRead.setVisibility(View.GONE);
         }
 
         @Override

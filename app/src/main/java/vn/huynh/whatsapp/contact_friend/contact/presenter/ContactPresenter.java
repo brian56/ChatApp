@@ -153,7 +153,7 @@ public class ContactPresenter implements ContactContract.Presenter {
         @Override
         protected void onPostExecute(List<User> list) {
             super.onPostExecute(list);
-            mUserRepo.loadContact(context, list, new UserInterface.LoadContactCallBack() {
+            mUserRepo.loadContact(context, list, new UserInterface.LoadContactCallback() {
                 @Override
                 public void loadSuccess(User userObject) {
                     if (mViewContact != null) {

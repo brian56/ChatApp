@@ -66,7 +66,8 @@ public class FriendRepository implements FriendInterface {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onGetAllFriendSuccess(friend);
+                    if (callback != null)
+                        callback.onGetAllFriendSuccess(friend);
                 }
             }
 
@@ -74,7 +75,8 @@ public class FriendRepository implements FriendInterface {
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
                     Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onFriendUpdate(friend);
+                    if (callback != null)
+                        callback.onFriendUpdate(friend);
                 }
             }
 
@@ -82,7 +84,8 @@ public class FriendRepository implements FriendInterface {
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Friend friend = dataSnapshot.getValue(Friend.class);
-                    callback.onFriendRemove(friend);
+                    if (callback != null)
+                        callback.onFriendRemove(friend);
                 }
             }
 
@@ -100,16 +103,19 @@ public class FriendRepository implements FriendInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    callback.onGetAllFriendSuccessEmptyData();
+                    if (callback != null)
+                        callback.onGetAllFriendSuccessEmptyData();
                 } else {
-                    callback.onGetFriendCount(dataSnapshot.getChildrenCount());
+                    if (callback != null)
+                        callback.onGetFriendCount(dataSnapshot.getChildrenCount());
                 }
                 mFriendQuery.addChildEventListener(mRequestChildEventListener);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onGetAllFriendFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.onGetAllFriendFail(databaseError.getMessage());
             }
         });
     }
@@ -155,17 +161,20 @@ public class FriendRepository implements FriendInterface {
                                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                         if (dataSnapshot.exists()) {
                                                             Friend friend = dataSnapshot.getValue(Friend.class);
-                                                            callback.onCreateRequestSuccess(friend);
+                                                            if (callback != null)
+                                                                callback.onCreateRequestSuccess(friend);
                                                         }
                                                     }
 
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                        callback.onCreateRequestFail(databaseError.getMessage());
+                                                        if (callback != null)
+                                                            callback.onCreateRequestFail(databaseError.getMessage());
                                                     }
                                                 });
                                             } else {
-                                                callback.onCreateRequestFail(databaseError.getMessage());
+                                                if (callback != null)
+                                                    callback.onCreateRequestFail(databaseError.getMessage());
                                             }
                                         }
                                     });
@@ -173,11 +182,13 @@ public class FriendRepository implements FriendInterface {
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                                    callback.onCreateRequestFail(databaseError.getMessage());
+                                    if (callback != null)
+                                        callback.onCreateRequestFail(databaseError.getMessage());
                                 }
                             });
                         } else {
-                            callback.onCreateRequestFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.onCreateRequestFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -185,7 +196,8 @@ public class FriendRepository implements FriendInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onCreateRequestFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.onCreateRequestFail(databaseError.getMessage());
             }
         });
     }
@@ -203,14 +215,17 @@ public class FriendRepository implements FriendInterface {
                         @Override
                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                             if (databaseError == null) {
-                                callback.onCancelSuccess(friend);
+                                if (callback != null)
+                                    callback.onCancelSuccess(friend);
                             } else {
-                                callback.onCancelFail(databaseError.getMessage());
+                                if (callback != null)
+                                    callback.onCancelFail(databaseError.getMessage());
                             }
                         }
                     });
                 } else {
-                    callback.onCancelFail(databaseError.getMessage());
+                    if (callback != null)
+                        callback.onCancelFail(databaseError.getMessage());
                 }
             }
         });
@@ -247,9 +262,11 @@ public class FriendRepository implements FriendInterface {
                                                 updateFriendNotification(ChatUtils.getUser().getId(), Friend.STATUS_ACCEPT, false);
 
                                                 friend.setStatus(Friend.STATUS_ACCEPT);
-                                                callback.onAcceptSuccess(friend);
+                                                if (callback != null)
+                                                    callback.onAcceptSuccess(friend);
                                             } else {
-                                                callback.onAcceptFail(databaseError.getMessage());
+                                                if (callback != null)
+                                                    callback.onAcceptFail(databaseError.getMessage());
                                             }
                                         }
                                     });
@@ -257,11 +274,13 @@ public class FriendRepository implements FriendInterface {
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                                    callback.onAcceptFail(databaseError.getMessage());
+                                    if (callback != null)
+                                        callback.onAcceptFail(databaseError.getMessage());
                                 }
                             });
                         } else {
-                            callback.onAcceptFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.onAcceptFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -269,7 +288,8 @@ public class FriendRepository implements FriendInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onAcceptFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.onAcceptFail(databaseError.getMessage());
             }
         });
     }
@@ -294,11 +314,13 @@ public class FriendRepository implements FriendInterface {
                                 @Override
                                 public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                     updateFriendNotification(ChatUtils.getUser().getId(), Friend.STATUS_REJECT, false);
-                                    callback.onRejectSuccess(friend);
+                                    if (callback != null)
+                                        callback.onRejectSuccess(friend);
                                 }
                             });
                         } else {
-                            callback.onRejectFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.onRejectFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -306,7 +328,8 @@ public class FriendRepository implements FriendInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onRejectFail(databaseError.getMessage());
+                if (callback != null)
+                    callback.onRejectFail(databaseError.getMessage());
             }
         });
     }
@@ -336,9 +359,11 @@ public class FriendRepository implements FriendInterface {
                                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                             if (databaseError == null) {
                                                 friend.setStatus(Friend.STATUS_BLOCK);
-                                                callback.onBlockSuccess(friend);
+                                                if (callback != null)
+                                                    callback.onBlockSuccess(friend);
                                             } else {
-                                                callback.onBlockFail(databaseError.getMessage());
+                                                if (callback != null)
+                                                    callback.onBlockFail(databaseError.getMessage());
                                             }
                                         }
                                     });
@@ -346,11 +371,13 @@ public class FriendRepository implements FriendInterface {
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                    if (callback != null)
+                                        callback.onBlockFail(databaseError.getMessage());
                                 }
                             });
                         } else {
-                            callback.onBlockFail(databaseError.getMessage());
+                            if (callback != null)
+                                callback.onBlockFail(databaseError.getMessage());
                         }
                     }
                 });
@@ -358,7 +385,8 @@ public class FriendRepository implements FriendInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.onBlockFail(databaseError.getMessage());
             }
         });
     }
@@ -376,12 +404,14 @@ public class FriendRepository implements FriendInterface {
                         @Override
                         public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                             if (databaseError == null) {
-                                callback.onRemoveFriendSuccess(friend);
+                                if (callback != null)
+                                    callback.onRemoveFriendSuccess(friend);
                             }
                         }
                     });
                 } else {
-                    callback.onRemoveFail(databaseError.getMessage());
+                    if (callback != null)
+                        callback.onRemoveFail(databaseError.getMessage());
                 }
             }
         });

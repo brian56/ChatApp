@@ -118,7 +118,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void getChatList(final boolean onlyGroup, final ChatListCallback callBack) {
+    public void getChatList(final boolean onlyGroup, final ChatListCallback callback) {
         removeListener();
 //        mValueListenerMap.clear();
         mChatQuery = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).child(Constant.FB_KEY_CHAT).orderByValue();
@@ -129,7 +129,7 @@ public class ChatRepository implements ChatInterface {
                     String chatId = dataSnapshot.getKey();
                     Chat chat = new Chat(chatId);
                     LogManagerUtils.d(TAG, dataSnapshot.getValue() + "");
-                    getChatDetail(onlyGroup, chat, callBack);
+                    getChatDetail(onlyGroup, chat, callback);
                 }
             }
 
@@ -139,7 +139,7 @@ public class ChatRepository implements ChatInterface {
                 if (dataSnapshot.exists()) {
                     String chatId = dataSnapshot.getKey();
                     Chat chat = new Chat(chatId);
-                    getChatDetailToUpdate(onlyGroup, chat, callBack);
+                    getChatDetailToUpdate(onlyGroup, chat, callback);
                 }
             }
 
@@ -155,7 +155,8 @@ public class ChatRepository implements ChatInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
 
@@ -163,23 +164,26 @@ public class ChatRepository implements ChatInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    callBack.loadSuccessEmptyData();
+                    if (callback != null)
+                        callback.loadSuccessEmptyData();
                 } else {
-                    callBack.getChatCount(dataSnapshot.getChildrenCount());
+                    if (callback != null)
+                        callback.getChatCount(dataSnapshot.getChildrenCount());
                 }
                 mChatQuery.addChildEventListener(mChildEventListener);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         });
     }
 
     //get chat detail for chat list
     @Override
-    public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatListCallback callBack) {
+    public void getChatDetail(final boolean onlyGroup, final Chat chat, final ChatListCallback callback) {
         //get chat detail for chat list
         DatabaseReference chatDetailRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId());
         ValueEventListener valueEventListener = new ValueEventListener() {
@@ -188,7 +192,8 @@ public class ChatRepository implements ChatInterface {
                 if (dataSnapshot.exists()) {
                     if (onlyGroup && !(boolean) dataSnapshot.child(Constant.FB_KEY_GROUP).getValue()) {
                         //get only group chat
-                        callBack.loadSuccess(null);
+                        if (callback != null)
+                            callback.loadSuccess(null);
                     } else {
                         Chat temp = dataSnapshot.getValue(Chat.class);
 //                        boolean newMessage = false;
@@ -197,7 +202,7 @@ public class ChatRepository implements ChatInterface {
 //                        }
                         chat.cloneChat(temp);
 //                        if (chat.getUsers() != null) {
-//                            callBack.updateChatStatus(chat, newMessage);
+//                            callback.updateChatStatus(chat, newMessage);
 //                        } else {
                         List<String> userList = new ArrayList<>(chat.getUserIds().values());
                         List<Task<DataSnapshot>> taskList = new ArrayList<>();
@@ -216,22 +221,26 @@ public class ChatRepository implements ChatInterface {
                                             chat.addUser(user);
                                         }
                                     }
-                                    callBack.loadSuccess(chat);
+                                    if (callback != null)
+                                        callback.loadSuccess(chat);
                                 } catch (NullPointerException e) {
-                                    callBack.loadFail(e.getMessage());
+                                    if (callback != null)
+                                        callback.loadFail(e.getMessage());
                                 }
                             }
                         });
 //                        }
                     }
                 } else {
-                    callBack.loadSuccess(null);
+                    if (callback != null)
+                        callback.loadSuccess(null);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
 //        mValueListenerMap.put(chatDetailRef, mValueEventListener);
@@ -239,7 +248,7 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void getChatDetailToUpdate(final boolean onlyGroup, final Chat chat, final ChatListCallback callBack) {
+    public void getChatDetailToUpdate(final boolean onlyGroup, final Chat chat, final ChatListCallback callback) {
         //get chat detail for chat list
         DatabaseReference chatDetailRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId());
         ValueEventListener valueEventListener = new ValueEventListener() {
@@ -248,7 +257,8 @@ public class ChatRepository implements ChatInterface {
                 if (dataSnapshot.exists()) {
                     if (onlyGroup && !(boolean) dataSnapshot.child(Constant.FB_KEY_GROUP).getValue()) {
                         //get only group chat
-                        callBack.loadSuccess(null);
+                        if (callback != null)
+                            callback.loadSuccess(null);
                     } else {
                         Chat temp = dataSnapshot.getValue(Chat.class);
                         chat.cloneChat(temp);
@@ -270,24 +280,29 @@ public class ChatRepository implements ChatInterface {
                                         }
                                     }
                                     if (chat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                                        callBack.updateChatStatus(chat, true);
+                                        if (callback != null)
+                                            callback.updateChatStatus(chat, true);
                                     } else {
-                                        callBack.updateChatStatus(chat, false);
+                                        if (callback != null)
+                                            callback.updateChatStatus(chat, false);
                                     }
                                 } catch (NullPointerException e) {
-                                    callBack.loadFail(e.getMessage());
+                                    if (callback != null)
+                                        callback.loadFail(e.getMessage());
                                 }
                             }
                         });
                     }
                 } else {
-                    callBack.updateChatStatus(null, false);
+                    if (callback != null)
+                        callback.updateChatStatus(null, false);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
 //        mValueListenerMap.put(chatDetailRef, mValueEventListener);
@@ -297,7 +312,7 @@ public class ChatRepository implements ChatInterface {
 
     //get single chat detail
     @Override
-    public void getChatDetail(final String chatId, final ChatDetailCallback callBack) {
+    public void getChatDetail(final String chatId, final ChatDetailCallback callback) {
         removeListener();
         //get chat detail
         mChatDetailDb = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId);
@@ -325,20 +340,24 @@ public class ChatRepository implements ChatInterface {
                                         chat.addUser(user);
                                     }
                                 }
-                                callBack.loadSuccess(chat);
+                                if (callback != null)
+                                    callback.loadSuccess(chat);
                             } catch (NullPointerException e) {
-                                callBack.loadFail(e.getMessage());
+                                if (callback != null)
+                                    callback.loadFail(e.getMessage());
                             }
                         }
                     });
                 } else {
-                    callBack.loadSuccess(null);
+                    if (callback != null)
+                        callback.loadSuccess(null);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.loadFail(databaseError.getMessage());
             }
         };
         mChatDetailDb.addListenerForSingleValueEvent(mValueEventListener);
@@ -346,13 +365,14 @@ public class ChatRepository implements ChatInterface {
     }
 
     @Override
-    public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallback callBack) {
+    public void createChat(boolean isGroup, String name, List<User> users, final CreateChatCallback callback) {
         removeListener();
         DatabaseReference chatDb = mDbRef.child(Constant.FB_KEY_CHAT).push();
         final String chatId = chatDb.getKey();
 
         if (chatId == null) {
-            callBack.createFail("Cannot get chat Id");
+            if (callback != null)
+                callback.createFail("Cannot get chat Id");
             return;
         }
         DatabaseReference userIdRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).child(Constant.FB_KEY_USER_IDS);
@@ -401,7 +421,8 @@ public class ChatRepository implements ChatInterface {
                                 for (String userId : userIds) {
                                     mDbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_CHAT).child(chatId).setValue(lastMessageDate);
                                 }
-                                callBack.createSuccess(dataSnapshot.getKey());
+                                if (callback != null)
+                                    callback.createSuccess(dataSnapshot.getKey());
                             }
                         }
 
@@ -411,14 +432,15 @@ public class ChatRepository implements ChatInterface {
                         }
                     });
                 } else {
-                    callBack.createFail(databaseError.getMessage());
+                    if (callback != null)
+                        callback.createFail(databaseError.getMessage());
                 }
             }
         });
     }
 
     @Override
-    public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallback callBack) {
+    public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallback callback) {
         DatabaseReference chatDb = mDbRef.child(Constant.FB_KEY_CHAT);
         mQuery = chatDb.orderByChild(Constant.FB_KEY_SINGLE_CHAT_ID).equalTo(singleChatId);
         mValueEventListener = new ValueEventListener() {
@@ -426,17 +448,20 @@ public class ChatRepository implements ChatInterface {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                        callBack.exist(childSnapshot.getKey());
+                        if (callback != null)
+                            callback.exist(childSnapshot.getKey());
                         break;
                     }
                 } else {
-                    callBack.notExist();
+                    if (callback != null)
+                        callback.notExist();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.notExist();
             }
         };
         mQuery.addListenerForSingleValueEvent(mValueEventListener);
@@ -485,7 +510,7 @@ public class ChatRepository implements ChatInterface {
                                         });
                                     } else {
                                         if (callback != null)
-                                            callback.fail();
+                                            callback.fail(databaseError.getMessage());
                                     }
                                 }
                             });
@@ -497,7 +522,8 @@ public class ChatRepository implements ChatInterface {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                if (callback != null)
+                    callback.fail(databaseError.getMessage());
             }
         });
     }
@@ -510,9 +536,36 @@ public class ChatRepository implements ChatInterface {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError == null) {
-                    callback.success(chatId, turnOn);
+                    final DatabaseReference df = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).
+                            child(Constant.FB_KEY_CHAT).child(chatId);
+                    df.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                long time = (long) dataSnapshot.getValue();
+                                if (System.currentTimeMillis() % 2 == 0) {
+                                    time++;
+                                } else {
+                                    time--;
+                                }
+                                df.setValue(time, new DatabaseReference.CompletionListener() {
+                                    @Override
+                                    public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                                        if (callback != null)
+                                            callback.success(chatId, turnOn);
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
                 } else {
-                    callback.fail(databaseError.getMessage());
+                    if (callback != null)
+                        callback.fail(databaseError.getMessage());
                 }
             }
         });

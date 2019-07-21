@@ -77,14 +77,18 @@ public class ChatPresenter implements ChatContract.Presenter {
                     mChatRepo.resetNumberUnread(chatId, new ChatInterface.ResetUnreadMessageCallback() {
                         @Override
                         public void success() {
-                            mViewChat.showChatDetail(chatObject);
-                            mViewChat.hideLoadingIndicator();
+                            if (mViewChat != null) {
+                                mViewChat.showChatDetail(chatObject);
+                                mViewChat.hideLoadingIndicator();
+                            }
                         }
 
                         @Override
-                        public void fail() {
-                            mViewChat.showErrorMessage("");
-                            mViewChat.hideLoadingIndicator();
+                        public void fail(String error) {
+                            if (mViewChat != null) {
+                                mViewChat.showErrorMessage(error);
+                                mViewChat.hideLoadingIndicator();
+                            }
                         }
                     });
                 }
@@ -135,7 +139,11 @@ public class ChatPresenter implements ChatContract.Presenter {
             }
 
             @Override
-            public void fail() {
+            public void fail(String error) {
+                if (mViewChat != null)
+                    mViewChat.showErrorMessage(error);
+                if (mViewChatList != null)
+                    mViewChatList.showErrorMessage(error);
             }
         });
     }
