@@ -2,6 +2,7 @@ package vn.huynh.whatsapp.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Keep;
 
 import com.google.firebase.database.Exclude;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * Created by duong on 4/15/2019.
  */
-
+@Keep
 public class User implements Parcelable {
     private String id;
     private String name;

@@ -2,6 +2,7 @@ package vn.huynh.whatsapp.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Keep;
 import android.text.TextUtils;
 
 import com.google.firebase.database.Exclude;
@@ -17,7 +18,7 @@ import vn.huynh.whatsapp.utils.ChatUtils;
 /**
  * Created by duong on 4/15/2019.
  */
-
+@Keep
 public class Chat implements Parcelable {
     private String id;
     private boolean group;

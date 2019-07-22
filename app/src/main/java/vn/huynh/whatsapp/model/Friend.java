@@ -2,6 +2,7 @@ package vn.huynh.whatsapp.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Keep;
 
 import com.google.firebase.database.Exclude;
 
@@ -10,7 +11,7 @@ import vn.huynh.whatsapp.custom_views.sticky_header.stickyData.StickyMainData;
 /**
  * Created by duong on 5/18/2019.
  */
-
+@Keep
 public class Friend implements Parcelable, StickyMainData {
     private String userId;
     private Object createDate;

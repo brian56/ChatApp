@@ -25,6 +25,7 @@ import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.contact_friend.contact.view.ContactListAdapter;
 import vn.huynh.whatsapp.contact_friend.friend.FriendContract;
 import vn.huynh.whatsapp.contact_friend.friend.presenter.FriendPresenter;
+import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.MyApp;
 
@@ -131,7 +132,8 @@ public class DialogSearchFriend implements FriendContract.ViewSearchFriend {
                 if (mDialog != null) {
                     mSelectedUsers.clear();
                     for (User user : mUserArrayList) {
-                        if (user.getSelected()) {
+                        if (user.getSelected() && (user.getFriendStatus() == Friend.STATUS_DEFAULT ||
+                                user.getFriendStatus() == Friend.STATUS_WAS_REJECTED)) {
                             mSelectedUsers.add(user);
                         }
                     }
