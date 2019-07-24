@@ -32,18 +32,14 @@ public class ChatRepository implements ChatInterface {
     private static String TAG = ChatRepository.class.getSimpleName();
 
     private DatabaseReference mDbRef;
-    private ChildEventListener mChildEventListener;
-    private DatabaseReference mChatDb;
-    private Query mChatQuery;
+
+    private ChildEventListener mChatListChildEventListener;
+    private Query mChatListQuery;
 
     private DatabaseReference mChatDetailDb;
-    private ValueEventListener mValueEventListener;
+    private ValueEventListener mChatDetailValueEventListener;
 
     private UserRepository mUserRepository;
-    private Query mQuery;
-
-//    private HashMap<DatabaseReference, ValueEventListener> mValueListenerMap = new HashMap<>();
-//    private HashMap<DatabaseReference, ChildEventListener> mChildEventListenerMap = new HashMap<>();
 
     public ChatRepository() {
         mDbRef = FirebaseDatabase.getInstance().getReference();
@@ -52,77 +48,51 @@ public class ChatRepository implements ChatInterface {
 
     @Override
     public void removeListener() {
-        if (mChatDb != null && mChildEventListener != null) {
-            mChatDb.removeEventListener(mChildEventListener);
+        if (mChatListQuery != null && mChatListChildEventListener != null) {
+            mChatListQuery.removeEventListener(mChatListChildEventListener);
         }
-        if (mChatQuery != null && mChildEventListener != null) {
-            mChatQuery.removeEventListener(mChildEventListener);
-        }
-        if (mChatDetailDb != null && mValueEventListener != null) {
-            mChatDetailDb.removeEventListener(mValueEventListener);
-        }
-        if (mQuery != null && mValueEventListener != null) {
-            mQuery.removeEventListener(mValueEventListener);
+        if (mChatDetailDb != null && mChatDetailValueEventListener != null) {
+            mChatDetailDb.removeEventListener(mChatDetailValueEventListener);
         }
         if (mUserRepository != null) {
             mUserRepository.removeListener();
         }
-
-//        for (Map.Entry<DatabaseReference, ValueEventListener> entry : mValueListenerMap.entrySet()) {
-//            DatabaseReference ref = entry.getKey();
-//            ValueEventListener listener = entry.getValue();
-//            ref.removeEventListener(listener);
-//        }
-//        mValueListenerMap.clear();
     }
 
     @Override
     public void removeChatListListener() {
-        if (mChatDb != null && mChildEventListener != null) {
-            mChatDb.removeEventListener(mChildEventListener);
+        if (mChatListQuery != null && mChatListChildEventListener != null) {
+            mChatListQuery.removeEventListener(mChatListChildEventListener);
         }
-//        for (Map.Entry<DatabaseReference, ValueEventListener> entry : mValueListenerMap.entrySet()) {
-//            DatabaseReference ref = entry.getKey();
-//            ValueEventListener listener = entry.getValue();
-//            ref.removeEventListener(listener);
-//        }
     }
 
     @Override
     public void addChatListListener() {
-        if (mChatDb != null && mChildEventListener != null) {
-            mChatDb.addChildEventListener(mChildEventListener);
+        if (mChatListQuery != null && mChatListChildEventListener != null) {
+            mChatListQuery.addChildEventListener(mChatListChildEventListener);
         }
-//        for (Map.Entry<DatabaseReference, ValueEventListener> entry : mValueListenerMap.entrySet()) {
-//            DatabaseReference ref = entry.getKey();
-//            ValueEventListener listener = entry.getValue();
-//            ref.addValueEventListener(listener);
-//        }
     }
 
     @Override
     public void removeChatDetailListener() {
-        if (mChatDetailDb != null && mValueEventListener != null) {
-            mChatDetailDb.removeEventListener(mValueEventListener);
-        }
-        if (mQuery != null && mValueEventListener != null) {
-            mQuery.removeEventListener(mValueEventListener);
+        if (mChatDetailDb != null && mChatDetailValueEventListener != null) {
+            mChatDetailDb.removeEventListener(mChatDetailValueEventListener);
         }
     }
 
     @Override
     public void addChatDetailListener() {
-        if (mChatDetailDb != null && mValueEventListener != null) {
-            mChatDetailDb.addValueEventListener(mValueEventListener);
+        if (mChatDetailDb != null && mChatDetailValueEventListener != null) {
+            mChatDetailDb.addValueEventListener(mChatDetailValueEventListener);
         }
     }
 
     @Override
     public void getChatList(final boolean onlyGroup, final ChatListCallback callback) {
         removeListener();
-//        mValueListenerMap.clear();
-        mChatQuery = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).child(Constant.FB_KEY_CHAT).orderByValue();
-        mChildEventListener = new ChildEventListener() {
+        mChatListQuery = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).
+                child(Constant.FB_KEY_CHAT).orderByValue();
+        mChatListChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
@@ -160,7 +130,7 @@ public class ChatRepository implements ChatInterface {
             }
         };
 
-        mChatQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        mChatListQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
@@ -170,7 +140,7 @@ public class ChatRepository implements ChatInterface {
                     if (callback != null)
                         callback.getChatCount(dataSnapshot.getChildrenCount());
                 }
-                mChatQuery.addChildEventListener(mChildEventListener);
+                mChatListQuery.addChildEventListener(mChatListChildEventListener);
             }
 
             @Override
@@ -243,7 +213,6 @@ public class ChatRepository implements ChatInterface {
                     callback.loadFail(databaseError.getMessage());
             }
         };
-//        mValueListenerMap.put(chatDetailRef, mValueEventListener);
         chatDetailRef.addListenerForSingleValueEvent(valueEventListener);
     }
 
@@ -305,7 +274,6 @@ public class ChatRepository implements ChatInterface {
                     callback.loadFail(databaseError.getMessage());
             }
         };
-//        mValueListenerMap.put(chatDetailRef, mValueEventListener);
         chatDetailRef.addListenerForSingleValueEvent(valueEventListener);
 
     }
@@ -313,10 +281,10 @@ public class ChatRepository implements ChatInterface {
     //get single chat detail
     @Override
     public void getChatDetail(final String chatId, final ChatDetailCallback callback) {
-        removeListener();
+        removeChatDetailListener();
         //get chat detail
         mChatDetailDb = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId);
-        mValueEventListener = new ValueEventListener() {
+        mChatDetailValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -360,7 +328,7 @@ public class ChatRepository implements ChatInterface {
                     callback.loadFail(databaseError.getMessage());
             }
         };
-        mChatDetailDb.addListenerForSingleValueEvent(mValueEventListener);
+        mChatDetailDb.addListenerForSingleValueEvent(mChatDetailValueEventListener);
 
     }
 
@@ -375,9 +343,8 @@ public class ChatRepository implements ChatInterface {
                 callback.createFail("Cannot get chat Id");
             return;
         }
-        DatabaseReference userIdRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).child(Constant.FB_KEY_USER_IDS);
-        DatabaseReference notificationIdRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).child(Constant.FB_KEY_NOTIFICATION_USER_IDS);
-
+        DatabaseReference userIdRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).
+                child(Constant.FB_KEY_USER_IDS);
         final List<String> userIds = new ArrayList<>();
         for (User user : users) {
             userIds.add(user.getId());
@@ -419,7 +386,8 @@ public class ChatRepository implements ChatInterface {
                             if (dataSnapshot.exists()) {
                                 long lastMessageDate = (long) dataSnapshot.child(Constant.FB_KEY_LAST_MESSAGE_DATE).getValue();
                                 for (String userId : userIds) {
-                                    mDbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_CHAT).child(chatId).setValue(lastMessageDate);
+                                    mDbRef.child(Constant.FB_KEY_USER).child(userId).
+                                            child(Constant.FB_KEY_CHAT).child(chatId).setValue(lastMessageDate);
                                 }
                                 if (callback != null)
                                     callback.createSuccess(dataSnapshot.getKey());
@@ -442,8 +410,8 @@ public class ChatRepository implements ChatInterface {
     @Override
     public void checkSingleChatExist(final String singleChatId, final CheckSingleChatCallback callback) {
         DatabaseReference chatDb = mDbRef.child(Constant.FB_KEY_CHAT);
-        mQuery = chatDb.orderByChild(Constant.FB_KEY_SINGLE_CHAT_ID).equalTo(singleChatId);
-        mValueEventListener = new ValueEventListener() {
+        Query query = chatDb.orderByChild(Constant.FB_KEY_SINGLE_CHAT_ID).equalTo(singleChatId);
+        ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -464,24 +432,27 @@ public class ChatRepository implements ChatInterface {
                     callback.notExist();
             }
         };
-        mQuery.addListenerForSingleValueEvent(mValueEventListener);
+        query.addListenerForSingleValueEvent(valueEventListener);
     }
 
     @Override
     public void resetNumberUnread(final String chatId, final ResetUnreadMessageCallback callback) {
-        final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).child(Constant.FB_KEY_NUMBER_UNREAD);
+        DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).
+                child(Constant.FB_KEY_NUMBER_UNREAD);
         dbRefChat.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
                         if (dataSnapshot1.getKey().equals(ChatUtils.getUser().getId())) {
-                            DatabaseReference df = dbRefChat.child(dataSnapshot1.getKey());
+                            DatabaseReference df = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).
+                                    child(Constant.FB_KEY_NUMBER_UNREAD).child(dataSnapshot1.getKey());
                             df.setValue(0, new DatabaseReference.CompletionListener() {
                                 @Override
                                 public void onComplete(@Nullable final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                     if (databaseError == null) {
-                                        final DatabaseReference df = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId()).
+                                        final DatabaseReference df = mDbRef.child(Constant.FB_KEY_USER).
+                                                child(ChatUtils.getUser().getId()).
                                                 child(Constant.FB_KEY_CHAT).child(chatId);
                                         df.addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
@@ -530,8 +501,8 @@ public class ChatRepository implements ChatInterface {
 
     @Override
     public void setChatNotification(final boolean turnOn, final String chatId, final TurnOffNotificationCallback callback) {
-        final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId)
-                .child(Constant.FB_KEY_NOTIFICATION_USER_IDS).child(ChatUtils.getUser().getId());
+        DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chatId).
+                child(Constant.FB_KEY_NOTIFICATION_USER_IDS).child(ChatUtils.getUser().getId());
         dbRefChat.setValue(turnOn, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {

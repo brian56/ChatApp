@@ -31,6 +31,7 @@
         <activity
             android:name=".home.HomeActivity"
             android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait" />
         <activity
             android:name=".chat.view.ChatActivity"

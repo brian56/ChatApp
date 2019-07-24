@@ -47,11 +47,6 @@ public class ChatPresenter implements ChatContract.Presenter {
     }
 
     @Override
-    public void removeChatDetailListener() {
-        this.mChatRepo.removeChatDetailListener();
-    }
-
-    @Override
     public void addChatDetailListener() {
         this.mChatRepo.addChatDetailListener();
     }
@@ -64,6 +59,11 @@ public class ChatPresenter implements ChatContract.Presenter {
     @Override
     public void removeMessageListener() {
         this.mMessageRepo.removeMessageListener();
+    }
+
+    @Override
+    public void removeChatDetailListener() {
+        this.mChatRepo.removeChatDetailListener();
     }
 
     @Override
@@ -168,7 +168,6 @@ public class ChatPresenter implements ChatContract.Presenter {
                 if (mViewChat != null) {
                     mViewChat.hideLoadingIndicator();
                     mViewChat.showMessageList(messages, true);
-                    //TODO: load done
                 }
                 listenToNewMessage(chatId);
             }
@@ -207,7 +206,6 @@ public class ChatPresenter implements ChatContract.Presenter {
             public void loadSuccessDone(List<Message> messages) {
                 if (mViewChat != null) {
                     mViewChat.showMessageListLoadMore(messages, true);
-                    //TODO: load done
                 }
             }
 
@@ -215,7 +213,6 @@ public class ChatPresenter implements ChatContract.Presenter {
             public void loadSuccessEmptyData() {
                 if (mViewChat != null) {
                     mViewChat.showMessageListLoadMore(null, true);
-                    //TODO: load done
                 }
             }
 

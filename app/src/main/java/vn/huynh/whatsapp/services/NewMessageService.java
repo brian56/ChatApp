@@ -65,8 +65,10 @@ public class NewMessageService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
     private DatabaseReference mDF = FirebaseDatabase.getInstance().getReference();
+
     private DatabaseReference mDatabaseNewMessage;
     private ValueEventListener mValueEventListenerNewMessage;
+
     private DatabaseReference mDatabaseFriend;
     private ChildEventListener mChildEventListenerFriend;
 
@@ -108,7 +110,8 @@ public class NewMessageService extends Service {
                                 }
                                 loadUserData(chat);
                                 updateMsgStatus(chatId, chat.getLastMessageSent().getId());
-                                DatabaseReference dbRef = mDF.child(Constant.FB_KEY_USER).child(chat.getLastMessageSent().getCreator());
+                                DatabaseReference dbRef = mDF.child(Constant.FB_KEY_USER).
+                                        child(chat.getLastMessageSent().getCreator());
                                 dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -188,8 +191,10 @@ public class NewMessageService extends Service {
     public void createNotification(User sender, Chat chat, Friend friend) {
         if (chat != null) {
             String lastMessageId = chat.getLastMessageSent().getId();
-            if (!lastMessageId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, String.class))) {
-                SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, chat.getLastMessageSent().getId());
+            if (!lastMessageId.equals(SharedPrefsUtil.getInstance().
+                    get(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID, String.class))) {
+                SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_MESSAGE_ID,
+                        chat.getLastMessageSent().getId());
             } else {
                 return;
             }
@@ -214,16 +219,19 @@ public class NewMessageService extends Service {
             mNotification = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 int importance = NotificationManager.IMPORTANCE_DEFAULT;
-                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
+                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL,
+                        "Name", importance);
                 mNotificationManager.createNotificationChannel(notificationChannel);
-                mNotification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+                mNotification = new NotificationCompat.Builder(getApplicationContext(),
+                        notificationChannel.getId());
             } else {
                 mNotification = new NotificationCompat.Builder(getApplicationContext());
             }
 
             message = chat.getLastMessageSent().getText();
             if (TextUtils.isEmpty(message)) {
-                if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().getMedia().isEmpty()) {
+                if (chat.getLastMessageSent().getMedia() != null && !chat.getLastMessageSent().
+                        getMedia().isEmpty()) {
                     message = MyApp.resources.getString(R.string.message_sent_media);
                 }
             }
@@ -264,7 +272,8 @@ public class NewMessageService extends Service {
             // Get the PendingIntent containing the entire back stack
 //            PendingIntent contentIntent =
 //                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(),
+                    (int) System.currentTimeMillis(), intent, 0);
 
             String title = "", message = "";
 
@@ -288,7 +297,8 @@ public class NewMessageService extends Service {
             mNotification = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 int importance = NotificationManager.IMPORTANCE_DEFAULT;
-                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, "Name", importance);
+                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL,
+                        "Name", importance);
                 mNotificationManager.createNotificationChannel(notificationChannel);
                 mNotification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
             } else {

@@ -9,13 +9,14 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="right"
+        android:gravity="right"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_gravity="right"
+            android:background="#72ae2e"
             android:orientation="horizontal">
 
             <ImageView
@@ -38,6 +39,7 @@
                 android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center"
                 android:padding="8dp"
+                android:background="#669b29"
                 android:text="@string/action_mark_as_read"
                 android:textColor="@android:color/white" />
 
@@ -46,10 +48,13 @@
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
                 android:foreground="?android:attr/selectableItemBackground"
-                android:background="#f12d2d"
+                android:background="#d11f1f"
                 android:drawableTop="@drawable/ic_notifications_off_white_24dp"
                 android:gravity="center"
-                android:padding="8dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
                 android:text="@string/action_mute"
                 android:textColor="@android:color/white" />
 
@@ -58,10 +63,13 @@
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
                 android:foreground="?android:attr/selectableItemBackground"
-                android:background="#f12d2d"
+                android:background="#72ae2e"
                 android:drawableTop="@drawable/ic_notifications_active_white_24dp"
                 android:gravity="center"
-                android:padding="8dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
                 android:text="@string/action_unmute"
                 android:textColor="@android:color/white" />
 

@@ -77,7 +77,6 @@
                     android:id="@+id/btn_add_media"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="#00ffffff"
                     android:padding="12dp"
                     style="@style/Widget.AppCompat.ActionButton"
                     android:src="@drawable/ic_media" />
@@ -93,7 +92,6 @@
                     android:id="@+id/btn_send"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="#00ffffff"
                     android:padding="12dp"
                     style="@style/Widget.AppCompat.ActionButton"
                     android:src="@drawable/ic_send" />

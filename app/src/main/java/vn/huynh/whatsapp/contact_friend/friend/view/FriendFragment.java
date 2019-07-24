@@ -4,11 +4,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -28,6 +30,7 @@ import vn.huynh.whatsapp.custom_views.sticky_header.stickyView.StickHeaderItemDe
 import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.Constant;
+import vn.huynh.whatsapp.utils.MyApp;
 import vn.huynh.whatsapp.utils.SharedPrefsUtil;
 
 /**
@@ -50,10 +53,9 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
-    @BindView(R.id.floating_action_button)
-    FloatingActionButton fabAddFriend;
+//    @BindView(R.id.floating_action_button)
+//    FloatingActionButton fabAddFriend;
 
-    DialogSearchFriend mDialogSearchFriend;
 
     private FriendListAdapter mFriendListAdapter;
     private RecyclerView.LayoutManager mFriendListLayoutManager;
@@ -87,6 +89,12 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         return fragment;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -100,6 +108,27 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         super.onViewCreated(view, savedInstanceState);
         initData();
         setEvents();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_friend_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_add_friend) {
+            DialogSearchFriend dialogSearchFriend = new DialogSearchFriend(getContext());
+            dialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
+                @Override
+                public void onAddedFriendListener(ArrayList<User> selectedUsers) {
+                    Toast.makeText(getContext(), MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -168,21 +197,22 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                 mFriendPresenter.loadListFriend(-1);
             }
         });
-        fabAddFriend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDialogSearchFriend = new DialogSearchFriend(getContext());
-                mDialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
-                    @Override
-                    public void onAddedFriendListener(ArrayList<User> selectedUsers) {
-                        //TODO: add friend request to list
-//                        for (User user : selectedUsers) {
-//                            mFriendPresenter.createFriendRequest(user);
+//        fabAddFriend.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (mDialogSearchFriend != null) {
+//                    mDialogSearchFriend = new DialogSearchFriend(getContext());
+//                }
+//                if (!mDialogSearchFriend.isShowing()) {
+//                    mDialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
+//                        @Override
+//                        public void onAddedFriendListener(ArrayList<User> selectedUsers) {
+//                            Toast.makeText(getContext(), MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
 //                        }
-                    }
-                });
-            }
-        });
+//                    });
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -203,17 +233,18 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         rvFriendList.setHasFixedSize(false);
         mFriendListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
         rvFriendList.setLayoutManager(mFriendListLayoutManager);
-        rvFriendList.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0 && fabAddFriend.getVisibility() == View.VISIBLE) {
-                    fabAddFriend.hide();
-                } else if (dy < 0 && fabAddFriend.getVisibility() != View.VISIBLE) {
-                    fabAddFriend.show();
-                }
-            }
-        });
+//        show/hide fab when scroll
+//        rvFriendList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                super.onScrolled(recyclerView, dx, dy);
+//                if (dy > 0 && fabAddFriend.getVisibility() == View.VISIBLE) {
+//                    fabAddFriend.hide();
+//                } else if (dy < 0 && fabAddFriend.getVisibility() != View.VISIBLE) {
+//                    fabAddFriend.show();
+//                }
+//            }
+//        });
         mFriendListAdapter = new FriendListAdapter(getContext(),
                 new FriendListAdapter.ItemFriendMenuClickListener() {
                     @Override

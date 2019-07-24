@@ -32,8 +32,6 @@ import vn.huynh.whatsapp.utils.LogManagerUtils;
 public class UserRepository implements UserInterface {
     private static final String TAG = UserRepository.class.getSimpleName();
     private DatabaseReference mDbRef;
-    private DatabaseReference mUserDb;
-
 
     private DatabaseReference mUserFriendDb;
     private ValueEventListener mUserFriendValueListener;
@@ -53,15 +51,16 @@ public class UserRepository implements UserInterface {
     public void isLoggedIn(final CheckLoginCallback callback) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null && ChatUtils.getUser() != null) {
-            mUserDb = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId());
-            mUserDb.addListenerForSingleValueEvent(new ValueEventListener() {
+            final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).
+                    child(ChatUtils.getUser().getId());
+            userDb.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
                         final User user = dataSnapshot.getValue(User.class);
                         Map<String, Object> map = new HashMap<>();
                         map.put(Constant.FB_KEY_LAST_ONLINE, ServerValue.TIMESTAMP);
-                        mUserDb.updateChildren(map, new DatabaseReference.CompletionListener() {
+                        userDb.updateChildren(map, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                                 if (callback != null)
@@ -90,9 +89,9 @@ public class UserRepository implements UserInterface {
     @Override
     public Task getUserData(final String userId) {
         final TaskCompletionSource<DataSnapshot> dbSource = new TaskCompletionSource<>();
-        final Task dbTask = dbSource.getTask();
-        final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
-        final ValueEventListener userValueEventListener = new ValueEventListener() {
+        Task dbTask = dbSource.getTask();
+        DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
+        ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 dbSource.setResult(dataSnapshot);
@@ -109,7 +108,7 @@ public class UserRepository implements UserInterface {
 
     @Override
     public void getCurrentUserData(String userId, final LoadContactCallback callback) {
-        final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
+        DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
         ValueEventListener userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -191,12 +190,14 @@ public class UserRepository implements UserInterface {
                             }
                             contact.cloneUser(user);
                             //get the friend status
-                            DatabaseReference friendDb = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(user.getId());
+                            DatabaseReference friendDb = mDbRef.child(Constant.FB_KEY_FRIEND).
+                                    child(ChatUtils.getUser().getId()).child(user.getId());
                             friendDb.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.exists()) {
-                                        contact.setFriendStatus(dataSnapshot.child(Constant.FB_KEY_STATUS).getValue(Integer.class));
+                                        contact.setFriendStatus(dataSnapshot.child(Constant.FB_KEY_STATUS).
+                                                getValue(Integer.class));
                                     }
                                     if (callback != null)
                                         callback.loadSuccess(contact);
@@ -227,7 +228,8 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void createUser(final String userId, final String phoneNumber, final String name, final CreateUserCallback callback) {
+    public void createUser(final String userId, final String phoneNumber, final String name,
+                           final CreateUserCallback callback) {
         final DatabaseReference userDb = mDbRef.child(Constant.FB_KEY_USER).child(userId);
         userDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -304,7 +306,8 @@ public class UserRepository implements UserInterface {
                         }
                     }
                     if (result.size() > 0 && result.get(0) != null) {
-                        DatabaseReference friend = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).child(result.get(0).getId());
+                        DatabaseReference friend = mDbRef.child(Constant.FB_KEY_FRIEND).
+                                child(ChatUtils.getUser().getId()).child(result.get(0).getId());
                         friend.addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -346,7 +349,7 @@ public class UserRepository implements UserInterface {
     }
 
     @Override
-    public void listenerForUserFriend(final FriendCallback callback) {
+    public void listenerForUserFriendNotification(final FriendCallback callback) {
         mUserFriendDb = mDbRef.child(Constant.FB_KEY_USER).child(ChatUtils.getUser().getId())
                 .child(Constant.FB_KEY_FRIEND_NOTIFICATION);
         mUserFriendValueListener = new ValueEventListener() {

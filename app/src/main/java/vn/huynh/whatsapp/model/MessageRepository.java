@@ -38,9 +38,6 @@ import vn.huynh.whatsapp.utils.LogManagerUtils;
 public class MessageRepository implements MessageInterface {
     private DatabaseReference mDbRef;
 
-    private DatabaseReference mLoadMessageDb;
-    private ChildEventListener mLoadMessageChildEventListener;
-
     private List<String> mMediaIdList;
     private List<Message> mMessageList;
     private String mLastMessagePaginationId;
@@ -51,8 +48,9 @@ public class MessageRepository implements MessageInterface {
     private Query mNewMessageQuery;
     private ChildEventListener mNewMessageChildEventListener;
 
-    private Query mLoadMoreMessageQuery;
-    private ChildEventListener mLoadMoreMessageChildEventListener;
+    private Query mQueryFirstPage;
+    private ChildEventListener mFirstPageChildEventListener;
+
     private UploadMediaAsyncTask mUploadMediaAsyncTask;
 
     public MessageRepository() {
@@ -71,22 +69,16 @@ public class MessageRepository implements MessageInterface {
 
     @Override
     public void removeMessageListener() {
-        if (mLoadMessageDb != null && mLoadMessageChildEventListener != null) {
-            mLoadMessageDb.removeEventListener(mLoadMessageChildEventListener);
+        if (mQueryFirstPage != null && mFirstPageChildEventListener != null) {
+            mQueryFirstPage.removeEventListener(mFirstPageChildEventListener);
         }
         if (mNewMessageQuery != null && mNewMessageChildEventListener != null) {
             mNewMessageQuery.removeEventListener(mNewMessageChildEventListener);
-        }
-        if (mLoadMoreMessageQuery != null && mLoadMoreMessageChildEventListener != null) {
-            mLoadMoreMessageQuery.removeEventListener(mLoadMoreMessageChildEventListener);
         }
     }
 
     @Override
     public void addMessageListener() {
-        if (mLoadMessageDb != null && mLoadMessageChildEventListener != null) {
-            mLoadMessageDb.addChildEventListener(mLoadMessageChildEventListener);
-        }
         if (mNewMessageQuery != null && mNewMessageChildEventListener != null) {
             mNewMessageQuery.addChildEventListener(mNewMessageChildEventListener);
         }
@@ -98,9 +90,9 @@ public class MessageRepository implements MessageInterface {
         mLastMessagePaginationId = "";
         mNewestMessageId = "";
         mTotalMessageCurrentPage = 0;
-        mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
-        final Query queryFirstPage = mLoadMessageDb.orderByKey().limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
-        mLoadMessageChildEventListener = new ChildEventListener() {
+        DatabaseReference loadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
+        mQueryFirstPage = loadMessageDb.orderByKey().limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
+        mFirstPageChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
@@ -147,19 +139,19 @@ public class MessageRepository implements MessageInterface {
         };
 
 
-        mLoadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
+        loadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
                     if (callback != null)
                         callback.loadSuccessEmptyData();
                 } else {
-                    queryFirstPage.addListenerForSingleValueEvent(new ValueEventListener() {
+                    mQueryFirstPage.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 mTotalMessageCurrentPage = dataSnapshot.getChildrenCount();
-                                queryFirstPage.addChildEventListener(mLoadMessageChildEventListener);
+                                mQueryFirstPage.addChildEventListener(mFirstPageChildEventListener);
                             } else {
                                 if (callback != null)
                                     callback.loadSuccessEmptyData();
@@ -188,9 +180,9 @@ public class MessageRepository implements MessageInterface {
         if (!mIsLoadingMore) {
             mIsLoadingMore = true;
             mMessageList.clear();
-            mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
-            mLoadMoreMessageQuery = mLoadMessageDb.orderByKey().endAt(mLastMessagePaginationId).limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
-            mLoadMoreMessageChildEventListener = new ChildEventListener() {
+            final Query loadMoreMessageQuery = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).
+                    orderByKey().endAt(mLastMessagePaginationId).limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
+            final ChildEventListener loadMoreMessageChildEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                     if (dataSnapshot.exists()) {
@@ -236,12 +228,12 @@ public class MessageRepository implements MessageInterface {
                 }
             };
 
-            mLoadMoreMessageQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            loadMoreMessageQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
                         mTotalMessageCurrentPage = dataSnapshot.getChildrenCount();
-                        mLoadMoreMessageQuery.addChildEventListener(mLoadMoreMessageChildEventListener);
+                        loadMoreMessageQuery.addChildEventListener(loadMoreMessageChildEventListener);
                     } else {
                         mIsLoadingMore = false;
                         if (callback != null)
@@ -260,14 +252,15 @@ public class MessageRepository implements MessageInterface {
 
     @Override
     public void getNewMessage(String chatId, final GetNewMessageCallback callback) {
+        //remove the listener in the first page to avoid duplicate when a new message was created
         removeMessageListener();
-//        DatabaseReference message = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
         if (mNewestMessageId.isEmpty()) {
             //chat doesn't have any message
             mNewMessageQuery = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
         } else {
             //start listening for new message from newest message
-            mNewMessageQuery = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).orderByKey().startAt(mNewestMessageId);
+            mNewMessageQuery = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).
+                    orderByKey().startAt(mNewestMessageId);
         }
         mNewMessageChildEventListener = new ChildEventListener() {
             @Override
@@ -319,15 +312,16 @@ public class MessageRepository implements MessageInterface {
 
     @Override
     public void getNewMessageId(String chatId, SendMessageCallBack callback) {
-        mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).push();
+        DatabaseReference loadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).push();
         if (callback != null)
-            callback.getNewMessageIdSuccess(mLoadMessageDb.getKey());
+            callback.getNewMessageIdSuccess(loadMessageDb.getKey());
     }
 
     @Override
     public void sendMessage(final Chat chat, final String messageId, String text,
                             final List<String> uriList, final SendMessageCallBack callback) {
-        mLoadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chat.getId()).child(messageId);
+        final DatabaseReference sendMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).
+                child(chat.getId()).child(messageId);
 
         final Message message = new Message();
         message.setId(messageId);
@@ -354,21 +348,21 @@ public class MessageRepository implements MessageInterface {
                 mUploadMediaAsyncTask.cancel(true);
             }
             mUploadMediaAsyncTask = new UploadMediaAsyncTask(chat.getId(),
-                    messageId, mediaMap, new UploadMediaCallBack() {
+                    messageId, mediaMap, sendMessageDb, new UploadMediaCallBack() {
                 @Override
                 public void uploadSuccess(Map<String, String> mediaMap) {
                     message.setMedia(mediaMap);
-                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
+                    updateDatabaseWithNewMessage(chat, sendMessageDb, message, callback);
                 }
 
                 @Override
                 public void uploadFail() {
-                    updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
+                    updateDatabaseWithNewMessage(chat, sendMessageDb, message, callback);
                 }
             });
             mUploadMediaAsyncTask.execute(uriList);
         } else {
-            updateDatabaseWithNewMessage(chat, mLoadMessageDb, message, callback);
+            updateDatabaseWithNewMessage(chat, sendMessageDb, message, callback);
         }
     }
 
@@ -376,7 +370,8 @@ public class MessageRepository implements MessageInterface {
     private void updateDatabaseWithNewMessage(final Chat chat, final DatabaseReference newMessageDB,
                                               final Message message, final SendMessageCallBack callback) {
         //update number unread message in chat object
-        final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).child(Constant.FB_KEY_NUMBER_UNREAD);
+        final DatabaseReference dbRefChat = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).
+                child(Constant.FB_KEY_NUMBER_UNREAD);
         dbRefChat.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -401,7 +396,8 @@ public class MessageRepository implements MessageInterface {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.exists()) {
-                                        long timeStamp = Long.parseLong(dataSnapshot.child(Constant.FB_KEY_CREATE_DATE).getValue().toString());
+                                        long timeStamp = Long.parseLong(dataSnapshot.child(Constant.FB_KEY_CREATE_DATE).
+                                                getValue().toString());
                                         message.setCreateDate(timeStamp);
                                         String id = dataSnapshot.getKey();
                                         message.setId(id);
@@ -433,7 +429,8 @@ public class MessageRepository implements MessageInterface {
     }
 
     private void updateLastMessageToChatAndUser(Message message, Chat chat, final SendMessageCallBack callback) {
-        DatabaseReference chatRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).child(Constant.FB_KEY_LAST_MESSAGE_DATE);
+        DatabaseReference chatRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).
+                child(Constant.FB_KEY_LAST_MESSAGE_DATE);
         chatRef.setValue(message.getCreateDateInLong());
         for (String userId : chat.getUserIds().values()) {
             DatabaseReference userRef = mDbRef.child(Constant.FB_KEY_USER)
@@ -441,9 +438,9 @@ public class MessageRepository implements MessageInterface {
             userRef.setValue(message.getCreateDateInLong());
             //update user object
             if (!userId.equals(ChatUtils.getUser().getId())) {
-                userRef = mDbRef.child(Constant.FB_KEY_USER)
-                        .child(userId).child(Constant.FB_KEY_LAST_CHAT_ID);
-                userRef.setValue(chat.getId() + "=" + message.getCreateDateInLong() + "=" + ChatUtils.generateRandomInteger());
+                userRef = mDbRef.child(Constant.FB_KEY_USER).child(userId).child(Constant.FB_KEY_LAST_CHAT_ID);
+                userRef.setValue(chat.getId() + "=" + message.getCreateDateInLong() + "=" +
+                        ChatUtils.generateRandomInteger());
             }
         }
         chatRef = mDbRef.child(Constant.FB_KEY_CHAT).child(chat.getId()).child(Constant.FB_KEY_LAST_MESSAGE_SENT);
@@ -466,17 +463,20 @@ public class MessageRepository implements MessageInterface {
         private static final String TAG = "UploadMediaAsyncTask";
 
         private final StorageReference mStorageRef;
-        private String chatId, messageId;
-        private UploadMediaCallBack uploadMediaCallBack;
-        private Map<String, String> mediaMap;
+        private final DatabaseReference mNewMessageDb;
+        private String mChatId, mMessageId;
+        private UploadMediaCallBack mUploadMediaCallBack;
+        private Map<String, String> mMediaMap;
 
         public UploadMediaAsyncTask(String chatId, String messageId, Map<String, String> mediaMap,
+                                    DatabaseReference newMessageDb,
                                     UploadMediaCallBack callback) {
-            mStorageRef = FirebaseStorage.getInstance().getReference();
-            this.chatId = chatId;
-            this.messageId = messageId;
-            this.mediaMap = mediaMap;
-            this.uploadMediaCallBack = callback;
+            this.mStorageRef = FirebaseStorage.getInstance().getReference();
+            this.mNewMessageDb = newMessageDb;
+            this.mChatId = chatId;
+            this.mMessageId = messageId;
+            this.mMediaMap = mediaMap;
+            this.mUploadMediaCallBack = callback;
 
         }
 
@@ -491,10 +491,10 @@ public class MessageRepository implements MessageInterface {
             final ArrayList<UploadTask> tasks = new ArrayList<>();
 
             for (final String mediaUri : uri[0]) {
-                final String mediaId = mLoadMessageDb.child(Constant.FB_KEY_MEDIA).push().getKey();
+                final String mediaId = mNewMessageDb.child(Constant.FB_KEY_MEDIA).push().getKey();
                 if (mediaId != null) {
                     final StorageReference filePath = mStorageRef
-                            .child(Constant.FB_KEY_MESSAGE).child(chatId).child(messageId).child(mediaId);
+                            .child(Constant.FB_KEY_MESSAGE).child(mChatId).child(mMessageId).child(mediaId);
                     UploadTask uploadTask = filePath.putFile(Uri.parse(mediaUri));
                     uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
@@ -502,7 +502,7 @@ public class MessageRepository implements MessageInterface {
                             Task<Uri> uri = taskSnapshot.getStorage().getDownloadUrl();
                             while (!uri.isComplete()) ;
                             Uri url = uri.getResult();
-                            mediaMap.put(mediaId, url.toString());
+                            mMediaMap.put(mediaId, url.toString());
                         }
                     });
                     tasks.add(uploadTask);
@@ -514,11 +514,11 @@ public class MessageRepository implements MessageInterface {
                 Tasks.whenAllSuccess(tasks).addOnCompleteListener(new OnCompleteListener<List<Object>>() {
                     @Override
                     public void onComplete(@NonNull Task<List<Object>> task) {
-                        uploadMediaCallBack.uploadSuccess(mediaMap);
+                        mUploadMediaCallBack.uploadSuccess(mMediaMap);
                     }
                 });
             } catch (Exception e) {
-                uploadMediaCallBack.uploadFail();
+                mUploadMediaCallBack.uploadFail();
             }
 
             LogManagerUtils.d(TAG, "End of background processing");

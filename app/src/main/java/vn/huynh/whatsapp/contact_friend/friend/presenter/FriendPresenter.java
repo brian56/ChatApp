@@ -87,7 +87,7 @@ public class FriendPresenter implements FriendContract.Presenter {
 
     @Override
     public void listenerFriendNotification() {
-        mUserRepo.listenerForUserFriend(new UserInterface.FriendCallback() {
+        mUserRepo.listenerForUserFriendNotification(new UserInterface.FriendCallback() {
             @Override
             public void onFriendNotification(int showNotify) {
                 if (mNewNotificationCallback != null) {

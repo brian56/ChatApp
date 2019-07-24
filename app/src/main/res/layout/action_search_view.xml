@@ -1,0 +1,10 @@
+<android.support.v7.widget.SearchView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_search_view_round"
+    android:paddingLeft="-12dp"
+    android:paddingRight="-8dp"
+    android:gravity="center_vertical"
+    app:queryHint="@string/menu_search_hint"
+    app:iconifiedByDefault="false" />

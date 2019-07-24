@@ -157,30 +157,16 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
         mIsVisible = true;
         ChatUtils.setCurrentChatId(mChatId);
-//        if (!firstStart && !mIsReturnFromGallery) {
-//            resetDataBeforeReload();
-//            if (mChatObject != null) {
-//                resetDataBeforeReload();
-//                mChatPresenter.loadMessage(mChatId);
-//            } else {
-//                mChatPresenter.loadChatDetail(mChatId);
-//            }
-//        }
         if (mIsReturnFromGallery) {
             mIsReturnFromGallery = false;
         }
-//        mChatPresenter.resetNumberUnread(mChatId);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        mChatPresenter.resetNumberUnread(mChatId, false);
-//        mIsVisible = false;
-//        firstStart = false;
         if (!mIsReturnFromGallery) {
             mIsVisible = false;
-//            mChatPresenter.removeMessageListener();
         } else {
             mIsVisible = true;
         }

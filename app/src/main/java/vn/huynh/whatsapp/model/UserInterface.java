@@ -32,7 +32,7 @@ public interface UserInterface extends BaseModelInterface {
 
     void searchFriend(String phoneNumber, SearchFriendCallback callback);
 
-    void listenerForUserFriend(FriendCallback callback);
+    void listenerForUserFriendNotification(FriendCallback callback);
 
     interface LoadContactCallback {
         void loadSuccess(User user);

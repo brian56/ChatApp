@@ -12,7 +12,7 @@
         android:visibility="visible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:loader_animDur="100"
+        app:loader_animDur="300"
         app:loader_bigCircleRadius="8dp"
         app:loader_circleRadius="2dp"
         app:loader_defaultColor="@color/white"

@@ -15,6 +15,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
@@ -47,6 +50,7 @@ import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.User;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
+import vn.huynh.whatsapp.utils.DisplayUtils;
 import vn.huynh.whatsapp.utils.LogManagerUtils;
 import vn.huynh.whatsapp.utils.MyApp;
 
@@ -158,8 +162,21 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 .getActionView();
         mSearchView.setSearchableInfo(searchManager
                 .getSearchableInfo(getActivity().getComponentName()));
-//        mSearchView.setIconifiedByDefault(false);
-        mSearchView.setMaxWidth(Integer.MAX_VALUE);
+        mSearchView.setFocusable(false);
+
+        mSearchView.setMaxWidth(DisplayUtils.dip2px(getContext(), 220));
+        mSearchView.setQueryHint(getString(R.string.menu_search_hint));
+        TextView searchText = (TextView)
+                mSearchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+        searchText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        params.setMargins(-20, 0, -28, 0);
+        params.gravity = Gravity.CENTER_VERTICAL;
+        params.weight = 1;
+        searchText.setLayoutParams(params);
+        mSearchView.clearFocus();
 
         // listening to search query text change
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -199,7 +216,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_add_friend_or_group) {
-            //TODO: show popup add friend or group
             View menuItemView = getActivity().findViewById(R.id.action_add_friend_or_group);
             PopupMenu popup = new PopupMenu(getContext(), menuItemView);
             popup.inflate(R.menu.menu_popup_add_friend_or_group);
@@ -208,17 +224,15 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 public boolean onMenuItemClick(MenuItem item) {
                     switch (item.getItemId()) {
                         case R.id.menu_add_friend:
-                            //TODO: show add friend dialog
                             DialogSearchFriend dialogSearchFriend = new DialogSearchFriend(getContext());
                             dialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
                                 @Override
                                 public void onAddedFriendListener(ArrayList<User> selectedUsers) {
-                                    showErrorMessage(MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()));
+                                    Toast.makeText(getContext(), MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
                                 }
                             });
                             return true;
                         case R.id.menu_add_group:
-                            //TODO: show create group activity
                             parentActivityListener.setReturnFromChildActivity(true);
                             startActivityForResult(new Intent(getActivity(), CreateGroupActivity.class), CREATE_GROUP_INTENT);
                             return true;
@@ -249,7 +263,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onStart() {
         super.onStart();
-        //TODO: attach the listener for chat list items
         if (!mFirstStart && !parentActivityListener.returnFromChildActivity()) {
             resetData();
             mChatListPresenter.loadChatList(false, mChatList);
@@ -269,7 +282,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onStop() {
         super.onStop();
-        //TODO: removeFriends the listener for chat list items
         mFirstStart = false;
         if (parentActivityListener != null && !parentActivityListener.returnFromChildActivity()) {
             mChatListPresenter.removeChatListListener();
@@ -404,7 +416,6 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                         //see Snackbar.Callback docs for event details
                         if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE
                                 || event == Snackbar.Callback.DISMISS_EVENT_SWIPE) {
-                            //TODO: actually do the function
                             //mark as read
                             mChatPresenter.resetNumberUnread(chatItem.getId(), false);
                         }

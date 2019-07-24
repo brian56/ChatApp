@@ -1,6 +1,7 @@
 package vn.huynh.whatsapp.chat_list.view;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -281,6 +282,11 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                     return true;
                 }
             });
+            if (isShowMArkAsRead) {
+                tvTitle.setTypeface(null, Typeface.BOLD);
+            } else {
+                tvTitle.setTypeface(null, Typeface.NORMAL);
+            }
         }
 
 
