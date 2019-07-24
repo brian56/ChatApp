@@ -77,6 +77,21 @@ public class ChatUtils {
         return singleChatId;
     }
 
+    public static String getSingleChatId(String userId1, String userId2) {
+        String singleChatId = "";
+        List<String> list = new ArrayList<>();
+        list.add(userId1);
+        list.add(userId2);
+        Collections.sort(list);
+        for (int i = 0; i < list.size(); i++) {
+            if (i == list.size() - 1)
+                singleChatId += list.get(i);
+            else
+                singleChatId += list.get(i) + "_";
+        }
+        return singleChatId;
+    }
+
     public static String getSingleChatIdFomUsers(List<User> userList) {
         List<String> listId = new ArrayList<>();
         for (User user : userList) {

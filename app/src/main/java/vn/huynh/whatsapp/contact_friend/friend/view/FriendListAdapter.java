@@ -33,10 +33,13 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
     private static final String TAG = FriendListAdapter.class.getSimpleName();
     private Context mContext;
     private ItemFriendMenuClickListener mItemFriendMenuClickListener;
+    private FriendClickListener mFriendClickListener;
 
     public FriendListAdapter(Context context,
-                             ItemFriendMenuClickListener itemFriendMenuClickListener) {
+                             ItemFriendMenuClickListener itemFriendMenuClickListener,
+                             FriendClickListener friendClickListener) {
         this.mContext = context;
+        this.mFriendClickListener = friendClickListener;
         this.mItemFriendMenuClickListener = itemFriendMenuClickListener;
     }
 
@@ -82,6 +85,10 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                     tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
                     break;
+                case Friend.STATUS_WAS_ACCEPTED:
+                    tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
+                    tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
+                    break;
                 case Friend.STATUS_REQUEST:
                     tvHeader.setTextColor(MyApp.resources.getColor(R.color.green));
                     tvHeader.setText(MyApp.resources.getString(R.string.header_friend_my_request));
@@ -101,6 +108,12 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                 setHeaderAndData(data, header, 0);
                 break;
             case Friend.STATUS_ACCEPT:
+                if (getHeaderPositionByHeaderType(Friend.STATUS_REQUEST) >= 0) {
+                    setHeaderAndData(data, header, getHeaderPositionByHeaderType(Friend.STATUS_REQUEST));
+                } else {
+                    setHeaderAndData(data, header, getItemCount());
+                }
+                break;
             case Friend.STATUS_WAS_ACCEPTED:
                 if (getHeaderPositionByHeaderType(Friend.STATUS_REQUEST) >= 0) {
                     setHeaderAndData(data, header, getHeaderPositionByHeaderType(Friend.STATUS_REQUEST));
@@ -228,6 +241,15 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
             }
             if (getDataInPosition(position).getStatus() == Friend.STATUS_ACCEPT
                     || getDataInPosition(position).getStatus() == Friend.STATUS_WAS_ACCEPTED) {
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (mFriendClickListener != null) {
+                            mFriendClickListener.onFriendClick(getDataInPosition(position));
+                        }
+                    }
+                });
+
                 tvAction.setVisibility(View.GONE);
                 ivMoreAction.setVisibility(View.VISIBLE);
                 ivMoreAction.setOnClickListener(new View.OnClickListener() {
@@ -310,21 +332,6 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
         }
     }
 
-    interface ItemFriendMenuClickListener {
-        void onAccept(Friend friend);
-
-        void onReject(Friend friend);
-
-        void onBlock(Friend friend);
-
-        void onUnfriend(Friend friend);
-
-        void onCancel(Friend friend);
-
-        void onUnblock(Friend friend);
-
-    }
-
     public static class HeaderDataImpl implements HeaderData {
         private int headerType;
         @LayoutRes
@@ -378,6 +385,10 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                         tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
                         break;
+                    case Friend.STATUS_WAS_ACCEPTED:
+                        tvHeader.setTextColor(MyApp.resources.getColor(R.color.blue));
+                        tvHeader.setText(MyApp.resources.getString(R.string.header_friend));
+                        break;
                     case Friend.STATUS_REQUEST:
                         tvHeader.setTextColor(MyApp.resources.getColor(R.color.green));
                         tvHeader.setText(MyApp.resources.getString(R.string.header_friend_my_request));
@@ -389,5 +400,25 @@ public class FriendListAdapter extends StickHeaderRecyclerViewAdapter<Friend, Fr
                 }
             }
         }
+    }
+
+
+    interface ItemFriendMenuClickListener {
+        void onAccept(Friend friend);
+
+        void onReject(Friend friend);
+
+        void onBlock(Friend friend);
+
+        void onUnfriend(Friend friend);
+
+        void onCancel(Friend friend);
+
+        void onUnblock(Friend friend);
+
+    }
+
+    interface FriendClickListener {
+        void onFriendClick(Friend friend);
     }
 }

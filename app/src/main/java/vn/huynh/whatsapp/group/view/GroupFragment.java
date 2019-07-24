@@ -15,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -325,7 +326,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
             @Override
             public void onClick(int position, Chat chat) {
                 chat.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
-                mChatListAdapter.notifyItemChanged(position);
+                mChatListAdapter.notifyItemChanged(chat.getId());
                 parentActivityListener.setReturnFromChildActivity(true);
                 parentActivityListener.showMessageNotification(true);
                 ChatListFragment.sUnreadChatIdMap.remove(chat.getId());
@@ -580,8 +581,15 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                 for (int i = 0; i < mChatList.size(); i++) {
                     if (chat.getId().equals(mChatList.get(i).getId())) {
                         index = i;
-                        if (!chat.getLastMessageSent().getId().equals(mChatList.get(i).getLastMessageSent().getId()))
+                        if (chat.getLastMessageSent() == null) {
+                            hasNewMessage = false;
+                        } else if (mChatList.get(i).getLastMessageSent() == null) {
                             hasNewMessage = true;
+                        } else if (!chat.getLastMessageSent().getId().equals(mChatList.get(i).getLastMessageSent().getId())) {
+                            hasNewMessage = true;
+                        } else {
+                            hasNewMessage = false;
+                        }
                         mChatList.get(i).cloneChat(chat);
                         break;
                     }
@@ -599,7 +607,7 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                     }
                     if (hasNewMessage) {
                         if (index == 0) {
-                            mChatListAdapter.notifyItemChanged(index);
+                            mChatListAdapter.notifyItemChanged(chat.getId());
                         } else {
                             int moveToPosition = index;
                             for (int i = 0; i < index; i++) {
@@ -609,18 +617,28 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
                                     break;
                                 }
                             }
-                            mChatListAdapter.notifyItemChanged(index);
-                            Chat temp = mChatList.remove(index);
-                            mChatList.add(moveToPosition, temp);
-                            mChatListAdapter.notifyItemMoved(index, moveToPosition);
-                            mChatListLayoutManager.scrollToPositionWithOffset(moveToPosition, 0);
+                            if (TextUtils.isEmpty(mSearchView.getQuery().toString().trim())) {
+                                //nothing in search view, notify item regular
+                                mChatListAdapter.notifyItemChanged(index);
+
+                                Chat temp = mChatList.remove(index);
+                                mChatList.add(moveToPosition, temp);
+                                mChatListAdapter.notifyItemMoved(index, moveToPosition);
+                            } else {
+                                //searching, use filter adapter notify function
+                                mChatListAdapter.notifyItemChanged(mChatList.get(index).getId());
+
+                                Chat temp = mChatList.remove(index);
+                                mChatList.add(moveToPosition, temp);
+                                mChatListAdapter.notifyItemMoved(temp.getId(), temp.getLastMessageDateInLong());
+                            }
                         }
                     } else {
-                        mChatListAdapter.notifyItemChanged(index);
+                        mChatListAdapter.notifyItemChanged(mChatList.get(index).getId());
                     }
                 }
             }
-        } catch (IndexOutOfBoundsException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

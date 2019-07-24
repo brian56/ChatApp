@@ -1,6 +1,7 @@
 package vn.huynh.whatsapp.contact_friend.friend.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,18 +20,20 @@ import android.widget.Toast;
 import com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import vn.huynh.whatsapp.R;
 import vn.huynh.whatsapp.base.BaseFragment;
+import vn.huynh.whatsapp.chat.view.ChatActivity;
 import vn.huynh.whatsapp.contact_friend.friend.FriendContract;
 import vn.huynh.whatsapp.contact_friend.friend.presenter.FriendPresenter;
 import vn.huynh.whatsapp.custom_views.sticky_header.stickyView.StickHeaderItemDecoration;
 import vn.huynh.whatsapp.model.Friend;
 import vn.huynh.whatsapp.model.User;
+import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
-import vn.huynh.whatsapp.utils.MyApp;
 import vn.huynh.whatsapp.utils.SharedPrefsUtil;
 
 /**
@@ -53,9 +56,6 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @BindView(R.id.ll_error)
     LinearLayout llError;
 
-//    @BindView(R.id.floating_action_button)
-//    FloatingActionButton fabAddFriend;
-
 
     private FriendListAdapter mFriendListAdapter;
     private RecyclerView.LayoutManager mFriendListLayoutManager;
@@ -69,6 +69,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     private boolean firstStart = true;
     private FriendContract.Presenter mFriendPresenter;
     private long mTotalFriend = 0;
+
     /**
      * because the update friend event fired twice, so we using this flag to know when to update the
      * friend object correctly
@@ -97,7 +98,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_friend, container, false);
         ButterKnife.bind(this, rootView);
         return rootView;
@@ -123,7 +125,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
             dialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
                 @Override
                 public void onAddedFriendListener(ArrayList<User> selectedUsers) {
-                    Toast.makeText(getContext(), MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.notification_your_friend_request_sent,
+                            selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -171,6 +174,7 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mFriendPresenter.removeListener();
         mFriendPresenter.detachViewFriend();
     }
 
@@ -197,22 +201,6 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                 mFriendPresenter.loadListFriend(-1);
             }
         });
-//        fabAddFriend.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (mDialogSearchFriend != null) {
-//                    mDialogSearchFriend = new DialogSearchFriend(getContext());
-//                }
-//                if (!mDialogSearchFriend.isShowing()) {
-//                    mDialogSearchFriend.show(new DialogSearchFriend.SearchFriendListener() {
-//                        @Override
-//                        public void onAddedFriendListener(ArrayList<User> selectedUsers) {
-//                            Toast.makeText(getContext(), MyApp.resources.getString(R.string.notification_your_friend_request_sent, selectedUsers.get(0).getName()), Toast.LENGTH_LONG).show();
-//                        }
-//                    });
-//                }
-//            }
-//        });
     }
 
     @Override
@@ -233,18 +221,6 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
         rvFriendList.setHasFixedSize(false);
         mFriendListLayoutManager = new LinearLayoutManager(getContext(), LinearLayout.VERTICAL, false);
         rvFriendList.setLayoutManager(mFriendListLayoutManager);
-//        show/hide fab when scroll
-//        rvFriendList.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//                if (dy > 0 && fabAddFriend.getVisibility() == View.VISIBLE) {
-//                    fabAddFriend.hide();
-//                } else if (dy < 0 && fabAddFriend.getVisibility() != View.VISIBLE) {
-//                    fabAddFriend.show();
-//                }
-//            }
-//        });
         mFriendListAdapter = new FriendListAdapter(getContext(),
                 new FriendListAdapter.ItemFriendMenuClickListener() {
                     @Override
@@ -276,7 +252,15 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                     public void onUnblock(Friend friend) {
                         mFriendPresenter.unBlockFriendRequest(friend);
                     }
-                });
+                }, new FriendListAdapter.FriendClickListener() {
+            @Override
+            public void onFriendClick(Friend friend) {
+                List<User> listUsers = new ArrayList<>();
+                listUsers.add(new User(ChatUtils.getUser().getId()));
+                listUsers.add(new User(friend.getUserId()));
+                mFriendPresenter.checkSingleChatExist(false, "", listUsers);
+            }
+        });
         rvFriendList.setAdapter(mFriendListAdapter);
         rvFriendList.addItemDecoration(new StickHeaderItemDecoration(mFriendListAdapter));
         initHeadersAndData();
@@ -356,6 +340,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                     mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRequested);
                     break;
                 case Friend.STATUS_ACCEPT:
+                    mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
+                    break;
                 case Friend.STATUS_WAS_ACCEPTED:
                     mFriendListAdapter.setHeaderAndData(friend, mHeaderAccept);
                     break;
@@ -367,6 +353,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                     break;
                 case Friend.STATUS_WAS_REJECTED:
                     mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRejected);
+                    break;
+                default:
                     break;
                 /*case Friend.STATUS_REJECT:
 //                    rejectList.add(friend);
@@ -417,6 +405,8 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
                     case Friend.STATUS_WAS_REJECTED:
                         mFriendListAdapter.setHeaderAndData(friend, mHeaderWasRejected);
                         break;
+                    default:
+                        break;
                 }
             }
             sDoUpdate = false;
@@ -448,6 +438,9 @@ public class FriendFragment extends BaseFragment implements FriendContract.View 
 
     @Override
     public void openChat(String chatId) {
-
+        parentActivityListener.setReturnFromChildActivity(true);
+        Intent intent = new Intent(getContext(), ChatActivity.class);
+        intent.putExtra(Constant.EXTRA_CHAT_ID, chatId);
+        startActivity(intent);
     }
 }

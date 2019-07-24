@@ -46,7 +46,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public static final int ITEM_TYPE_NO_SWIPE = 1003;
 
     private ItemTouchHelperExtension mItemTouchHelperExtension;
-    private ArrayList<Chat> mChatList;
+    private ArrayList<Chat> mChatListOriginal;
     private ArrayList<Chat> mChatListFilter;
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
@@ -55,7 +55,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
 
     public ChatListAdapter(ArrayList<Chat> chatList, Context context, OnItemClickListener onItemClickListener,
                            ChatAdapterFilterListener listener) {
-        this.mChatList = chatList;
+        this.mChatListOriginal = chatList;
         this.mChatListFilter = chatList;
         this.mContext = context;
         this.mOnItemClickListener = onItemClickListener;
@@ -63,7 +63,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     }
 
     public void setChatList(ArrayList<Chat> chatList) {
-        this.mChatList = chatList;
+        this.mChatListOriginal = chatList;
         this.mChatListFilter = chatList;
         notifyDataSetChanged();
     }
@@ -75,6 +75,46 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public void setOnActionItemClickListener(OnActionItemClickListener actionItemClickListener) {
         this.mOnActionItemClickListener = actionItemClickListener;
     }
+
+    public void notifyItemChanged(String chatId) {
+        int position = getPositionFromChatId(chatId);
+        if (position >= 0)
+            notifyItemChanged(position);
+    }
+
+    public void notifyItemRemoved(String chatId) {
+        int position = getPositionFromChatId(chatId);
+        if (position >= 0)
+            notifyItemRemoved(position);
+    }
+
+    public void notifyItemMoved(String moveFromChatId, long lastMessageTime) {
+        int moveToPos = -1;
+        for (int i = 0; i < mChatListFilter.size(); i++) {
+            if (lastMessageTime > mChatListFilter.get(i).getLastMessageDateInLong()) {
+                moveToPos = i;
+                break;
+            }
+        }
+        int moveFromPos = getPositionFromChatId(moveFromChatId);
+        if (moveFromPos >= 0 && moveToPos >= 0) {
+            Chat temp = mChatListFilter.remove(moveFromPos);
+            mChatListFilter.add(moveToPos, temp);
+            notifyItemMoved(moveFromPos, moveToPos);
+        }
+    }
+
+    public int getPositionFromChatId(String chatId) {
+        if (TextUtils.isEmpty(chatId) || mChatListFilter == null || mChatListFilter.size() == 0)
+            return -1;
+        for (int i = 0; i < mChatListFilter.size(); i++) {
+            if (mChatListFilter.get(i).getId().equals(chatId)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 
     @Override
     public ChatListBaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -157,10 +197,10 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 charString = VNCharacterUtils.removeAccent(charString.toLowerCase());
                 ArrayList<Chat> filteredList = null;
                 if (TextUtils.isEmpty(charString.trim())) {
-                    filteredList = mChatList;
+                    filteredList = mChatListOriginal;
                 } else {
                     filteredList = new ArrayList<>();
-                    for (Chat row : mChatList) {
+                    for (Chat row : mChatListOriginal) {
                         if (VNCharacterUtils.removeAccent(row.getChatName().toLowerCase()).contains(charString.trim())) {
                             filteredList.add(row);
                         }
@@ -178,7 +218,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 mChatListFilter = (ArrayList<Chat>) filterResults.values;
                 notifyDataSetChanged();
                 if (mChatAdapterFilterListener != null) {
-                    mChatAdapterFilterListener.onFilter(mChatListFilter.size() > 0 ? false : true);
+                    mChatAdapterFilterListener.onFilter(mChatListFilter.size() <= 0);
                 }
             }
         };
