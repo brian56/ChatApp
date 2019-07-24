@@ -67,6 +67,10 @@
     <string name="action_mute">Mute</string>
     <string name="action_unmute">Unmute</string>
 
+    <string name="toast_turn_off_notification_for">Notification off for conversation: %1$s</string>
+    <string name="toast_turn_on_notification_for">Notification on for conversation: %1$s</string>
+    <string name="toast_conversation_was_mark_as_read">Conversation: %1$s was mark as read.</string>
+
     <!--contact and friend-->
     <string name="label_friend">Friend</string>
     <string name="label_contact">Contact</string>

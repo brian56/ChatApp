@@ -33,6 +33,7 @@ public class Chat implements Parcelable {
     private Map<String, Long> numberUnread;
     private Message lastMessageSent;
     private List<User> users;
+    private boolean isProcessing = false;
 
     public static final int STATUS_ENABLE = 1;
     public static final int STATUS_DELETED = -1;
@@ -340,6 +341,16 @@ public class Chat implements Parcelable {
     }
 
     @Exclude
+    public boolean isProcessing() {
+        return isProcessing;
+    }
+
+    @Exclude
+    public void setProcessing(boolean processing) {
+        isProcessing = processing;
+    }
+
+    @Exclude
     public void cloneChat(Chat c2) {
         if (this.id == null)
             this.setId(c2.getId());
@@ -356,6 +367,7 @@ public class Chat implements Parcelable {
         this.setLastMessageDate(c2.getLastMessageDate());
         this.setLastMessageSent(c2.getLastMessageSent());
         this.setSingleChatId(c2.getSingleChatId());
+        this.setProcessing(c2.isProcessing());
     }
 
 }

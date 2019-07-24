@@ -34,7 +34,7 @@ public class ItemTouchHelperCallback extends ItemTouchHelperExtension.Callback {
 
     @Override
     public boolean isLongPressDragEnabled() {
-        return true;
+        return false;
     }
 
     @Override
@@ -52,4 +52,6 @@ public class ItemTouchHelperCallback extends ItemTouchHelperExtension.Callback {
         if (viewHolder instanceof ChatListAdapter.ChatListBaseViewHolder)
             holder.mainContainer.setTranslationX(dX);
     }
+
+
 }

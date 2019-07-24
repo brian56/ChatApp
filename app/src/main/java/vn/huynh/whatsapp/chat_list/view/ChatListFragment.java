@@ -23,7 +23,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -164,7 +166,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 .getSearchableInfo(getActivity().getComponentName()));
         mSearchView.setFocusable(false);
 
-        mSearchView.setMaxWidth(DisplayUtils.dip2px(getContext(), 220));
+        mSearchView.setMaxWidth(DisplayUtils.dip2px(getContext(), 200));
         mSearchView.setQueryHint(getString(R.string.menu_search_hint));
         TextView searchText = (TextView)
                 mSearchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
@@ -172,7 +174,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.MATCH_PARENT);
-        params.setMargins(-20, 0, -28, 0);
+        params.setMargins(-8, 0, -12, 0);
         params.gravity = Gravity.CENTER_VERTICAL;
         params.weight = 1;
         searchText.setLayoutParams(params);
@@ -358,7 +360,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 startActivity(intent);
 
             }
-        }, new ChatListAdapter.ChatAdapterListener() {
+        }, new ChatListAdapter.ChatAdapterFilterListener() {
             @Override
             public void onFilter(boolean isEmptyResult) {
                 if (isEmptyResult) {
@@ -378,20 +380,21 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         mChatListAdapter.setItemTouchHelperExtension(mItemTouchHelper);
         mChatListAdapter.setOnActionItemClickListener(new ChatListAdapter.OnActionItemClickListener() {
             @Override
-            public void onMarkAsRead(final int position, final Chat chatItem) {
+            public void onMarkAsRead(final ProgressBar pbProcessing, final TextView tvUnread,
+                                     final ImageView ivNotification, final int position, final Chat chatItem) {
                 mItemTouchHelper.closeOpened();
-                final long numberUnread = chatItem.getNumberUnread().get(ChatUtils.getUser().getId());
-                chatItem.getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
-                showHideNotificationDot(mChatList.get(position).getId(),
-                        mChatList.get(position).getNumberUnread().get(ChatUtils.getUser().getId()),
-                        mChatList.get(position).isGroup());
+                chatItem.setProcessing(true);
+                final int tvUnreadVisible = tvUnread.getVisibility();
+                final int ivNotificationVisible = ivNotification.getVisibility();
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mChatListAdapter.notifyItemChanged(position);
+                        pbProcessing.setVisibility(View.VISIBLE);
+                        tvUnread.setVisibility(View.GONE);
+                        ivNotification.setVisibility(View.GONE);
                     }
-                }, 1000);
+                }, 500);
 
                 Snackbar snackbar = Snackbar.make(getView(),
                         "Conversation: " + chatItem.getChatName() + " was mark as read",
@@ -401,11 +404,10 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                     @Override
                     public void onClick(View view) {
                         //undo the function
-                        mChatList.get(position).getNumberUnread().put(ChatUtils.getUser().getId(), numberUnread);
-                        showHideNotificationDot(mChatList.get(position).getId(),
-                                numberUnread,
-                                mChatList.get(position).isGroup());
-                        mChatListAdapter.notifyItemChanged(position);
+                        chatItem.setProcessing(false);
+                        tvUnread.setVisibility(tvUnreadVisible);
+                        ivNotification.setVisibility(ivNotificationVisible);
+                        pbProcessing.setVisibility(View.GONE);
                     }
                 });
                 snackbar.setActionTextColor(Color.WHITE);
@@ -430,29 +432,39 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             }
 
             @Override
-            public void onMute(int position, Chat chatItem) {
+            public void onMute(final ProgressBar pbProcessing, final TextView tvUnread,
+                               final ImageView ivNotification, final int position, Chat chatItem) {
                 mItemTouchHelper.closeOpened();
+                chatItem.setProcessing(true);
                 final String chatId = chatItem.getId();
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        pbProcessing.setVisibility(View.VISIBLE);
+                        tvUnread.setVisibility(View.GONE);
+                        ivNotification.setVisibility(View.GONE);
                         mChatPresenter.setChatNotification(false, chatId);
                     }
-                }, 1000);
+                }, 500);
             }
 
             @Override
-            public void onUnmute(int position, Chat chatItem) {
+            public void onUnmute(final ProgressBar pbProcessing, final TextView tvUnread,
+                                 final ImageView ivNotification, final int position, Chat chatItem) {
                 mItemTouchHelper.closeOpened();
+                chatItem.setProcessing(true);
                 final String chatId = chatItem.getId();
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        pbProcessing.setVisibility(View.VISIBLE);
+                        tvUnread.setVisibility(View.GONE);
+                        ivNotification.setVisibility(View.GONE);
                         mChatPresenter.setChatNotification(true, chatId);
                     }
-                }, 1000);
+                }, 500);
             }
 
             @Override
@@ -560,7 +572,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 for (int i = 0; i < mChatList.size(); i++) {
                     if (chat.getId().equals(mChatList.get(i).getId())) {
                         index = i;
-                        if (chat.getLastMessageDateInLong() - mChatList.get(i).getLastMessageDateInLong() > 50)
+                        if (!chat.getLastMessageSent().getId().equals(mChatList.get(i).getLastMessageSent().getId()))
                             hasNewMessage = true;
                         mChatList.get(i).cloneChat(chat);
                         break;
@@ -568,19 +580,32 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
                 }
 
                 if (index >= 0) {
-                    if (chat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
-                        showHideNotificationDot(chat.getId(), chat.getNumberUnread().get(ChatUtils.getUser().getId()), chat.isGroup());
+                    if (mChatList.get(index).getNotificationUserIds().get(ChatUtils.getUser().getId())) {
+                        showHideNotificationDot(mChatList.get(index).getId(),
+                                mChatList.get(index).getNumberUnread().get(ChatUtils.getUser().getId()),
+                                mChatList.get(index).isGroup());
+                    } else {
+                        showHideNotificationDot(mChatList.get(index).getId(),
+                                0,
+                                mChatList.get(index).isGroup());
                     }
                     if (hasNewMessage) {
                         if (index == 0) {
                             mChatListAdapter.notifyItemChanged(index);
                         } else {
+                            int moveToPosition = index;
+                            for (int i = 0; i < index; i++) {
+                                if (mChatList.get(index).getLastMessageDateInLong() >
+                                        mChatList.get(i).getLastMessageDateInLong()) {
+                                    moveToPosition = i;
+                                    break;
+                                }
+                            }
                             mChatListAdapter.notifyItemChanged(index);
-                            Chat temp = mChatList.get(index);
-                            mChatList.remove(index);
-                            mChatList.add(0, temp);
-                            mChatListAdapter.notifyItemMoved(index, 0);
-                            mChatListLayoutManager.scrollToPositionWithOffset(0, 0);
+                            Chat temp = mChatList.remove(index);
+                            mChatList.add(moveToPosition, temp);
+                            mChatListAdapter.notifyItemMoved(index, moveToPosition);
+                            mChatListLayoutManager.scrollToPositionWithOffset(moveToPosition, 0);
                         }
                     } else {
                         mChatListAdapter.notifyItemChanged(index);
@@ -604,16 +629,12 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             }
 
             if (index >= 0) {
-                mChatList.get(index).getNotificationUserIds().put(ChatUtils.getUser().getId(), turnOn);
-                mChatListAdapter.notifyItemChanged(index);
                 if (turnOn) {
-                    showHideNotificationDot(mChatList.get(index).getId(),
-                            mChatList.get(index).getNumberUnread().get(ChatUtils.getUser().getId()),
-                            mChatList.get(index).isGroup());
+                    Toast.makeText(getContext(), MyApp.resources.getString(R.string.toast_turn_on_notification_for,
+                            mChatList.get(index).getChatName()), Toast.LENGTH_LONG).show();
                 } else {
-                    showHideNotificationDot(mChatList.get(index).getId(),
-                            0,
-                            mChatList.get(index).isGroup());
+                    Toast.makeText(getContext(), MyApp.resources.getString(R.string.toast_turn_off_notification_for,
+                            mChatList.get(index).getChatName()), Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -631,9 +652,8 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
             }
 
             if (index >= 0) {
-                mChatList.get(index).getNumberUnread().put(ChatUtils.getUser().getId(), 0L);
-                showHideNotificationDot(chatId, 0, mChatList.get(index).isGroup());
-                mChatListAdapter.notifyItemChanged(index);
+                Toast.makeText(getContext(), MyApp.resources.getString(R.string.toast_conversation_was_mark_as_read,
+                        mChatList.get(index).getChatName()), Toast.LENGTH_LONG).show();
             }
         }
     }

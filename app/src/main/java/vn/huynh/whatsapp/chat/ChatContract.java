@@ -37,6 +37,8 @@ public interface ChatContract {
 //        void updateMessageStatus(Message message);
 
         void resetUI();
+
+        void toggleChatInput(boolean enable);
     }
 
     interface Presenter extends BasePresenter {

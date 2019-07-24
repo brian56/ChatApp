@@ -13,6 +13,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.loopeer.itemtouchhelperextension.Extension;
@@ -43,22 +44,22 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public static final int ITEM_TYPE_ACTION_WIDTH = 1001;
     public static final int ITEM_TYPE_ACTION_WIDTH_NO_SPRING = 1002;
     public static final int ITEM_TYPE_NO_SWIPE = 1003;
-    private ItemTouchHelperExtension mItemTouchHelperExtension;
 
+    private ItemTouchHelperExtension mItemTouchHelperExtension;
     private ArrayList<Chat> mChatList;
     private ArrayList<Chat> mChatListFilter;
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
     private OnActionItemClickListener mOnActionItemClickListener;
-    private ChatAdapterListener mChatAdapterListener;
+    private ChatAdapterFilterListener mChatAdapterFilterListener;
 
     public ChatListAdapter(ArrayList<Chat> chatList, Context context, OnItemClickListener onItemClickListener,
-                           ChatAdapterListener listener) {
+                           ChatAdapterFilterListener listener) {
         this.mChatList = chatList;
         this.mChatListFilter = chatList;
         this.mContext = context;
         this.mOnItemClickListener = onItemClickListener;
-        this.mChatAdapterListener = listener;
+        this.mChatAdapterFilterListener = listener;
     }
 
     public void setChatList(ArrayList<Chat> chatList) {
@@ -92,14 +93,15 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         holder.bind(holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
 
         if (holder instanceof ItemSwipeWithActionWidthNoSpringViewHolder) {
-            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMuteAction(holder.isShowMute);
-            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMarkAsReadAction(holder.isShowMArkAsRead);
+            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMuteAction(holder.isNotificationOn);
+            ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).showMarkAsReadAction(holder.hasUnreadMessage);
 
             ((ItemSwipeWithActionWidthNoSpringViewHolder) holder).tvMute.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (mOnActionItemClickListener != null) {
-                        mOnActionItemClickListener.onMute(holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
+                        mOnActionItemClickListener.onMute(holder.pbProcessing, holder.tvUnread, holder.ivNotification,
+                                holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
                     }
                 }
             });
@@ -107,7 +109,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 @Override
                 public void onClick(View v) {
                     if (mOnActionItemClickListener != null) {
-                        mOnActionItemClickListener.onUnmute(holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
+                        mOnActionItemClickListener.onUnmute(holder.pbProcessing, holder.tvUnread, holder.ivNotification,
+                                holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
                     }
                 }
             });
@@ -115,7 +118,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 @Override
                 public void onClick(View v) {
                     if (mOnActionItemClickListener != null) {
-                        mOnActionItemClickListener.onMarkAsRead(holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
+                        mOnActionItemClickListener.onMarkAsRead(holder.pbProcessing, holder.tvUnread, holder.ivNotification,
+                                holder.getAdapterPosition(), mChatListFilter.get(holder.getAdapterPosition()));
                     }
                 }
             });
@@ -173,14 +177,14 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                 mItemTouchHelperExtension.closeOpened();
                 mChatListFilter = (ArrayList<Chat>) filterResults.values;
                 notifyDataSetChanged();
-                if (mChatAdapterListener != null) {
-                    mChatAdapterListener.onFilter(mChatListFilter.size() > 0 ? false : true);
+                if (mChatAdapterFilterListener != null) {
+                    mChatAdapterFilterListener.onFilter(mChatListFilter.size() > 0 ? false : true);
                 }
             }
         };
     }
 
-    public interface ChatAdapterListener {
+    public interface ChatAdapterFilterListener {
         void onFilter(boolean isEmptyResult);
     }
 
@@ -204,10 +208,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
         LinearLayout actionContainer;
         @BindView(R.id.ll_layout_main_container)
         LinearLayout mainContainer;
+        @BindView(R.id.pb_processing)
+        ProgressBar pbProcessing;
 
         public IImageLoader mIImageLoader;
-        boolean isShowMute = true;
-        boolean isShowMArkAsRead = true;
+        boolean isNotificationOn = true;
+        boolean hasUnreadMessage = true;
 
         public ChatListBaseViewHolder(View view) {
             super(view);
@@ -224,24 +230,31 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                     mOnItemClickListener.onClick(position, itemChat);
                 }
             });
-
-            if (itemChat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
-                tvUnread.setVisibility(View.VISIBLE);
-                ivNotification.setVisibility(View.GONE);
-                if (itemChat.getNumberUnread() != null
-                        && itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
-                    Long num = itemChat.getNumberUnread().get(ChatUtils.getUser().getId());
+            if (!itemChat.isProcessing()) {
+                pbProcessing.setVisibility(View.GONE);
+                if (itemChat.getNotificationUserIds().get(ChatUtils.getUser().getId())) {
                     tvUnread.setVisibility(View.VISIBLE);
-                    if (num > 99)
-                        tvUnread.setText(MyApp.resources.getString(R.string.label_number_unread_message_max));
-                    else
-                        tvUnread.setText(String.valueOf(num));
+                    ivNotification.setVisibility(View.GONE);
+                    if (itemChat.getNumberUnread() != null
+                            && itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0) {
+                        Long num = itemChat.getNumberUnread().get(ChatUtils.getUser().getId());
+                        tvUnread.setVisibility(View.VISIBLE);
+                        if (num > 99)
+                            tvUnread.setText(MyApp.resources.getString(R.string.label_number_unread_message_max));
+                        else
+                            tvUnread.setText(String.valueOf(num));
+                    } else {
+                        tvUnread.setVisibility(View.GONE);
+                    }
                 } else {
                     tvUnread.setVisibility(View.GONE);
+                    ivNotification.setVisibility(View.VISIBLE);
                 }
             } else {
+                //processing, show progressbar
+                pbProcessing.setVisibility(View.VISIBLE);
                 tvUnread.setVisibility(View.GONE);
-                ivNotification.setVisibility(View.VISIBLE);
+                ivNotification.setVisibility(View.GONE);
             }
 
             if (itemChat.getLastMessageSent() == null) {
@@ -271,8 +284,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             String time = DateUtils.formatTimeWithMarker(itemChat.getLastMessageDateInLong());
             tvTime.setText(time);
 
-            isShowMute = itemChat.getNotificationUserIds().get(ChatUtils.getUser().getId());
-            isShowMArkAsRead = itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0 ? true : false;
+            isNotificationOn = itemChat.getNotificationUserIds().get(ChatUtils.getUser().getId());
+            hasUnreadMessage = itemChat.getNumberUnread().get(ChatUtils.getUser().getId()) > 0 ? true : false;
             itemView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -282,14 +295,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
                     return true;
                 }
             });
-            if (isShowMArkAsRead) {
+            if (hasUnreadMessage && isNotificationOn) {
                 tvTitle.setTypeface(null, Typeface.BOLD);
             } else {
                 tvTitle.setTypeface(null, Typeface.NORMAL);
             }
         }
-
-
     }
 
     public class ItemSwipeWithActionWidthViewHolder extends ChatListBaseViewHolder implements Extension {
@@ -307,8 +318,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             ButterKnife.bind(this, itemView);
         }
 
-        public void showMuteAction(boolean isShowMute) {
-            if (isShowMute) {
+        public void showMuteAction(boolean isNotificationOn) {
+            if (isNotificationOn) {
                 tvMute.setVisibility(View.VISIBLE);
                 tvUnMute.setVisibility(View.GONE);
             } else {
@@ -317,8 +328,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
             }
         }
 
-        public void showMarkAsReadAction(boolean isShow) {
-            if (isShow)
+        public void showMarkAsReadAction(boolean hasUnreadMessage) {
+            if (hasUnreadMessage)
                 tvMarkAsRead.setVisibility(View.VISIBLE);
             else
                 tvMarkAsRead.setVisibility(View.GONE);
@@ -356,10 +367,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatLi
     public interface OnActionItemClickListener {
         void onBack();
 
-        void onMarkAsRead(int position, Chat chatItem);
+        void onMarkAsRead(ProgressBar pbProcessing, TextView tvUnread,
+                          ImageView ivNotification, int position, Chat chatItem);
 
-        void onMute(int position, Chat chatItem);
+        void onMute(ProgressBar pbProcessing, TextView tvUnread,
+                    ImageView ivNotification, int position, Chat chatItem);
 
-        void onUnmute(int position, Chat chatItem);
+        void onUnmute(ProgressBar pbProcessing, TextView tvUnread,
+                      ImageView ivNotification, int position, Chat chatItem);
     }
 }
