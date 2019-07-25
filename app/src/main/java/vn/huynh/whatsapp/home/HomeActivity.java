@@ -406,6 +406,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LogManagerUtils.d(TAG, "On Destroy");
         if (mIsBoundService) {
             if (mNewMessageService != null)
                 mNewMessageService.setShowMessageNotification(true);

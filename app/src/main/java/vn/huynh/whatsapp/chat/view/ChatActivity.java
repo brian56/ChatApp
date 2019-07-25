@@ -77,7 +77,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private String mChatName;
 
     private ChatContract.Presenter mChatPresenter;
-    private boolean mIsLoadingMore = false;
+    private boolean mIsLoadingMoreMessage = false;
     private boolean mIsLoadAllMessageDone = false;
     private RecyclerView.OnScrollListener mOnScrollLoadMoreListener;
 
@@ -191,7 +191,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     public void resetData() {
         mMessageArrayList.clear();
         mMessageAdapter.notifyDataSetChanged();
-        mIsLoadingMore = false;
+        mIsLoadingMoreMessage = false;
         mIsLoadAllMessageDone = false;
     }
 
@@ -279,7 +279,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private void initializeMessageList() {
         rvChat.setNestedScrollingEnabled(false);
         rvChat.setHasFixedSize(false);
-        mIsLoadingMore = false;
+        mIsLoadingMoreMessage = false;
         mIsLoadAllMessageDone = false;
         mMessageArrayList = new ArrayList<>();
         mMessageLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -314,11 +314,10 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
                     btnScrollToNewMessage.setVisibility(View.GONE);
                 }
 
-                if (!mIsLoadingMore && !mIsLoadAllMessageDone) {
+                if (!mIsLoadingMoreMessage && !mIsLoadAllMessageDone) {
                     LogManagerUtils.d(TAG, "last visible item: " + mMessageLayoutManager.findFirstVisibleItemPosition());
-                    if (mMessageLayoutManager != null && mMessageLayoutManager.findFirstVisibleItemPosition() < 8) {
-                        //bottom of list!
-                        mIsLoadingMore = true;
+                    if (mMessageLayoutManager != null && mMessageLayoutManager.findFirstVisibleItemPosition() < 15) {
+                        //top of message list!
                         loadMoreMessage();
                     }
                 }
@@ -400,14 +399,16 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
             mMessageArrayList.add(0, null);
             mMessageAdapter.notifyItemInserted(0);
         }
-        if (mChatPresenter != null)
+        if (mChatPresenter != null) {
+            mIsLoadingMoreMessage = true;
             mChatPresenter.loadMessageMore(mChatId);
+        }
     }
 
     @Override
     public void showMessageList(List<Message> messages, boolean isDone) {
 //        mChatPresenter.resetNumberUnread(mChatId, false);
-        mIsLoadingMore = false;
+        mIsLoadingMoreMessage = false;
         mIsLoadAllMessageDone = isDone;
         if (messages != null && !messages.isEmpty()) {
             mMessageArrayList.addAll(messages);
@@ -425,7 +426,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
     @Override
     public void showMessageListLoadMore(List<Message> messages, boolean isDone) {
-        mIsLoadingMore = false;
+        mIsLoadingMoreMessage = false;
         mIsLoadAllMessageDone = isDone;
         mMessageArrayList.remove(0);
         mMessageAdapter.notifyItemRemoved(0);
@@ -510,7 +511,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
 
     @Override
     public void showErrorMessage(String error) {
-        mIsLoadingMore = false;
+        mIsLoadingMoreMessage = false;
         mIsLoadAllMessageDone = false;
     }
 

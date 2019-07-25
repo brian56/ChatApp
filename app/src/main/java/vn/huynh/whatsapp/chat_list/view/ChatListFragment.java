@@ -108,6 +108,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        LogManagerUtils.d(TAG, "On create");
     }
 
     @Nullable
@@ -266,6 +267,7 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onStart() {
         super.onStart();
+        LogManagerUtils.d(TAG, "On Start");
         if (!mFirstStart && !parentActivityListener.returnFromChildActivity()) {
             resetData();
             mChatListPresenter.loadChatList(false, mChatList);
@@ -282,9 +284,11 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
         }
     }
 
+
     @Override
     public void onStop() {
         super.onStop();
+        LogManagerUtils.d(TAG, "On stop");
         mFirstStart = false;
         if (parentActivityListener != null && !parentActivityListener.returnFromChildActivity()) {
             mChatListPresenter.removeChatListListener();
@@ -294,22 +298,26 @@ public class ChatListFragment extends BaseFragment implements ChatListContract.V
     @Override
     public void onResume() {
         super.onResume();
+        LogManagerUtils.d(TAG, "On resume");
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        LogManagerUtils.d(TAG, "On pause");
     }
 
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        LogManagerUtils.d(TAG, "On destroy view");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        LogManagerUtils.d(TAG, "On destroy");
         mChatListPresenter.detachView();
         mChatListPresenter.removeChatListListener();
     }

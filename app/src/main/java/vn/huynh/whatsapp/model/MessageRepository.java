@@ -104,14 +104,14 @@ public class MessageRepository implements MessageInterface {
 //                        mMessageList.remove(0);
                         if (callback != null)
                             callback.loadSuccess(mMessageList, mNewestMessageId);
-                        return;
-                    }
-                    if (mMessageList.size() == mTotalMessageCurrentPage) {
-                        mNewestMessageId = mMessageList.get(mMessageList.size() - 1).getId();
-                        mLastMessagePaginationId = mMessageList.get(0).getId();
+                    } else {
+                        if (mMessageList.size() == mTotalMessageCurrentPage) {
+                            mNewestMessageId = mMessageList.get(mMessageList.size() - 1).getId();
+                            mLastMessagePaginationId = mMessageList.get(0).getId();
 //                        mMessageList.remove(0);
-                        if (callback != null)
-                            callback.loadSuccessDone(mMessageList, mNewestMessageId);
+                            if (callback != null)
+                                callback.loadSuccessDone(mMessageList, mNewestMessageId);
+                        }
                     }
                 }
             }
@@ -194,14 +194,14 @@ public class MessageRepository implements MessageInterface {
                             mIsLoadingMore = false;
                             if (callback != null)
                                 callback.loadSuccess(mMessageList);
-                            return;
-                        }
-                        if (mMessageList.size() == mTotalMessageCurrentPage) {
-                            mLastMessagePaginationId = mMessageList.get(0).getId();
-                            mMessageList.remove(0);
-                            mIsLoadingMore = false;
-                            if (callback != null)
-                                callback.loadSuccessDone(mMessageList);
+                        } else {
+                            if (mMessageList.size() == mTotalMessageCurrentPage) {
+                                mLastMessagePaginationId = mMessageList.get(0).getId();
+//                            mMessageList.remove(0);
+                                mIsLoadingMore = false;
+                                if (callback != null)
+                                    callback.loadSuccessDone(mMessageList);
+                            }
                         }
                     }
                 }
