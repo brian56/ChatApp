@@ -190,14 +190,13 @@ public class MessageRepository implements MessageInterface {
                         mMessageList.add(message);
                         if (mMessageList.size() == Config.NUMBER_PAGINATION_MESSAGE) {
                             mLastMessagePaginationId = mMessageList.get(0).getId();
-                            mMessageList.remove(0);
+                            mMessageList.remove(mMessageList.size() - 1);
                             mIsLoadingMore = false;
                             if (callback != null)
                                 callback.loadSuccess(mMessageList);
                         } else {
                             if (mMessageList.size() == mTotalMessageCurrentPage) {
                                 mLastMessagePaginationId = mMessageList.get(0).getId();
-//                            mMessageList.remove(0);
                                 mIsLoadingMore = false;
                                 if (callback != null)
                                     callback.loadSuccessDone(mMessageList);
