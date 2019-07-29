@@ -530,25 +530,22 @@ public class GroupFragment extends BaseFragment implements GroupContract.View {
     public void showHideNotificationDot(String chatId, long numberUnreadMessage, boolean isGroup) {
         if (numberUnreadMessage > 0) {
             sUnreadChatIdMap.put(chatId, numberUnreadMessage);
-            if (isGroup)
-                GroupFragment.sUnreadChatIdMap.put(chatId, numberUnreadMessage);
+            ChatListFragment.sUnreadChatIdMap.put(chatId, numberUnreadMessage);
         } else {
             sUnreadChatIdMap.remove(chatId);
-            if (isGroup)
-                GroupFragment.sUnreadChatIdMap.remove(chatId);
+            ChatListFragment.sUnreadChatIdMap.remove(chatId);
         }
 
         if (sUnreadChatIdMap.isEmpty()) {
-            newNotificationCallback.removeChatNotificationDot();
+            newNotificationCallback.removeGroupNotificationDot();
         } else {
+            newNotificationCallback.newGroupNotificationDot();
+        }
+
+        if (ChatListFragment.sUnreadChatIdMap.isEmpty())
+            newNotificationCallback.removeChatNotificationDot();
+        else
             newNotificationCallback.newChatNotificationDot();
-        }
-        if (isGroup) {
-            if (GroupFragment.sUnreadChatIdMap.isEmpty())
-                newNotificationCallback.removeGroupNotificationDot();
-            else
-                newNotificationCallback.newGroupNotificationDot();
-        }
     }
 
     @Override

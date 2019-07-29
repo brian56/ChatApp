@@ -90,8 +90,7 @@ public class MessageRepository implements MessageInterface {
         mLastMessagePaginationId = "";
         mNewestMessageId = "";
         mTotalMessageCurrentPage = 0;
-        DatabaseReference loadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
-        mQueryFirstPage = loadMessageDb.orderByKey().limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
+        mQueryFirstPage = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId).orderByKey().limitToLast(Config.NUMBER_PAGINATION_MESSAGE);
         mFirstPageChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -138,7 +137,7 @@ public class MessageRepository implements MessageInterface {
             }
         };
 
-
+        DatabaseReference loadMessageDb = mDbRef.child(Constant.FB_KEY_MESSAGE).child(chatId);
         loadMessageDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -277,7 +276,7 @@ public class MessageRepository implements MessageInterface {
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
-                    Message message = dataSnapshot.getValue(Message.class);
+//                    Message message = dataSnapshot.getValue(Message.class);
 //                    message.setId(dataSnapshot.getKey());
 //                    callback.updateMessageStatus(message);
                 }
@@ -375,13 +374,15 @@ public class MessageRepository implements MessageInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
+                    Long num;
+                    DatabaseReference df;
                     for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-                        Long num = 0L;
+                        num = 0L;
                         if (!dataSnapshot1.getKey().equals(ChatUtils.getUser().getId())) {
                             num = (long) dataSnapshot1.getValue();
                             num++;
                         }
-                        DatabaseReference df = dbRefChat.child(dataSnapshot1.getKey());
+                        df = dbRefChat.child(dataSnapshot1.getKey());
                         df.setValue(num);
                     }
                 }
@@ -488,7 +489,6 @@ public class MessageRepository implements MessageInterface {
         @Override
         protected Void doInBackground(List<String>... uri) {
             final ArrayList<UploadTask> tasks = new ArrayList<>();
-
             for (final String mediaUri : uri[0]) {
                 final String mediaId = mNewMessageDb.child(Constant.FB_KEY_MEDIA).push().getKey();
                 if (mediaId != null) {

@@ -51,26 +51,50 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
+                        app:ccp_hideNameCode="true"
                         app:ccp_textColor="@color/default_text_color"
-                        app:ccp_textSize="18sp"
-                        app:ccp_hideNameCode="true" />
+                        app:ccp_textSize="18sp" />
 
-                    <EditText
-                        android:id="@+id/edt_phone_number"
+                    <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_phone_number"
-                        android:inputType="phone"
-                        android:singleLine="true" />
+                        android:layout_marginBottom="0dp"
+                        android:layout_marginTop="0dp"
+                        android:paddingTop="6dp"
+                        app:counterEnabled="true"
+                        app:counterMaxLength="10">
+
+                        <EditText
+                            android:id="@+id/edt_phone_number"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="0123456789"
+                            android:hint="@string/hint_phone_number"
+                            android:inputType="phone"
+                            android:singleLine="true"
+                            android:textSize="20sp" />
+                    </android.support.design.widget.TextInputLayout>
                 </LinearLayout>
 
-                <EditText
-                    android:id="@+id/edt_name"
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/til_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:hint="@string/hint_name"
-                    android:singleLine="true" />
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_marginTop="-8dp"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="100">
+
+                    <EditText
+                        android:id="@+id/edt_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_name"
+                        android:singleLine="true"
+                        android:textSize="20sp" />
+                </android.support.design.widget.TextInputLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -82,12 +106,12 @@
                         android:layout_width="1dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="8dp"
-                        android:enabled="false"
-                        android:singleLine="true"
-                        android:maxLength="6"
                         android:digits="0123456789"
-                        android:inputType="numberDecimal"
+                        android:enabled="false"
                         android:hint="@string/hint_code"
+                        android:inputType="numberDecimal"
+                        android:maxLength="6"
+                        android:singleLine="true"
                         android:visibility="gone" />
 
                     <FrameLayout
@@ -111,10 +135,10 @@
 
                         <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
                             android:id="@+id/loader_sending_code"
-                            android:layout_gravity="center"
-                            android:visibility="gone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
                             app:loader_animDur="300"
                             app:loader_bigCircleRadius="12dp"
                             app:loader_circleRadius="3dp"
@@ -131,27 +155,45 @@
                     android:id="@+id/tv_resend"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:singleLine="true"
+                    android:text="@string/label_resend_code"
+                    android:textSize="16sp"
                     android:textStyle="italic"
-                    android:singleLine="true"
-                    android:visibility="gone"
-                    android:textSize="16sp"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/label_resend_code" />
+                    android:visibility="gone" />
 
-                <TextView
-                    android:id="@+id/tv_login_register"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_margin="8dp"
-                    android:singleLine="true"
-                    android:text="@string/label_tap_to_login"
-                    android:textSize="16sp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:textStyle="bold|italic"
-                    android:visibility="visible" />
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_login_register"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:singleLine="true"
+                        android:text="@string/label_tap_to_login"
+                        android:textSize="16sp"
+                        android:textStyle="bold|italic"
+                        android:visibility="visible" />
+
+                    <ImageView
+                        android:id="@+id/iv_test_account"
+                        style="@style/Widget.AppCompat.ActionButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_help_outline_black_24dp"
+                        android:tint="@color/colorPrimary"
+                        android:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -165,10 +207,10 @@
 
 
             <com.agrawalsuneet.dotsloader.loaders.CircularDotsLoader
-                android:layout_gravity="center"
-                android:visibility="visible"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="visible"
                 app:loader_animDur="300"
                 app:loader_bigCircleRadius="16dp"
                 app:loader_circleRadius="4dp"

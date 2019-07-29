@@ -48,13 +48,13 @@ public class FriendRepository implements FriendInterface {
     public void getAllFriend(int friendStatus, final GetFriendCallback callback) {
         removeListener();
         updateFriendNotification(ChatUtils.getUser().getId(), -1, false);
-        DatabaseReference friendRequestListenerDb = mDbRef.child(Constant.FB_KEY_FRIEND).
-                child(ChatUtils.getUser().getId());
         if (friendStatus >= 0) {
-            mFriendListQuery = friendRequestListenerDb.orderByChild(Constant.FB_KEY_STATUS).equalTo(friendStatus);
+            mFriendListQuery = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).
+                    orderByChild(Constant.FB_KEY_STATUS).equalTo(friendStatus);
         } else {
             //get all
-            mFriendListQuery = friendRequestListenerDb.orderByChild(Constant.FB_KEY_CREATE_DATE);
+            mFriendListQuery = mDbRef.child(Constant.FB_KEY_FRIEND).child(ChatUtils.getUser().getId()).
+                    orderByChild(Constant.FB_KEY_CREATE_DATE);
         }
         mFriendListChildEventListener = new ChildEventListener() {
             @Override

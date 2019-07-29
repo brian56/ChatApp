@@ -178,20 +178,21 @@ public class UserRepository implements UserInterface {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
+                    User tempUser;
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                        User user = childSnapshot.getValue(User.class);
-                        user.setRegisteredUser(true);
-                        if (user.getId().equals(ChatUtils.getUser().getId())) {
+                        tempUser = childSnapshot.getValue(User.class);
+                        tempUser.setRegisteredUser(true);
+                        if (tempUser.getId().equals(ChatUtils.getUser().getId())) {
                             if (callback != null)
                                 callback.loadSuccess(null);
                         } else {
-                            if (user.getName().equalsIgnoreCase(user.getPhoneNumber())) {
-                                user.setName(contact.getName());
+                            if (tempUser.getName().equalsIgnoreCase(tempUser.getPhoneNumber())) {
+                                tempUser.setName(contact.getName());
                             }
-                            contact.cloneUser(user);
+                            contact.cloneUser(tempUser);
                             //get the friend status
                             DatabaseReference friendDb = mDbRef.child(Constant.FB_KEY_FRIEND).
-                                    child(ChatUtils.getUser().getId()).child(user.getId());
+                                    child(ChatUtils.getUser().getId()).child(tempUser.getId());
                             friendDb.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

@@ -32,7 +32,5 @@ public interface ContactContract {
         void createChat(boolean isGroup, String name, List<User> users);
 
         void checkSingleChatExist(boolean isGroup, String name, List<User> users);
-
-        void searchFriend(String phoneNumber);
     }
 }

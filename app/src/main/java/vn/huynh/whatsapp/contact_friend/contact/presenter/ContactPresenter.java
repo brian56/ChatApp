@@ -181,26 +181,4 @@ public class ContactPresenter implements ContactContract.Presenter {
             });
         }
     }
-
-    @Override
-    public void searchFriend(String phoneNumber) {
-        if (mViewContact != null) {
-            mViewContact.showLoadingIndicator();
-        }
-        mUserRepo.searchFriend(phoneNumber, new UserInterface.SearchFriendCallback() {
-            @Override
-            public void onSearchSuccess(List<User> userList) {
-                if (mViewContact != null) {
-                    mViewContact.showSearchResult(userList);
-                }
-            }
-
-            @Override
-            public void onSearchFail(String error) {
-                if (mViewContact != null) {
-                    mViewContact.showErrorMessage(error);
-                }
-            }
-        });
-    }
 }

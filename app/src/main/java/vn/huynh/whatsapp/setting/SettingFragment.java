@@ -1,5 +1,6 @@
 package vn.huynh.whatsapp.setting;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -92,6 +93,9 @@ public class SettingFragment extends BaseFragment {
                 newNotificationCallback.removeGroupNotificationDot();
                 newNotificationCallback.removeSettingNotification();
                 newNotificationCallback = null;
+
+                NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancelAll();
 
                 Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

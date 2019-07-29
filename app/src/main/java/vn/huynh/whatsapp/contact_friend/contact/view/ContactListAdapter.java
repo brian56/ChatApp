@@ -87,6 +87,16 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
             holder.ivAddFriend.setVisibility(View.VISIBLE);
             switch (mUserList.get(holder.getAdapterPosition()).getFriendStatus()) {
                 case Friend.STATUS_ACCEPT:
+                    holder.ivAddFriend.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+                    holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
+                    holder.ivAddFriend.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Toast.makeText(mContext, MyApp.resources.getString(R.string.you_were_friend,
+                                    mUserList.get(holder.getAdapterPosition()).getName()), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    break;
                 case Friend.STATUS_WAS_ACCEPTED:
                     holder.ivAddFriend.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
                     holder.ivAddFriend.setColorFilter(R.color.colorAccent_1, PorterDuff.Mode.SRC_IN);
@@ -124,6 +134,8 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
                     break;
 
                 case Friend.STATUS_BLOCK:
+                    holder.ivAddFriend.setVisibility(View.GONE);
+                    break;
                 case Friend.STATUS_WAS_BLOCKED:
                     holder.ivAddFriend.setVisibility(View.GONE);
                     break;
@@ -149,7 +161,9 @@ public class ContactListAdapter extends RecyclerView.Adapter<ContactListAdapter.
         } else {
             holder.ivAddFriend.setVisibility(View.GONE);
         }
-        if (mContactClickable) {
+        if (mContactClickable &&
+                (mUserList.get(holder.getAdapterPosition()).getFriendStatus() == Friend.STATUS_ACCEPT ||
+                        mUserList.get(holder.getAdapterPosition()).getFriendStatus() == Friend.STATUS_WAS_ACCEPTED)) {
             if (mUserList.get(holder.getAdapterPosition()).getRegisteredUser()) {
                 //registered user
                 holder.linearLayout.setOnClickListener(new View.OnClickListener() {

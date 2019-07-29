@@ -3,10 +3,12 @@ package vn.huynh.whatsapp.login.view;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +51,10 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     TextView tvLoginOrRegister;
     @BindView(R.id.tv_title)
     TextView tvTitle;
+    @BindView(R.id.iv_test_account)
+    ImageView ivTestAccount;
+    @BindView(R.id.til_name)
+    TextInputLayout textInputLayoutName;
 
     private static final String TAG = LoginActivity.class.getSimpleName();
 
@@ -143,15 +149,21 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                     mLoginPresenter.setLogin(mIsLogin);
                     tvTitle.setText(getResources().getString(R.string.label_register_account));
                     tvLoginOrRegister.setText(getResources().getString(R.string.label_tap_to_login));
-                    ViewUtils.expand(edtName);
+                    ViewUtils.expand(textInputLayoutName);
                 } else {
                     //switch to login
                     mIsLogin = true;
                     mLoginPresenter.setLogin(mIsLogin);
                     tvTitle.setText(getResources().getString(R.string.label_log_in));
                     tvLoginOrRegister.setText(getResources().getString(R.string.label_tap_to_register));
-                    ViewUtils.collapse(edtName);
+                    ViewUtils.collapse(textInputLayoutName);
                 }
+            }
+        });
+        ivTestAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO: show test account dialog
             }
         });
     }

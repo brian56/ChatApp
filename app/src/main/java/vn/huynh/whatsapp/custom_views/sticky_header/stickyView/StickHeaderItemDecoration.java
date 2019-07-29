@@ -66,9 +66,11 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
 
     private View getChildInContact(RecyclerView parent, int contactPoint, int currentHeaderPos) {
         View childInContact = null;
+        View child = null;
+        int heightTolerance = 0;
         for (int i = 0; i < parent.getChildCount(); i++) {
-            int heightTolerance = 0;
-            View child = parent.getChildAt(i);
+            heightTolerance = 0;
+            child = parent.getChildAt(i);
 
             //measure height tolerance with child if child is another header
             if (currentHeaderPos != i) {
