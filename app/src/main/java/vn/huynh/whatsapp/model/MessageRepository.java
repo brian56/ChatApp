@@ -195,6 +195,7 @@ public class MessageRepository implements MessageInterface {
                                 callback.loadSuccess(mMessageList);
                         } else {
                             if (mMessageList.size() == mTotalMessageCurrentPage) {
+                                mMessageList.remove(mMessageList.size() - 1);
                                 mLastMessagePaginationId = mMessageList.get(0).getId();
                                 mIsLoadingMore = false;
                                 if (callback != null)
