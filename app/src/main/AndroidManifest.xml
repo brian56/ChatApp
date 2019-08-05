@@ -48,6 +48,8 @@
             android:screenOrientation="portrait" />
 
         <service android:name=".services.NewMessageService" />
+        <!--<service android:name=".services.DetectOnlineStateService" />-->
+        <service android:name=".services.UpdateOnlineStatusService" />
         <receiver android:name="vn.huynh.whatsapp.services.AppKilledBroadcast">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />

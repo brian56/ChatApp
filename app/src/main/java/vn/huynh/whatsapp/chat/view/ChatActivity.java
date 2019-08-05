@@ -1,7 +1,10 @@
 package vn.huynh.whatsapp.chat.view;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,6 +30,8 @@ import vn.huynh.whatsapp.chat.ChatContract;
 import vn.huynh.whatsapp.chat.presenter.ChatPresenter;
 import vn.huynh.whatsapp.model.Chat;
 import vn.huynh.whatsapp.model.Message;
+import vn.huynh.whatsapp.services.NewMessageService;
+import vn.huynh.whatsapp.services.UpdateOnlineStatusService;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
 import vn.huynh.whatsapp.utils.LogManagerUtils;
@@ -72,7 +77,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     private int currentPosition = 0;
     //    private boolean firstStart = true;
     private boolean mIsReturnFromGallery = false;
-    private static boolean mIsVisible = false;
+    private static boolean sIsVisible = false;
     private String mChatId;
     private String mChatName;
 
@@ -156,7 +161,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     protected void onStart() {
         super.onStart();
 
-        mIsVisible = true;
+        sIsVisible = true;
         ChatUtils.setCurrentChatId(mChatId);
         if (mIsReturnFromGallery) {
             mIsReturnFromGallery = false;
@@ -167,24 +172,26 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
     protected void onStop() {
         super.onStop();
         if (!mIsReturnFromGallery) {
-            mIsVisible = false;
+            sIsVisible = false;
         } else {
-            mIsVisible = true;
+            sIsVisible = true;
         }
-    }
-
-    public static boolean checkVisible() {
-        return mIsVisible;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        sIsVisible = false;
+        stopService(new Intent(this, UpdateOnlineStatusService.class));
         ChatUtils.setCurrentChatId("");
 
         mChatPresenter.detachView();
         mChatPresenter.removeMessageListener();
         mChatPresenter.removeChatDetailListener();
+    }
+
+    public static boolean checkVisible() {
+        return sIsVisible;
     }
 
     @Override
@@ -242,6 +249,21 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         });
     }
 
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            NewMessageService.LocalBinder binder = (NewMessageService.LocalBinder) service;
+            NewMessageService mNewMessageService = binder.getService();
+            LogManagerUtils.d(TAG, "setShowMessageNotification()");
+            mNewMessageService.setShowMessageNotification(false);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+    
     @Override
     public void openGallery() {
         Intent intent = new Intent();

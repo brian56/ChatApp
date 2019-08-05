@@ -32,6 +32,7 @@ import vn.huynh.whatsapp.contact_friend.view.ContactAndFriendFragment;
 import vn.huynh.whatsapp.custom_views.BadgedBottomNavigationBar;
 import vn.huynh.whatsapp.group.view.GroupFragment;
 import vn.huynh.whatsapp.services.NewMessageService;
+import vn.huynh.whatsapp.services.UpdateOnlineStatusService;
 import vn.huynh.whatsapp.setting.SettingFragment;
 import vn.huynh.whatsapp.utils.ChatUtils;
 import vn.huynh.whatsapp.utils.Constant;
@@ -324,7 +325,7 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     public void showFriendNotification(boolean show) {
         if (mNewMessageService != null) {
-            mNewMessageService.setmIsShowFriendNotification(show);
+            mNewMessageService.setShowMessageNotification(show);
         }
     }
 
@@ -360,6 +361,9 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     protected void onStart() {
         super.onStart();
         LogManagerUtils.d(TAG, "On Start");
+
+        Intent intent = new Intent(HomeActivity.this, UpdateOnlineStatusService.class);
+        startService(intent);
 
         if (!mIsBoundService) {
             mIntentNewMessageService = new Intent(this, NewMessageService.class);
@@ -406,6 +410,8 @@ public class HomeActivity extends AppCompatActivity implements BaseFragment.Pare
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        sIsVisible = false;
+        stopService(new Intent(this, UpdateOnlineStatusService.class));
         LogManagerUtils.d(TAG, "On Destroy");
         if (mIsBoundService) {
             if (mNewMessageService != null)

@@ -188,7 +188,7 @@ public class NewMessageService extends Service {
     }
 
     @SuppressLint("NewApi")
-    public void createNotification(User sender, Chat chat, Friend friend) {
+    public void createNotification(User sender, Chat chat, final Friend friend) {
         if (chat != null) {
             String lastMessageId = chat.getLastMessageSent().getId();
             if (!lastMessageId.equals(SharedPrefsUtil.getInstance().
@@ -252,72 +252,97 @@ public class NewMessageService extends Service {
         if (friend != null) {
             String lastFriendId = friend.getUserId();
             int lastFriendStatus = friend.getStatus();
-            if ((!lastFriendId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
-                    && lastFriendStatus != SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))
-                    || (lastFriendId.equals(SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
-                    && lastFriendStatus != SharedPrefsUtil.getInstance().get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))) {
+            if ((!lastFriendId.equals(SharedPrefsUtil.getInstance().
+                    get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
+                    && lastFriendStatus != SharedPrefsUtil.getInstance().
+                    get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))
+                    || (lastFriendId.equals(SharedPrefsUtil.getInstance().
+                    get(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, String.class))
+                    && lastFriendStatus != SharedPrefsUtil.getInstance().
+                    get(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, Integer.class))) {
                 SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_ID, lastFriendId);
                 SharedPrefsUtil.getInstance().put(Constant.SP_LAST_NOTIFICATION_FRIEND_STATUS, lastFriendStatus);
             } else {
                 return;
             }
+            final DatabaseReference databaseReference = mDF.child(Constant.FB_KEY_USER).
+                    child(ChatUtils.getUser().getId()).
+                    child(Constant.FB_KEY_FRIEND_NOTIFICATION);
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        if (dataSnapshot.getValue(Integer.class) == 1) {
+                            Intent intent = new Intent(NewMessageService.this, HomeActivity.class);
+                            intent.putExtra(Constant.EXTRA_FRIEND_ID, friend.getUserId());
+                            intent.putExtra(Constant.EXTRA_FRIEND_STATUS, friend.getStatus());
+                            LogManagerUtils.d(TAG, "show mNotification friend: " + friend.getUserId());
 
-            Intent intent = new Intent(NewMessageService.this, HomeActivity.class);
-            intent.putExtra(Constant.EXTRA_FRIEND_ID, friend.getUserId());
-            intent.putExtra(Constant.EXTRA_FRIEND_STATUS, friend.getStatus());
-            LogManagerUtils.d(TAG, "show mNotification friend: " + friend.getUserId());
-
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            stackBuilder.addNextIntentWithParentStack(intent);
-            // Get the PendingIntent containing the entire back stack
+                            TaskStackBuilder stackBuilder = TaskStackBuilder.create(NewMessageService.this);
+                            stackBuilder.addNextIntentWithParentStack(intent);
+                            // Get the PendingIntent containing the entire back stack
 //            PendingIntent contentIntent =
 //                    stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(),
-                    (int) System.currentTimeMillis(), intent, 0);
+                            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(),
+                                    (int) System.currentTimeMillis(), intent, 0);
 
-            String title = "", message = "";
+                            String title = "", message = "";
 
-            switch (friend.getStatus()) {
-                case Friend.STATUS_WAS_REQUESTED:
-                    title = MyApp.resources.getString(R.string.notification_new_friend_request_from, friend.getName());
-                    break;
-                case Friend.STATUS_WAS_ACCEPTED:
-                    title = MyApp.resources.getString(R.string.notification_accept_friend_request, friend.getName());
-                    message = MyApp.resources.getString(R.string.notification_you_two_are_friend, friend.getName());
-                    break;
-                case Friend.STATUS_WAS_REJECTED:
-                    title = MyApp.resources.getString(R.string.notification_rejected_your_friend_request, friend.getName());
-                    break;
-                case Friend.STATUS_WAS_BLOCKED:
-                    title = MyApp.resources.getString(R.string.notification_block, friend.getName());
-                    break;
-                default:
-                    return;
-            }
-            mNotification = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                int importance = NotificationManager.IMPORTANCE_DEFAULT;
-                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL,
-                        "Name", importance);
-                mNotificationManager.createNotificationChannel(notificationChannel);
-                mNotification = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
-            } else {
-                mNotification = new NotificationCompat.Builder(getApplicationContext());
-            }
+                            switch (friend.getStatus()) {
+                                case Friend.STATUS_WAS_REQUESTED:
+                                    title = MyApp.resources.getString(R.string.notification_new_friend_request_from,
+                                            friend.getName());
+                                    break;
+                                case Friend.STATUS_WAS_ACCEPTED:
+                                    title = MyApp.resources.getString(R.string.notification_accept_friend_request,
+                                            friend.getName());
+                                    message = MyApp.resources.getString(R.string.notification_you_two_are_friend,
+                                            friend.getName());
+                                    break;
+                                case Friend.STATUS_WAS_REJECTED:
+                                    title = MyApp.resources.getString(R.string.notification_rejected_your_friend_request,
+                                            friend.getName());
+                                    break;
+                                case Friend.STATUS_WAS_BLOCKED:
+                                    title = MyApp.resources.getString(R.string.notification_block, friend.getName());
+                                    break;
+                                default:
+                                    return;
+                            }
+                            mNotification = null;
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL,
+                                        "Name", importance);
+                                mNotificationManager.createNotificationChannel(notificationChannel);
+                                mNotification = new NotificationCompat.Builder(getApplicationContext(),
+                                        notificationChannel.getId());
+                            } else {
+                                mNotification = new NotificationCompat.Builder(getApplicationContext());
+                            }
 
-            mNotification = mNotification
-                    .setSmallIcon(R.drawable.ic_notification_new)
-                    .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
-                    .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
-                            R.mipmap.ic_launcher_round))
-                    .setContentIntent(contentIntent)
-                    .setContentTitle(title)
-                    .setContentText(message)
-                    .setDefaults(Notification.DEFAULT_ALL)
-                    .setPriority(Notification.PRIORITY_HIGH)
-                    .setAutoCancel(true);
+                            mNotification = mNotification
+                                    .setSmallIcon(R.drawable.ic_notification_new)
+                                    .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary))
+                                    .setLargeIcon(BitmapFactory.decodeResource(MyApp.resources,
+                                            R.mipmap.ic_launcher_round))
+                                    .setContentIntent(contentIntent)
+                                    .setContentTitle(title)
+                                    .setContentText(message)
+                                    .setDefaults(Notification.DEFAULT_ALL)
+                                    .setPriority(Notification.PRIORITY_HIGH)
+                                    .setAutoCancel(true);
 
-            mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
+                            mNotificationManager.notify(ID_NOTIFICATION, mNotification.build());
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         }
     }
 
@@ -352,14 +377,10 @@ public class NewMessageService extends Service {
         sendBroadcast(intent);
     }
 
-    public void setShowMessageNotification(boolean isShowNoti) {
-        LogManagerUtils.d(TAG, " mIsShowMessageNotification " + this.mIsShowMessageNotification + "=> " + isShowNoti);
-        this.mIsShowMessageNotification = isShowNoti;
-    }
-
-    public void setmIsShowFriendNotification(boolean isShowNoti) {
-        LogManagerUtils.d(TAG, " mIsShowMessageNotification " + this.mIsShowFriendNotification + "=> " + isShowNoti);
-        this.mIsShowFriendNotification = isShowNoti;
+    public void setShowMessageNotification(boolean isShowNotify) {
+        LogManagerUtils.d(TAG, " mIsShowMessageNotification " +
+                this.mIsShowMessageNotification + "=> " + isShowNotify);
+        this.mIsShowMessageNotification = isShowNotify;
     }
 
     class GetBitmapFromUrl extends AsyncTask<String, Void, Bitmap> {

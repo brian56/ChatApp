@@ -36,8 +36,10 @@ public class User implements Parcelable {
     public static final int STATUS_OFFLINE = 0;
     public static final int STATUS_ONLINE = 1;
     public static final int STATUS_BUSY = 2;
+    public static final int STATUS_INVISIBLE = 3;
     public static final int STATUS_DELETED = -1;
-    public static final int STATUS_BANNED = -2;
+    public static final int STATUS_INACTIVE = -2;
+    public static final int STATUS_BANNED = -10;
 
     protected User(Parcel in) {
         id = in.readString();
